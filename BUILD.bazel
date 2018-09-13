@@ -1,0 +1,19 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    prefix = "kubevirt.io/node-recovery",
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_bundle",
+    container_repositories = "repositories",
+)
+
+container_bundle(
+    name = "noderecovery_images",
+    images = {
+        "docker.io/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
+    },
+)

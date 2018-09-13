@@ -1,0 +1,64 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["noderecovery.go"],
+    importpath = "kubevirt.io/node-recovery/cmd/noderecovery",
+    visibility = ["//visibility:private"],
+    deps = ["//pkg/controller/noderecovery:go_default_library"],
+)
+
+go_binary(
+    name = "noderecovery",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+    container_repositories = "repositories",
+)
+load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_entry", "passwd_file")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+passwd_entry(
+    name = "nonroot_user",
+    home = "/home/noderecovery",
+    shell = "/bin/bash",
+    uid = 1001,
+    gid = 1001,
+    username = "noderecovery",
+)
+
+passwd_file(
+    name = "passwd",
+    entries = [
+        ":nonroot_user",
+    ],
+)
+
+pkg_tar(
+    name = "passwd_tar",
+    srcs = [":passwd"],
+    mode = "0644",
+    package_dir = "etc",
+)
+
+container_image(
+    name = "passwd_image",
+    base = "@fedora//image",
+    tars = [":passwd_tar"],
+    user = "noderecovery",
+    visibility = ["//visibility:private"],
+)
+
+container_image(
+    name = "noderecovery_image",
+    base = ":passwd_image",
+    files = [":noderecovery"],
+    directory = "/usr/bin",
+    entrypoint = ["/usr/bin/noderecovery"],
+    user = "noderecovery",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    kubevirt.io: noderecovery
+  name: noderecovery-config
+  namespace: kube-system
+data:
+  remediation-config: |
+    enabled:                   true
+    stormThresholdInstances:   10
+    triageLabels:              [ kdumpRequestedSeconds, manualTriageSeconds ]
+    disruptionLabel:           recovery-seconds
+    disruptionCalculation:     average
+    disruptionRebootThreshold: 300 
+    defaultDisruptionValue:    60
+    defaultGraceSeconds:       180
+    defaultRebootGraceSeconds: 360
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: noderecovery
+  namespace: kube-system
+  labels:
+    kubevirt.io: noderecovery
+spec:
+  template:
+    metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+        scheduler.alpha.kubernetes.io/tolerations: |
+          [
+            {
+              "key": "CriticalAddonsOnly",
+              "operator": "Exists"
+            }
+          ]
+      labels:
+        app: "noderecovery"
+    spec:
+      serviceAccountName: noderecovery
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+        - name: noderecovery
+          image: registry:5000/kubevirt/noderecovery:devel
+          imagePullPolicy: Always
+          command:
+            - "noderecovery"
+          securityContext:
+            runAsUser: 1001
+          volumeMounts:
+          - name: noderecovery-config-volume
+            mountPath: /etc/noderecovery-config
+      volumes:
+      - name: noderecovery-config-volume
+        configMap:
+          name: noderecovery-config
