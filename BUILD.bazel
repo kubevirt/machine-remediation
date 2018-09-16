@@ -14,6 +14,6 @@ load(
 container_bundle(
     name = "noderecovery_images",
     images = {
-        "docker.io/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
+        "$(docker_prefix)/noderecovery:$(docker_tag)": "//cmd/noderecovery:noderecovery_image",
     },
 )
