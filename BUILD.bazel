@@ -17,3 +17,23 @@ container_bundle(
         "$(docker_prefix)/noderecovery:$(docker_tag)": "//cmd/noderecovery:noderecovery_image",
     },
 )
+
+filegroup(
+    name = "manifests",
+    srcs = glob([
+        "manifests/*.yaml.in",
+    ]),
+)
+
+genrule(
+    name = "generate_manifests",
+    srcs = ["//:manifests"],
+    outs = ["node-recovery.yaml"],
+    cmd = "./$(location //tools/manifest-templator:manifest-templator) \
+        --namespace=$(namespace) \
+        --docker-prefix=$(docker_prefix) \
+        --docker-tag=$(docker_tag) \
+        --image-pull-policy=$(image_pull_policy) \
+        --input-file=$(locations //:manifests) > $@",
+    tools = ["//tools/manifest-templator:manifest-templator"],
+)
