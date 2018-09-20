@@ -13,11 +13,22 @@ bazel-push-images-k8s-1.10.4:
 bazel-push-images-os-3.10.0:
 	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=os_3_10_0"
 
-cluster-up:
-	./cluster/up.sh
+cluster-build:
+	./cluster/build.sh
+
+cluster-clean:
+	./cluster/clean.sh
+
+cluster-deploy: cluster-clean
+	./cluster/deploy.sh
 
 cluster-down:
 	./cluster/down.sh
+
+cluster-sync: cluster-build cluster-deploy
+
+cluster-up:
+	./cluster/up.sh
 
 deps-install:
 	SYNC_VENDOR=true hack/dockerized "dep ensure"
@@ -31,4 +42,4 @@ distclean: clean
 	hack/dockerized "rm -rf vendor/ && rm -f Gopkg.lock"
 	rm -rf vendor/
 
-.PHONY: bazel-generate bazel-generate-manifests-dev bazel-generate-manifests-release bazel-push-images-k8s-1.10.4 bazel-push-images-os-3.10.0 cluster-up cluster-down deps-install deps-update distclean
+.PHONY: bazel-generate bazel-generate-manifests-dev bazel-generate-manifests-release bazel-push-images-k8s-1.10.4 bazel-push-images-os-3.10.0 cluster-build cluster-clean cluster-deploy cluster-down cluster-sync cluster-up deps-install deps-update distclean

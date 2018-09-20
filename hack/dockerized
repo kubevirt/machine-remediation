@@ -83,10 +83,6 @@ _rsync --exclude '.Gopkg*' --exclude 'cluster/**/.kubectl' --exclude 'cluster/**
 if [ "$SYNC_VENDOR" = "true" ]; then
     _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/vendor" "${VENDOR_DIR}/"
 fi
-# Copy the build output out of the container, make sure that _out exactly matches the build result
-if [ "$SYNC_OUT" = "true" ]; then
-    _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/out" ${OUT_DIR}
-fi
 # Copy generated noderecovery manifest from basel-genfiles to _out/manifests
 if [ "$SYNC_MANIFESTS" = "true" ]; then
     _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/bazel-genfiles/noderecovery.yaml" ${MANIFESTS_OUT_DIR}/noderecovery.yaml
