@@ -4,4 +4,6 @@ bazel-genfiles
 bazel-node-recovery
 bazel-out
 bazel-testlogs
-
+cluster/*/.kubeconfig
+cluster/*/.kubectl
+_out/

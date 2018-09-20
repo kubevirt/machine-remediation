@@ -11,9 +11,12 @@ load(
     container_repositories = "repositories",
 )
 
-container_bundle(
-    name = "noderecovery_images",
-    images = {
-        "$(docker_prefix)/noderecovery:$(docker_tag)": "//cmd/noderecovery:noderecovery_image",
-    },
+load("@io_bazel_rules_docker//contrib:push-all.bzl", "docker_push")
+
+docker_push(
+    name = "push_images",
+    bundle = select({
+        "//cluster/k8s-1.10.4:cluster_provider_k8s_1_10_4" :"//cluster/k8s-1.10.4:noderecovery_images",
+        "//cluster/os-3.10.0:cluster_provider_os_3_10_0" :"//cluster/os-3.10.0:noderecovery_images",
+    })
 )

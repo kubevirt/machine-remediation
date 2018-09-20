@@ -1,0 +1,21 @@
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_bundle",
+    container_repositories = "repositories",
+)
+
+container_bundle(
+    name = "noderecovery_images",
+    images = {
+        "localhost:33000/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "cluster_provider_k8s_1_10_4",
+    define_values = {
+        "dev": "true",
+        "cluster_provider": "k8s_1_10_4",
+    }
+)
