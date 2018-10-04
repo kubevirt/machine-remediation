@@ -33,27 +33,18 @@ RUN \
     go get -u github.com/golang/dep/cmd/dep && \
     go get golang.org/x/tools/cmd/goimports && \
     git clone https://github.com/mvdan/sh.git $GOPATH/src/mvdan.cc/sh && \
-    cd /go/src/mvdan.cc/sh/cmd/shfmt && \
+    cd $GOPATH/src/mvdan.cc/sh/cmd/shfmt && \
     git checkout v2.5.0 && \
     go get mvdan.cc/sh/cmd/shfmt && \
     go install && \
     go get -u github.com/golang/mock/gomock && \
     go get -u github.com/golang/mock/mockgen && \
     go get -u github.com/onsi/ginkgo/ginkgo && \
-    go get -u -d k8s.io/code-generator/cmd/deepcopy-gen && \
-    go get -u -d k8s.io/code-generator/cmd/defaulter-gen && \
-    go get -u -d k8s.io/code-generator/cmd/openapi-gen && \
-    cd /go/src/k8s.io/code-generator/cmd/deepcopy-gen && \
-    git checkout release-1.9 && \
-    go install && \
-    cd /go/src/k8s.io/code-generator/cmd/defaulter-gen && \
-    git checkout release-1.9 && \
-    go install && \
-    cd /go/src/k8s.io/code-generator/cmd/openapi-gen && \
-    git checkout release-1.9 && \
-    go install && \
+    git clone https://github.com/kubernetes/code-generator -b release-1.11 $GOPATH/src/k8s.io/code-generator && \
+    cd $GOPATH/src/k8s.io/code-generator && \
+    go install ./cmd/{defaulter-gen,client-gen,lister-gen,informer-gen,deepcopy-gen} && \
     go get -u -d github.com/golang/protobuf/protoc-gen-go && \
-    cd /go/src/github.com/golang/protobuf/protoc-gen-go && \
+    cd $GOPATH/src/github.com/golang/protobuf/protoc-gen-go && \
     git checkout 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9 && \
     go install
 

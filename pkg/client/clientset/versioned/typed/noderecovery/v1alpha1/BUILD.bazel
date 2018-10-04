@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "generated_expansion.go",
+        "noderecovery_client.go",
+    ],
+    importpath = "kubevirt.io/node-recovery/pkg/client/clientset/versioned/typed/noderecovery/v1alpha1",
+    visibility = ["//visibility:public"],
+)

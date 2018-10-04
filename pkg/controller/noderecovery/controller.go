@@ -20,16 +20,19 @@
 package noderecovery
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/golang/glog"
 
-	"kubevirt.io/node-recovery/pkg/controller"
-
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+
+	"kubevirt.io/node-recovery/pkg/clientset"
+	"kubevirt.io/node-recovery/pkg/controller"
 )
 
 const (
@@ -41,11 +44,18 @@ const (
 	maxRetries = 15
 )
 
+const RemediateAnnotations = "remediate-logic.alpha.kubevirt.io/state-data"
+
 type NodeRecoveryController struct {
-	queue             workqueue.RateLimitingInterface
+	clientSet kubernetes.Interface
+
+	queue workqueue.RateLimitingInterface
+
 	nodeInformer      cache.SharedIndexInformer
 	configMapInformer cache.SharedIndexInformer
 	jobInformer       cache.SharedIndexInformer
+
+	nodeConditionManager *controller.NodeConditionManager
 }
 
 // NewNodeRecoveryController returns new NodeRecoveryController instance
@@ -55,10 +65,12 @@ func NewNodeRecoveryController(
 	jobInformer cache.SharedIndexInformer) *NodeRecoveryController {
 
 	c := &NodeRecoveryController{
-		queue:             workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
-		nodeInformer:      nodeInformer,
-		configMapInformer: configMapInformer,
-		jobInformer:       jobInformer,
+		clientSet:            clientset.NewClientSet(),
+		queue:                workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
+		nodeInformer:         nodeInformer,
+		configMapInformer:    configMapInformer,
+		jobInformer:          jobInformer,
+		nodeConditionManager: controller.NewNodeConditionManager(),
 	}
 
 	c.nodeInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -79,20 +91,45 @@ func NewNodeRecoveryController(
 		UpdateFunc: c.updateJob,
 	})
 
+	c.nodeConditionManager = controller.NewNodeConditionManager()
+
 	return c
 }
 
 // TODO: I think we will need only part of this handlers,
-// addNode, deleteNode, updateNode and maybe 
+// addNode, deleteNode, updateNode and maybe
 func (c *NodeRecoveryController) addNode(obj interface{}) {
 }
 
 func (c *NodeRecoveryController) deleteNode(obj interface{}) {
 }
 
-func (c *NodeRecoveryController) updateNode(old, curr interface{}) {
-	currNode := curr.(*apiv1.Node)
-	glog.Warningf("Node %s updated", currNode.Name)
+func (c *NodeRecoveryController) updateNode(old, cur interface{}) {
+	curNode := cur.(*apiv1.Node)
+	oldNode := old.(*apiv1.Node)
+	if curNode.ResourceVersion == oldNode.ResourceVersion {
+		// Periodic resync will send update events for all known pods.
+		// Two different versions of the same pod will always have different RVs.
+		return
+	}
+
+	if curNode.DeletionTimestamp != nil {
+		return
+	}
+
+	if !reflect.DeepEqual(curNode.Status, oldNode.Status) {
+		glog.V(2).Infof("node %s status updated", curNode.Name)
+		c.enqueueNode(cur)
+	}
+}
+
+func (c *NodeRecoveryController) enqueueNode(obj interface{}) {
+	node := obj.(*apiv1.Node)
+	key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(node)
+	if err != nil {
+		glog.Errorf("failed to extract for the node %s", node.Name)
+	}
+	c.queue.Add(key)
 }
 
 func (c *NodeRecoveryController) addConfigMap(obj interface{}) {
@@ -117,7 +154,7 @@ func (c *NodeRecoveryController) updateJob(old, curr interface{}) {
 func (c *NodeRecoveryController) Run(threadiness int, stopCh chan struct{}) {
 	defer controller.HandlePanic()
 	defer c.queue.ShutDown()
-	glog.Info("Starting node-recovery controller.")
+	glog.Info("starting node-recovery controller.")
 
 	// Wait for cache sync before we start the pod controller
 	if !controller.WaitForCacheSync("node-recovery", stopCh, c.nodeInformer.HasSynced, c.configMapInformer.HasSynced, c.jobInformer.HasSynced) {
@@ -130,7 +167,7 @@ func (c *NodeRecoveryController) Run(threadiness int, stopCh chan struct{}) {
 	}
 
 	<-stopCh
-	glog.Info("Stopping node-recovery controller.")
+	glog.Info("stopping node-recovery controller.")
 }
 
 func (c *NodeRecoveryController) worker() {
@@ -158,16 +195,36 @@ func (c *NodeRecoveryController) handleErr(err error, key interface{}) {
 	}
 
 	if c.queue.NumRequeues(key) < maxRetries {
-		glog.V(2).Infof("Error syncing node %v: %v", key, err)
+		glog.V(2).Infof("error syncing node %v: %v", key, err)
 		c.queue.AddRateLimited(key)
 		return
 	}
 
-	glog.V(2).Infof("Dropping node %q out of the queue: %v", key, err)
+	glog.V(2).Infof("dropping node %q out of the queue: %v", key, err)
 	c.queue.Forget(key)
 }
 
 func (c *NodeRecoveryController) syncNode(key string) error {
+	// Fetch the latest Vm state from cache
+	obj, exists, err := c.nodeInformer.GetStore().GetByKey(key)
+
+	if err != nil {
+		return err
+	}
+
+	// Node does not exist under the cache, so nothing to do from our side
+	if !exists {
+		return nil
+	}
+
+	node := obj.(*apiv1.Node)
+
+	readyCond := c.nodeConditionManager.GetNodeCondition(node, apiv1.NodeReady)
+
+	if readyCond.Status != apiv1.ConditionTrue {
+		glog.Infof("node %s has ready condition false", node.Name)
+	}
+
 	// TODO: add remediation logic
 	return nil
 }

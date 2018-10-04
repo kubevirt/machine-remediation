@@ -84,10 +84,10 @@ func (f *informerFactory) Start(stopCh <-chan struct{}) {
 	for name, informer := range f.informers {
 		if f.startedInformers[name] {
 			// skip informers that have already started.
-			glog.Infof("SKIPPING informer %s", name)
+			glog.Infof("skipping informer %s", name)
 			continue
 		}
-		glog.Infof("STARTING informer %s", name)
+		glog.Infof("starting informer %s", name)
 		go informer.Run(stopCh)
 		f.startedInformers[name] = true
 	}

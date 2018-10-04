@@ -49,6 +49,7 @@ type NodeRecoveryImpl struct {
 
 	nodeInformer      cache.SharedIndexInformer
 	configMapInformer cache.SharedIndexInformer
+	nodeRemediation   cache.SharedIndexInformer
 	jobsInformer      cache.SharedIndexInformer
 
 	informerFactory informerfactory.InformerFactory
@@ -105,7 +106,7 @@ func (nri *NodeRecoveryImpl) Run() {
 		// TODO: Replace leaderelectionconfig.DefaultNamespace with a flag
 		namespace = leaderelectionconfig.DefaultNamespace
 	} else {
-		glog.Fatalf("Error searching for namespace in /var/run/secrets/kubernetes.io/serviceaccount/namespace: %v", err)
+		glog.Fatalf("error searching for namespace in /var/run/secrets/kubernetes.io/serviceaccount/namespace: %v", err)
 	}
 
 	// Create new recorder for node-recovery config map
