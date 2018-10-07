@@ -83,6 +83,7 @@ func initializeNodeRecovery(nodeRecoveryApp *NodeRecoveryImpl) {
 }
 
 func initializeLogging() {
+	flag.Set("logtostderr", "true")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 }
