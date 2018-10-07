@@ -7,6 +7,17 @@ metadata:
     kubevirt.io: "noderecovery"
 rules:
   - apiGroups:
+      - noderecovery.kubevirt.io
+    resources:
+      - noderemediation
+    verbs:
+      - create
+      - patch
+      - list
+      - watch
+      - get
+      - update
+  - apiGroups:
       - ''
     resources:
       - nodes

@@ -27,11 +27,10 @@ import (
 
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 
-	"kubevirt.io/node-recovery/pkg/clientset"
+	"kubevirt.io/node-recovery/pkg/client"
 	"kubevirt.io/node-recovery/pkg/controller"
 )
 
@@ -47,7 +46,7 @@ const (
 const RemediateAnnotations = "remediate-logic.alpha.kubevirt.io/state-data"
 
 type NodeRecoveryController struct {
-	clientSet kubernetes.Interface
+	clientSet client.NodeRecoveryClient
 
 	queue workqueue.RateLimitingInterface
 
@@ -65,7 +64,7 @@ func NewNodeRecoveryController(
 	jobInformer cache.SharedIndexInformer) *NodeRecoveryController {
 
 	c := &NodeRecoveryController{
-		clientSet:            clientset.NewClientSet(),
+		clientSet:            client.NewNodeRecoveryClient(),
 		queue:                workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 		nodeInformer:         nodeInformer,
 		configMapInformer:    configMapInformer,

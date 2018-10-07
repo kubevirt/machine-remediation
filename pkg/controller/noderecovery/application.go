@@ -29,7 +29,6 @@ import (
 	"github.com/spf13/pflag"
 
 	apiv1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/cache"
@@ -37,7 +36,7 @@ import (
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
 
-	"kubevirt.io/node-recovery/pkg/clientset"
+	"kubevirt.io/node-recovery/pkg/client"
 	"kubevirt.io/node-recovery/pkg/controller/informerfactory"
 	"kubevirt.io/node-recovery/pkg/controller/leaderelectionconfig"
 )
@@ -45,7 +44,7 @@ import (
 const controllerThreads = 5
 
 type NodeRecoveryImpl struct {
-	clientSet kubernetes.Interface
+	clientSet client.NodeRecoveryClient
 
 	nodeInformer      cache.SharedIndexInformer
 	configMapInformer cache.SharedIndexInformer
@@ -68,7 +67,7 @@ func Execute() {
 }
 
 func initializeNodeRecovery(nodeRecoveryApp *NodeRecoveryImpl) {
-	nodeRecoveryApp.clientSet = clientset.NewClientSet()
+	nodeRecoveryApp.clientSet = client.NewNodeRecoveryClient()
 	nodeRecoveryApp.informerFactory = informerfactory.NewInformerFactory(nodeRecoveryApp.clientSet)
 	nodeRecoveryApp.nodeInformer = nodeRecoveryApp.informerFactory.Node()
 	nodeRecoveryApp.configMapInformer = nodeRecoveryApp.informerFactory.ConfigMap()

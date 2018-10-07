@@ -27,7 +27,6 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeRemediation is a specification for a NodeRemediation resource
-
 type NodeRemediation struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -67,4 +66,3 @@ type NodeRemediationList struct {
 
 	Items           []NodeRemediation `json:"items"`
 }
-	

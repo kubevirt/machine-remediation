@@ -6,7 +6,17 @@ go_library(
         "doc.go",
         "generated_expansion.go",
         "noderecovery_client.go",
+        "noderemediation.go",
     ],
     importpath = "kubevirt.io/node-recovery/pkg/client/clientset/versioned/typed/noderecovery/v1alpha1",
     visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/apis/noderecovery/v1alpha1:go_default_library",
+        "//pkg/client/clientset/versioned/scheme:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//vendor/k8s.io/client-go/rest:go_default_library",
+    ],
 )
