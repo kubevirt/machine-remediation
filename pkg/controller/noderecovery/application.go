@@ -29,29 +29,29 @@ import (
 	"github.com/spf13/pflag"
 
 	apiv1 "k8s.io/api/core/v1"
+	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
 
-	"kubevirt.io/node-recovery/pkg/clientset"
-	"kubevirt.io/node-recovery/pkg/controller/informerfactory"
+	"kubevirt.io/node-recovery/pkg/client"
+	clientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
+	informers "kubevirt.io/node-recovery/pkg/client/informers/externalversions"
+	"kubevirt.io/node-recovery/pkg/controller"
 	"kubevirt.io/node-recovery/pkg/controller/leaderelectionconfig"
 )
 
 const controllerThreads = 5
 
 type NodeRecoveryImpl struct {
-	clientSet kubernetes.Interface
+	kubeclientset         kubernetes.Interface
+	noderecoveryclientset clientset.Interface
 
-	nodeInformer      cache.SharedIndexInformer
-	configMapInformer cache.SharedIndexInformer
-	jobsInformer      cache.SharedIndexInformer
-
-	informerFactory informerfactory.InformerFactory
+	kubeInformerFactory         kubeinformers.SharedInformerFactory
+	nodeRecoveryInformerFactory informers.SharedInformerFactory
 
 	leaderElection leaderelectionconfig.Configuration
 
@@ -67,21 +67,23 @@ func Execute() {
 }
 
 func initializeNodeRecovery(nodeRecoveryApp *NodeRecoveryImpl) {
-	nodeRecoveryApp.clientSet = clientset.NewClientSet()
-	nodeRecoveryApp.informerFactory = informerfactory.NewInformerFactory(nodeRecoveryApp.clientSet)
-	nodeRecoveryApp.nodeInformer = nodeRecoveryApp.informerFactory.Node()
-	nodeRecoveryApp.configMapInformer = nodeRecoveryApp.informerFactory.ConfigMap()
-	nodeRecoveryApp.jobsInformer = nodeRecoveryApp.informerFactory.Job()
+	nodeRecoveryApp.kubeclientset = client.NewKubeClientSet()
+	nodeRecoveryApp.noderecoveryclientset = client.NewNodeRecoveryClientSet()
+	nodeRecoveryApp.kubeInformerFactory = kubeinformers.NewSharedInformerFactory(nodeRecoveryApp.kubeclientset, controller.DefaultResyncPeriod())
+	nodeRecoveryApp.nodeRecoveryInformerFactory = informers.NewSharedInformerFactory(nodeRecoveryApp.noderecoveryclientset, controller.DefaultResyncPeriod())
 	nodeRecoveryApp.leaderElection = leaderelectionconfig.DefaultLeaderElectionConfiguration()
 
 	nodeRecoveryApp.controller = NewNodeRecoveryController(
-		nodeRecoveryApp.nodeInformer,
-		nodeRecoveryApp.configMapInformer,
-		nodeRecoveryApp.jobsInformer,
+		nodeRecoveryApp.kubeclientset,
+		nodeRecoveryApp.noderecoveryclientset,
+		nodeRecoveryApp.kubeInformerFactory.Core().V1().Nodes(),
+		nodeRecoveryApp.kubeInformerFactory.Core().V1().ConfigMaps(),
+		nodeRecoveryApp.nodeRecoveryInformerFactory.Noderecovery().V1alpha1().NodeRemediations(),
 	)
 }
 
 func initializeLogging() {
+	flag.Set("logtostderr", "true")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 }
@@ -105,18 +107,18 @@ func (nri *NodeRecoveryImpl) Run() {
 		// TODO: Replace leaderelectionconfig.DefaultNamespace with a flag
 		namespace = leaderelectionconfig.DefaultNamespace
 	} else {
-		glog.Fatalf("Error searching for namespace in /var/run/secrets/kubernetes.io/serviceaccount/namespace: %v", err)
+		glog.Fatalf("error searching for namespace in /var/run/secrets/kubernetes.io/serviceaccount/namespace: %v", err)
 	}
 
 	// Create new recorder for node-recovery config map
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: clientv1.New(nri.clientSet.CoreV1().RESTClient()).Events(namespace)})
+	eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: clientv1.New(nri.kubeclientset.CoreV1().RESTClient()).Events(namespace)})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, apiv1.EventSource{Component: leaderelectionconfig.DefaultConfigMapName})
 
 	rl, err := resourcelock.New(nri.leaderElection.ResourceLock,
 		namespace,
 		leaderelectionconfig.DefaultConfigMapName,
-		nri.clientSet.CoreV1(),
+		nri.kubeclientset.CoreV1(),
 		resourcelock.ResourceLockConfig{
 			Identity:      id,
 			EventRecorder: recorder,
@@ -133,7 +135,8 @@ func (nri *NodeRecoveryImpl) Run() {
 			RetryPeriod:   nri.leaderElection.RetryPeriod.Duration,
 			Callbacks: leaderelection.LeaderCallbacks{
 				OnStartedLeading: func(stopCh <-chan struct{}) {
-					nri.informerFactory.Start(stop)
+					go nri.kubeInformerFactory.Start(stop)
+					go nri.nodeRecoveryInformerFactory.Start(stop)
 					go nri.controller.Run(controllerThreads, stop)
 				},
 				OnStoppedLeading: func() {

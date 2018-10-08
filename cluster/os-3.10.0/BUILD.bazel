@@ -17,5 +17,5 @@ config_setting(
     define_values = {
         "dev": "true",
         "cluster_provider": "os_3_10_0",
-    }
+    },
 )

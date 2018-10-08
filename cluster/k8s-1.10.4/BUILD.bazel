@@ -17,5 +17,5 @@ config_setting(
     define_values = {
         "dev": "true",
         "cluster_provider": "k8s_1_10_4",
-    }
+    },
 )

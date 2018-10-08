@@ -1,4 +1,28 @@
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    kubevirt.io: noderecovery
+  name: noderemediations.noderecovery.kubevirt.io
+spec:
+  group: noderecovery.kubevirt.io
+  version: v1alpha1
+  names:
+    kind: NodeRemediation
+    plural: noderemediations
+    shortNames:
+    - nr
+    - nrs
+    singular: noderemediation
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      required: ["spec"]
+      properties:
+         spec:
+           required: ["nodeName"]
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -57,6 +81,7 @@ spec:
           imagePullPolicy: {{.ImagePullPolicy}}
           command:
             - "noderecovery"
+            - "--v=2"
           securityContext:
             runAsUser: 1001
           volumeMounts:

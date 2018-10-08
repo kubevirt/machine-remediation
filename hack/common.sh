@@ -8,7 +8,6 @@ OUT_DIR=$REPO_DIR/_out
 VENDOR_DIR=$REPO_DIR/vendor
 CMD_OUT_DIR=$OUT_DIR/cmd
 TESTS_OUT_DIR=$OUT_DIR/tests
-MANIFESTS_OUT_DIR=$OUT_DIR/manifests
 
 function build_func_tests() {
     mkdir -p ${TESTS_OUT_DIR}/

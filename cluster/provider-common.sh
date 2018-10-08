@@ -23,6 +23,7 @@ function _add_common_params() {
 
 function build() {
     # Build everyting and publish it
+    make bazel-generate
     make bazel-generate-manifests-dev
     make bazel-push-images-$CLUSTER_PROVIDER
 }

@@ -42,4 +42,7 @@ distclean: clean
 	hack/dockerized "rm -rf vendor/ && rm -f Gopkg.lock"
 	rm -rf vendor/
 
-.PHONY: bazel-generate bazel-generate-manifests-dev bazel-generate-manifests-release bazel-push-images-k8s-1.10.4 bazel-push-images-os-3.10.0 cluster-build cluster-clean cluster-deploy cluster-down cluster-sync cluster-up deps-install deps-update distclean
+generate:
+	hack/dockerized "hack/update-codegen.sh"
+
+.PHONY: bazel-generate bazel-generate-manifests-dev bazel-generate-manifests-release bazel-push-images-k8s-1.10.4 bazel-push-images-os-3.10.0 cluster-build cluster-clean cluster-deploy cluster-down cluster-sync cluster-up deps-install deps-update distclean generate

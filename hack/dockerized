@@ -27,8 +27,8 @@ if [ -z "$(docker volume list | grep ${BUILDER})" ]; then
     docker volume create --name ${BUILDER}
 fi
 
-# Make sure that the manifests directory exists
-docker run -v "${BUILDER}:/root:rw,z" --security-opt label:disable --rm ${BUILDER} mkdir -p /root/go/src/kubevirt.io/node-recovery/_out/manifests
+# Make sure that the out directory exists
+docker run -v "${BUILDER}:/root:rw,z" --security-opt label:disable --rm ${BUILDER} mkdir -p /root/go/src/kubevirt.io/node-recovery/_out
 
 # Start an rsyncd instance and make sure it gets stopped after the script exits
 RSYNC_CID=$(docker run -d -v "${BUILDER}:/root:rw,z" --security-opt label:disable --expose 873 -P ${BUILDER} /usr/bin/rsync --no-detach --daemon --verbose)
@@ -85,5 +85,5 @@ if [ "$SYNC_VENDOR" = "true" ]; then
 fi
 # Copy generated noderecovery manifest from basel-genfiles to _out/manifests
 if [ "$SYNC_MANIFESTS" = "true" ]; then
-    _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/bazel-genfiles/noderecovery.yaml" ${MANIFESTS_OUT_DIR}/noderecovery.yaml
+    _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/bazel-genfiles/" ${OUT_DIR}/
 fi
