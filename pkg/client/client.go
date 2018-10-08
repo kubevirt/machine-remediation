@@ -24,7 +24,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	noderecoveryclientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
-	noderecoveryv1alpha1 "kubevirt.io/node-recovery/pkg/client/clientset/versioned/typed/noderecovery/v1alpha1"
 )
 
 func getRESTConfig() *rest.Config {
@@ -37,8 +36,8 @@ func getRESTConfig() *rest.Config {
 	return config
 }
 
-// NewClientSet returns k8s client
-func newClientSet() *kubernetes.Clientset {
+// NewKubeClientSet returns k8s client
+func NewKubeClientSet() *kubernetes.Clientset {
 	config := getRESTConfig()
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
@@ -50,7 +49,7 @@ func newClientSet() *kubernetes.Clientset {
 }
 
 // NewNodeRecoveryClientSet returns node-recovery client
-func newNodeRecoveryClientSet() *noderecoveryclientset.Clientset {
+func NewNodeRecoveryClientSet() *noderecoveryclientset.Clientset {
 	config := getRESTConfig()
 	// creates the clientset
 	clientset, err := noderecoveryclientset.NewForConfig(config)
@@ -59,25 +58,4 @@ func newNodeRecoveryClientSet() *noderecoveryclientset.Clientset {
 	}
 
 	return clientset
-}
-
-type NodeRecoveryClient interface {
-	kubernetes.Interface
-	NodeRemediation(namespace string) noderecoveryv1alpha1.NodeRemediationInterface
-}
-
-type nodeRecoveryClientImpl struct {
-	* kubernetes.Clientset
-	noderecoveryClient *noderecoveryclientset.Clientset
-}
-
-func (n *nodeRecoveryClientImpl) NodeRemediation(namespace string) noderecoveryv1alpha1.NodeRemediationInterface {
-	return n.noderecoveryClient.NoderecoveryV1alpha1().NodeRemediations(namespace)
-}
-
-func NewNodeRecoveryClient() *nodeRecoveryClientImpl {
-	return &nodeRecoveryClientImpl{
-		newClientSet(),
-		newNodeRecoveryClientSet(),
-	}
 }

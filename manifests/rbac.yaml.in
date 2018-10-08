@@ -9,7 +9,7 @@ rules:
   - apiGroups:
       - noderecovery.kubevirt.io
     resources:
-      - noderemediation
+      - noderemediations
     verbs:
       - create
       - patch

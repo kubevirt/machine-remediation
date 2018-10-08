@@ -20,17 +20,26 @@
 package noderecovery
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/golang/glog"
 
 	apiv1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	coreinformers "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/kubernetes"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 
-	"kubevirt.io/node-recovery/pkg/client"
+	"kubevirt.io/node-recovery/pkg/apis/noderecovery/v1alpha1"
+	clientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
+	informers "kubevirt.io/node-recovery/pkg/client/informers/externalversions/noderecovery/v1alpha1"
+	listers "kubevirt.io/node-recovery/pkg/client/listers/noderecovery/v1alpha1"
 	"kubevirt.io/node-recovery/pkg/controller"
 )
 
@@ -43,51 +52,54 @@ const (
 	maxRetries = 15
 )
 
-const RemediateAnnotations = "remediate-logic.alpha.kubevirt.io/state-data"
-
 type NodeRecoveryController struct {
-	clientSet client.NodeRecoveryClient
+	kubeclientset         kubernetes.Interface
+	noderecoveryclientset clientset.Interface
 
 	queue workqueue.RateLimitingInterface
 
-	nodeInformer      cache.SharedIndexInformer
-	configMapInformer cache.SharedIndexInformer
-	jobInformer       cache.SharedIndexInformer
+	nodeLister            corelisters.NodeLister
+	nodeSynced            cache.InformerSynced
+	configMapLister       corelisters.ConfigMapLister
+	configMapSynced       cache.InformerSynced
+	nodeRemediationLister listers.NodeRemediationLister
+	nodeRemediationSynced cache.InformerSynced
 
 	nodeConditionManager *controller.NodeConditionManager
 }
 
 // NewNodeRecoveryController returns new NodeRecoveryController instance
 func NewNodeRecoveryController(
-	nodeInformer cache.SharedIndexInformer,
-	configMapInformer cache.SharedIndexInformer,
-	jobInformer cache.SharedIndexInformer) *NodeRecoveryController {
+	kubeclientset kubernetes.Interface,
+	noderecoveryclientset clientset.Interface,
+	nodeInformer coreinformers.NodeInformer,
+	configMapInformer coreinformers.ConfigMapInformer,
+	nodeRemediationInformer informers.NodeRemediationInformer,
+) *NodeRecoveryController {
 
 	c := &NodeRecoveryController{
-		clientSet:            client.NewNodeRecoveryClient(),
-		queue:                workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
-		nodeInformer:         nodeInformer,
-		configMapInformer:    configMapInformer,
-		jobInformer:          jobInformer,
-		nodeConditionManager: controller.NewNodeConditionManager(),
+		kubeclientset:         kubeclientset,
+		noderecoveryclientset: noderecoveryclientset,
+		queue:                 workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
+		nodeLister:            nodeInformer.Lister(),
+		nodeSynced:            nodeInformer.Informer().HasSynced,
+		configMapLister:       configMapInformer.Lister(),
+		configMapSynced:       configMapInformer.Informer().HasSynced,
+		nodeRemediationLister: nodeRemediationInformer.Lister(),
+		nodeRemediationSynced: nodeRemediationInformer.Informer().HasSynced,
+		nodeConditionManager:  controller.NewNodeConditionManager(),
 	}
 
-	c.nodeInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	nodeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    c.addNode,
 		DeleteFunc: c.deleteNode,
 		UpdateFunc: c.updateNode,
 	})
 
-	c.configMapInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    c.addConfigMap,
-		DeleteFunc: c.deleteConfigMap,
-		UpdateFunc: c.updateConfigMap,
-	})
-
-	c.jobInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    c.addJob,
-		DeleteFunc: c.deleteJob,
-		UpdateFunc: c.updateJob,
+	nodeRemediationInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    c.addRemediationNode,
+		DeleteFunc: c.deleteRemediationNode,
+		UpdateFunc: c.updateRemediationNode,
 	})
 
 	c.nodeConditionManager = controller.NewNodeConditionManager()
@@ -131,22 +143,13 @@ func (c *NodeRecoveryController) enqueueNode(obj interface{}) {
 	c.queue.Add(key)
 }
 
-func (c *NodeRecoveryController) addConfigMap(obj interface{}) {
+func (c *NodeRecoveryController) addRemediationNode(obj interface{}) {
 }
 
-func (c *NodeRecoveryController) deleteConfigMap(obj interface{}) {
+func (c *NodeRecoveryController) deleteRemediationNode(obj interface{}) {
 }
 
-func (c *NodeRecoveryController) updateConfigMap(old, curr interface{}) {
-}
-
-func (c *NodeRecoveryController) addJob(obj interface{}) {
-}
-
-func (c *NodeRecoveryController) deleteJob(obj interface{}) {
-}
-
-func (c *NodeRecoveryController) updateJob(old, curr interface{}) {
+func (c *NodeRecoveryController) updateRemediationNode(old, curr interface{}) {
 }
 
 // Run begins watching and syncing.
@@ -156,7 +159,7 @@ func (c *NodeRecoveryController) Run(threadiness int, stopCh chan struct{}) {
 	glog.Info("starting node-recovery controller.")
 
 	// Wait for cache sync before we start the pod controller
-	if !controller.WaitForCacheSync("node-recovery", stopCh, c.nodeInformer.HasSynced, c.configMapInformer.HasSynced, c.jobInformer.HasSynced) {
+	if !controller.WaitForCacheSync("node-recovery", stopCh, c.nodeSynced, c.configMapSynced, c.nodeRemediationSynced) {
 		return
 	}
 
@@ -205,23 +208,48 @@ func (c *NodeRecoveryController) handleErr(err error, key interface{}) {
 
 func (c *NodeRecoveryController) syncNode(key string) error {
 	// Fetch the latest Vm state from cache
-	obj, exists, err := c.nodeInformer.GetStore().GetByKey(key)
-
+	_, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
-		return err
-	}
-
-	// Node does not exist under the cache, so nothing to do from our side
-	if !exists {
+		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
 		return nil
 	}
 
-	node := obj.(*apiv1.Node)
+	node, err := c.nodeLister.Get(name)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			runtime.HandleError(fmt.Errorf("node '%s' in work queue no longer exists", key))
+			return nil
+		}
+
+		return err
+	}
 
 	readyCond := c.nodeConditionManager.GetNodeCondition(node, apiv1.NodeReady)
 
 	if readyCond.Status != apiv1.ConditionTrue {
 		glog.Infof("node %s has ready condition false", node.Name)
+		_, err := c.nodeRemediationLister.NodeRemediations("kube-system").Get(name)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				nodeRemediation := &v1alpha1.NodeRemediation{
+					Spec: &v1alpha1.NodeRemediationSpec{
+						NodeName: node.Name,
+					},
+					Status: &v1alpha1.NodeRemediationStatus{
+						Phase: v1alpha1.NodeRemediationPhaseInit,
+					},
+				}
+				nodeRemediation.Name = node.Name
+
+				_, err := c.noderecoveryclientset.NoderecoveryV1alpha1().NodeRemediations("kube-system").Create(nodeRemediation)
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
 	}
 
 	// TODO: add remediation logic

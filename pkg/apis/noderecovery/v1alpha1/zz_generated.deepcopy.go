@@ -31,8 +31,24 @@ func (in *NodeRemediation) DeepCopyInto(out *NodeRemediation) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
-	out.Status = in.Status
+	if in.Spec != nil {
+		in, out := &in.Spec, &out.Spec
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(NodeRemediationSpec)
+			**out = **in
+		}
+	}
+	if in.Status != nil {
+		in, out := &in.Status, &out.Status
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(NodeRemediationStatus)
+			**out = **in
+		}
+	}
 	return
 }
 

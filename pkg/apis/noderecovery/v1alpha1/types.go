@@ -31,8 +31,8 @@ type NodeRemediation struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec NodeRemediationSpec `json:"spec,omitempty" valid:"required"`
-	Status NodeRemediationStatus `json:"status,omitempty"`
+	Spec   *NodeRemediationSpec   `json:"spec,omitempty" valid:"required"`
+	Status *NodeRemediationStatus `json:"status,omitempty"`
 }
 
 type NodeRemediationSpec struct {
@@ -43,8 +43,8 @@ type NodeRemediationSpec struct {
 type NodeRemediationPhase string
 
 const (
-	NodeRemediationPhaseInit NodeRemediationPhase = "Init"
-	NodeRemediationPhaseWait NodeRemediationPhase = "Wait"
+	NodeRemediationPhaseInit   NodeRemediationPhase = "Init"
+	NodeRemediationPhaseWait   NodeRemediationPhase = "Wait"
 	NodeRemediationPhaseReboot NodeRemediationPhase = "Reboot"
 )
 
@@ -62,7 +62,7 @@ type NodeRemediationStatus struct {
 type NodeRemediationList struct {
 	// Map of node names to recovery efforts
 	metav1.TypeMeta `json:",inline"`
-	ListMeta        metav1.ListMeta          `json:"metadata,omitempty"`
+	metav1.ListMeta `json:"metadata,omitempty"`
 
-	Items           []NodeRemediation `json:"items"`
+	Items []NodeRemediation `json:"items"`
 }

@@ -19,9 +19,12 @@
 package controller
 
 import (
+	"math/rand"
 	"runtime/debug"
+	"time"
 
 	"github.com/golang/glog"
+
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -44,4 +47,15 @@ func WaitForCacheSync(controllerName string, stopCh <-chan struct{}, cacheSyncs 
 
 	glog.Infof("caches are synced for %s controller", controllerName)
 	return true
+}
+
+// ResyncPeriod returns resync period for informers
+func ResyncPeriod(minResyncPeriod time.Duration) time.Duration {
+	factor := rand.Float64() + 1
+	return time.Duration(float64(minResyncPeriod.Nanoseconds()) * factor)
+}
+
+// DefaultResyncPeriod returns default resync period
+func DefaultResyncPeriod() time.Duration {
+	return ResyncPeriod(12 * time.Hour)
 }
