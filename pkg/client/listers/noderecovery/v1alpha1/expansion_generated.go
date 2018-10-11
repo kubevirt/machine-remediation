@@ -23,7 +23,3 @@ package v1alpha1
 // NodeRemediationListerExpansion allows custom methods to be added to
 // NodeRemediationLister.
 type NodeRemediationListerExpansion interface{}
-
-// NodeRemediationNamespaceListerExpansion allows custom methods to be added to
-// NodeRemediationNamespaceLister.
-type NodeRemediationNamespaceListerExpansion interface{}

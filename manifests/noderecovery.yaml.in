@@ -15,7 +15,7 @@ spec:
     - nr
     - nrs
     singular: noderemediation
-  scope: Namespaced
+  scope: Cluster
   validation:
     openAPIV3Schema:
       required: ["spec"]

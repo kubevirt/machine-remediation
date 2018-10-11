@@ -32,7 +32,7 @@ import (
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
@@ -110,9 +110,9 @@ func (nri *NodeRecoveryImpl) Run() {
 		glog.Fatalf("error searching for namespace in /var/run/secrets/kubernetes.io/serviceaccount/namespace: %v", err)
 	}
 
-	// Create new recorder for node-recovery config map
+	// Create new event recorder for node-recovery leader election
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: clientv1.New(nri.kubeclientset.CoreV1().RESTClient()).Events(namespace)})
+	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: typedcorev1.New(nri.kubeclientset.CoreV1().RESTClient()).Events(namespace)})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, apiv1.EventSource{Component: leaderelectionconfig.DefaultConfigMapName})
 
 	rl, err := resourcelock.New(nri.leaderElection.ResourceLock,
