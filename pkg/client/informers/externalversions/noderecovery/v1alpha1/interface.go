@@ -43,5 +43,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // NodeRemediations returns a NodeRemediationInformer.
 func (v *version) NodeRemediations() NodeRemediationInformer {
-	return &nodeRemediationInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &nodeRemediationInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

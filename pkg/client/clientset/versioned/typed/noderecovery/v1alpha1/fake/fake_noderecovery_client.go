@@ -30,8 +30,8 @@ type FakeNoderecoveryV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeNoderecoveryV1alpha1) NodeRemediations(namespace string) v1alpha1.NodeRemediationInterface {
-	return &FakeNodeRemediations{c, namespace}
+func (c *FakeNoderecoveryV1alpha1) NodeRemediations() v1alpha1.NodeRemediationInterface {
+	return &FakeNodeRemediations{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

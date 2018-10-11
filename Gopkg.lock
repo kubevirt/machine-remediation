@@ -158,11 +158,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6914c49eed986dfb8dffb33516fa129c49929d4d873f41e073c83c11c372b870"
+  digest = "1:d263c39e9144265037f7473751f48b4193df3efe4763cc72e925c13d5bdbe551"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = ""
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "7c1a557ab941a71c619514f229f0b27ccb0c27cf"
 
 [[projects]]
   branch = "master"

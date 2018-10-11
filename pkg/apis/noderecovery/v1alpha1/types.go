@@ -20,10 +20,24 @@
 package v1alpha1
 
 import (
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	EventNodeRemediationCreateFailed     = "FailedCreate"
+	EventNodeRemediationCreateSuccessful = "SuccessfulCreate"
+	EventNodeRemediationDeleteFailed     = "FailedDelete"
+	EventNodeRemediationDeleteSuccessful = "SuccessfulDelete"
+	EventNodeRemediationUpdateFailed     = "FailedUpdate"
+	EventNodeRemediationUpdateSuccessful = "SuccessfulUpdate"
+	EventNodeRemediationFailed           = "NodeRemediationFailed"
+	EventNodeRemediationSucceeded        = "NodeRemediationSucceeded"
+)
+
 // +genclient
+// +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeRemediation is a specification for a NodeRemediation resource
@@ -43,9 +57,9 @@ type NodeRemediationSpec struct {
 type NodeRemediationPhase string
 
 const (
-	NodeRemediationPhaseInit   NodeRemediationPhase = "Init"
-	NodeRemediationPhaseWait   NodeRemediationPhase = "Wait"
-	NodeRemediationPhaseReboot NodeRemediationPhase = "Reboot"
+	NodeRemediationPhaseInit      NodeRemediationPhase = "Init"
+	NodeRemediationPhaseWait      NodeRemediationPhase = "Wait"
+	NodeRemediationPhaseRemediate NodeRemediationPhase = "Remediate"
 )
 
 type NodeRemediationStatus struct {
@@ -54,6 +68,10 @@ type NodeRemediationStatus struct {
 	Reason string `json:"reason,omitempty"`
 	// Phase indicates NodeRemediation recovery state
 	Phase NodeRemediationPhase `json:"phase,omitempty"`
+	// StartTime indicates when current phase started
+	StartTime metav1.Time `json:"startTime,omitempty"`
+	// ElapsedTime indicates how many time, object has the same phase
+	ElapsedTime time.Duration `json:"elapsedTime,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

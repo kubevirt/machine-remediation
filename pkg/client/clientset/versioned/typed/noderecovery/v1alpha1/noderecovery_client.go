@@ -37,8 +37,8 @@ type NoderecoveryV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *NoderecoveryV1alpha1Client) NodeRemediations(namespace string) NodeRemediationInterface {
-	return newNodeRemediations(c, namespace)
+func (c *NoderecoveryV1alpha1Client) NodeRemediations() NodeRemediationInterface {
+	return newNodeRemediations(c)
 }
 
 // NewForConfig creates a new NoderecoveryV1alpha1Client for the given config.

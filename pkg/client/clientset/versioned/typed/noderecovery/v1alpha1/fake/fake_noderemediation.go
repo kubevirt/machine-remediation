@@ -33,7 +33,6 @@ import (
 // FakeNodeRemediations implements NodeRemediationInterface
 type FakeNodeRemediations struct {
 	Fake *FakeNoderecoveryV1alpha1
-	ns   string
 }
 
 var noderemediationsResource = schema.GroupVersionResource{Group: "noderecovery.kubevirt.io", Version: "v1alpha1", Resource: "noderemediations"}
@@ -43,8 +42,7 @@ var noderemediationsKind = schema.GroupVersionKind{Group: "noderecovery.kubevirt
 // Get takes name of the nodeRemediation, and returns the corresponding nodeRemediation object, and an error if there is any.
 func (c *FakeNodeRemediations) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeRemediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(noderemediationsResource, c.ns, name), &v1alpha1.NodeRemediation{})
-
+		Invokes(testing.NewRootGetAction(noderemediationsResource, name), &v1alpha1.NodeRemediation{})
 	if obj == nil {
 		return nil, err
 	}
@@ -54,8 +52,7 @@ func (c *FakeNodeRemediations) Get(name string, options v1.GetOptions) (result *
 // List takes label and field selectors, and returns the list of NodeRemediations that match those selectors.
 func (c *FakeNodeRemediations) List(opts v1.ListOptions) (result *v1alpha1.NodeRemediationList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(noderemediationsResource, noderemediationsKind, c.ns, opts), &v1alpha1.NodeRemediationList{})
-
+		Invokes(testing.NewRootListAction(noderemediationsResource, noderemediationsKind, opts), &v1alpha1.NodeRemediationList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -76,15 +73,13 @@ func (c *FakeNodeRemediations) List(opts v1.ListOptions) (result *v1alpha1.NodeR
 // Watch returns a watch.Interface that watches the requested nodeRemediations.
 func (c *FakeNodeRemediations) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(noderemediationsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(noderemediationsResource, opts))
 }
 
 // Create takes the representation of a nodeRemediation and creates it.  Returns the server's representation of the nodeRemediation, and an error, if there is any.
 func (c *FakeNodeRemediations) Create(nodeRemediation *v1alpha1.NodeRemediation) (result *v1alpha1.NodeRemediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(noderemediationsResource, c.ns, nodeRemediation), &v1alpha1.NodeRemediation{})
-
+		Invokes(testing.NewRootCreateAction(noderemediationsResource, nodeRemediation), &v1alpha1.NodeRemediation{})
 	if obj == nil {
 		return nil, err
 	}
@@ -94,8 +89,7 @@ func (c *FakeNodeRemediations) Create(nodeRemediation *v1alpha1.NodeRemediation)
 // Update takes the representation of a nodeRemediation and updates it. Returns the server's representation of the nodeRemediation, and an error, if there is any.
 func (c *FakeNodeRemediations) Update(nodeRemediation *v1alpha1.NodeRemediation) (result *v1alpha1.NodeRemediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(noderemediationsResource, c.ns, nodeRemediation), &v1alpha1.NodeRemediation{})
-
+		Invokes(testing.NewRootUpdateAction(noderemediationsResource, nodeRemediation), &v1alpha1.NodeRemediation{})
 	if obj == nil {
 		return nil, err
 	}
@@ -106,8 +100,7 @@ func (c *FakeNodeRemediations) Update(nodeRemediation *v1alpha1.NodeRemediation)
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
 func (c *FakeNodeRemediations) UpdateStatus(nodeRemediation *v1alpha1.NodeRemediation) (*v1alpha1.NodeRemediation, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(noderemediationsResource, "status", c.ns, nodeRemediation), &v1alpha1.NodeRemediation{})
-
+		Invokes(testing.NewRootUpdateSubresourceAction(noderemediationsResource, "status", nodeRemediation), &v1alpha1.NodeRemediation{})
 	if obj == nil {
 		return nil, err
 	}
@@ -117,14 +110,13 @@ func (c *FakeNodeRemediations) UpdateStatus(nodeRemediation *v1alpha1.NodeRemedi
 // Delete takes name of the nodeRemediation and deletes it. Returns an error if one occurs.
 func (c *FakeNodeRemediations) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(noderemediationsResource, c.ns, name), &v1alpha1.NodeRemediation{})
-
+		Invokes(testing.NewRootDeleteAction(noderemediationsResource, name), &v1alpha1.NodeRemediation{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeNodeRemediations) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(noderemediationsResource, c.ns, listOptions)
+	action := testing.NewRootDeleteCollectionAction(noderemediationsResource, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.NodeRemediationList{})
 	return err
@@ -133,8 +125,7 @@ func (c *FakeNodeRemediations) DeleteCollection(options *v1.DeleteOptions, listO
 // Patch applies the patch and returns the patched nodeRemediation.
 func (c *FakeNodeRemediations) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeRemediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(noderemediationsResource, c.ns, name, data, subresources...), &v1alpha1.NodeRemediation{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(noderemediationsResource, name, data, subresources...), &v1alpha1.NodeRemediation{})
 	if obj == nil {
 		return nil, err
 	}

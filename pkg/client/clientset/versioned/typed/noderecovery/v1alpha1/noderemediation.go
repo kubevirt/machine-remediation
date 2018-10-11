@@ -32,7 +32,7 @@ import (
 // NodeRemediationsGetter has a method to return a NodeRemediationInterface.
 // A group's client should implement this interface.
 type NodeRemediationsGetter interface {
-	NodeRemediations(namespace string) NodeRemediationInterface
+	NodeRemediations() NodeRemediationInterface
 }
 
 // NodeRemediationInterface has methods to work with NodeRemediation resources.
@@ -52,14 +52,12 @@ type NodeRemediationInterface interface {
 // nodeRemediations implements NodeRemediationInterface
 type nodeRemediations struct {
 	client rest.Interface
-	ns     string
 }
 
 // newNodeRemediations returns a NodeRemediations
-func newNodeRemediations(c *NoderecoveryV1alpha1Client, namespace string) *nodeRemediations {
+func newNodeRemediations(c *NoderecoveryV1alpha1Client) *nodeRemediations {
 	return &nodeRemediations{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newNodeRemediations(c *NoderecoveryV1alpha1Client, namespace string) *nodeR
 func (c *nodeRemediations) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeRemediation, err error) {
 	result = &v1alpha1.NodeRemediation{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -80,7 +77,6 @@ func (c *nodeRemediations) Get(name string, options v1.GetOptions) (result *v1al
 func (c *nodeRemediations) List(opts v1.ListOptions) (result *v1alpha1.NodeRemediationList, err error) {
 	result = &v1alpha1.NodeRemediationList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
@@ -92,7 +88,6 @@ func (c *nodeRemediations) List(opts v1.ListOptions) (result *v1alpha1.NodeRemed
 func (c *nodeRemediations) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
@@ -102,7 +97,6 @@ func (c *nodeRemediations) Watch(opts v1.ListOptions) (watch.Interface, error) {
 func (c *nodeRemediations) Create(nodeRemediation *v1alpha1.NodeRemediation) (result *v1alpha1.NodeRemediation, err error) {
 	result = &v1alpha1.NodeRemediation{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		Body(nodeRemediation).
 		Do().
@@ -114,7 +108,6 @@ func (c *nodeRemediations) Create(nodeRemediation *v1alpha1.NodeRemediation) (re
 func (c *nodeRemediations) Update(nodeRemediation *v1alpha1.NodeRemediation) (result *v1alpha1.NodeRemediation, err error) {
 	result = &v1alpha1.NodeRemediation{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		Name(nodeRemediation.Name).
 		Body(nodeRemediation).
@@ -129,7 +122,6 @@ func (c *nodeRemediations) Update(nodeRemediation *v1alpha1.NodeRemediation) (re
 func (c *nodeRemediations) UpdateStatus(nodeRemediation *v1alpha1.NodeRemediation) (result *v1alpha1.NodeRemediation, err error) {
 	result = &v1alpha1.NodeRemediation{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		Name(nodeRemediation.Name).
 		SubResource("status").
@@ -142,7 +134,6 @@ func (c *nodeRemediations) UpdateStatus(nodeRemediation *v1alpha1.NodeRemediatio
 // Delete takes name of the nodeRemediation and deletes it. Returns an error if one occurs.
 func (c *nodeRemediations) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		Name(name).
 		Body(options).
@@ -153,7 +144,6 @@ func (c *nodeRemediations) Delete(name string, options *v1.DeleteOptions) error 
 // DeleteCollection deletes a collection of objects.
 func (c *nodeRemediations) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("noderemediations").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Body(options).
@@ -165,7 +155,6 @@ func (c *nodeRemediations) DeleteCollection(options *v1.DeleteOptions, listOptio
 func (c *nodeRemediations) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeRemediation, err error) {
 	result = &v1alpha1.NodeRemediation{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("noderemediations").
 		SubResource(subresources...).
 		Name(name).

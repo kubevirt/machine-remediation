@@ -31,8 +31,8 @@ import (
 type NodeRemediationLister interface {
 	// List lists all NodeRemediations in the indexer.
 	List(selector labels.Selector) (ret []*v1alpha1.NodeRemediation, err error)
-	// NodeRemediations returns an object that can list and get NodeRemediations.
-	NodeRemediations(namespace string) NodeRemediationNamespaceLister
+	// Get retrieves the NodeRemediation from the index for a given name.
+	Get(name string) (*v1alpha1.NodeRemediation, error)
 	NodeRemediationListerExpansion
 }
 
@@ -54,38 +54,9 @@ func (s *nodeRemediationLister) List(selector labels.Selector) (ret []*v1alpha1.
 	return ret, err
 }
 
-// NodeRemediations returns an object that can list and get NodeRemediations.
-func (s *nodeRemediationLister) NodeRemediations(namespace string) NodeRemediationNamespaceLister {
-	return nodeRemediationNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// NodeRemediationNamespaceLister helps list and get NodeRemediations.
-type NodeRemediationNamespaceLister interface {
-	// List lists all NodeRemediations in the indexer for a given namespace.
-	List(selector labels.Selector) (ret []*v1alpha1.NodeRemediation, err error)
-	// Get retrieves the NodeRemediation from the indexer for a given namespace and name.
-	Get(name string) (*v1alpha1.NodeRemediation, error)
-	NodeRemediationNamespaceListerExpansion
-}
-
-// nodeRemediationNamespaceLister implements the NodeRemediationNamespaceLister
-// interface.
-type nodeRemediationNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all NodeRemediations in the indexer for a given namespace.
-func (s nodeRemediationNamespaceLister) List(selector labels.Selector) (ret []*v1alpha1.NodeRemediation, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.NodeRemediation))
-	})
-	return ret, err
-}
-
-// Get retrieves the NodeRemediation from the indexer for a given namespace and name.
-func (s nodeRemediationNamespaceLister) Get(name string) (*v1alpha1.NodeRemediation, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the NodeRemediation from the index for a given name.
+func (s *nodeRemediationLister) Get(name string) (*v1alpha1.NodeRemediation, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}
