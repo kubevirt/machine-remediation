@@ -40,6 +40,11 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
+	clusterapiutils "sigs.k8s.io/cluster-api/pkg/util"
+	clusterapiclientset "sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset"
+	clusterapiinformers "sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions/cluster/v1alpha1"
+	clusterapilisters "sigs.k8s.io/cluster-api/pkg/client/listers_generated/cluster/v1alpha1"
+
 	"kubevirt.io/node-recovery/pkg/apis/noderecovery/v1alpha1"
 	clientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
 	informers "kubevirt.io/node-recovery/pkg/client/informers/externalversions/noderecovery/v1alpha1"
@@ -57,8 +62,9 @@ const (
 )
 
 type NodeRecoveryController struct {
-	kubeclientset         kubernetes.Interface
-	noderecoveryclientset clientset.Interface
+	kubeclient         kubernetes.Interface
+	noderecoveryclient clientset.Interface
+	clusterapiclient   clusterapiclientset.Interface
 
 	queue workqueue.RateLimitingInterface
 
@@ -68,6 +74,8 @@ type NodeRecoveryController struct {
 	configMapSynced       cache.InformerSynced
 	nodeRemediationLister listers.NodeRemediationLister
 	nodeRemediationSynced cache.InformerSynced
+	machineLister         clusterapilisters.MachineLister
+	machineSynced         cache.InformerSynced
 
 	// nodeConditionManager provides interface to work with node conditions
 	nodeConditionManager *controller.NodeConditionManager
@@ -79,16 +87,19 @@ type NodeRecoveryController struct {
 
 // NewNodeRecoveryController returns new NodeRecoveryController instance
 func NewNodeRecoveryController(
-	kubeclientset kubernetes.Interface,
-	noderecoveryclientset clientset.Interface,
+	kubeclient kubernetes.Interface,
+	noderecoveryclient clientset.Interface,
+	clusterapiclient clusterapiclientset.Interface,
 	nodeInformer coreinformers.NodeInformer,
 	configMapInformer coreinformers.ConfigMapInformer,
 	nodeRemediationInformer informers.NodeRemediationInformer,
+	machineInformer clusterapiinformers.MachineInformer,
 ) *NodeRecoveryController {
 
 	c := &NodeRecoveryController{
-		kubeclientset:         kubeclientset,
-		noderecoveryclientset: noderecoveryclientset,
+		kubeclient:            kubeclient,
+		noderecoveryclient:    noderecoveryclient,
+		clusterapiclient:      clusterapiclient,
 		queue:                 workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 		nodeLister:            nodeInformer.Lister(),
 		nodeSynced:            nodeInformer.Informer().HasSynced,
@@ -96,6 +107,8 @@ func NewNodeRecoveryController(
 		configMapSynced:       configMapInformer.Informer().HasSynced,
 		nodeRemediationLister: nodeRemediationInformer.Lister(),
 		nodeRemediationSynced: nodeRemediationInformer.Informer().HasSynced,
+		machineLister:         machineInformer.Lister(),
+		machineSynced:         machineInformer.Informer().HasSynced,
 		nodeConditionManager:  controller.NewNodeConditionManager(),
 	}
 
@@ -116,7 +129,7 @@ func NewNodeRecoveryController(
 	glog.V(2).Info("Creating event broadcaster")
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
-	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events(metav1.NamespaceAll)})
+	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclient.CoreV1().Events(metav1.NamespaceAll)})
 	c.recorder = eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: "node-recovery-controller"})
 
 	return c
@@ -142,6 +155,8 @@ func (c *NodeRecoveryController) updateNode(old, curr interface{}) {
 		return
 	}
 
+	// TODO: check that node does not master, cluster API does not support remediation
+	// of the master node
 	if !reflect.DeepEqual(currNode.Status, oldNode.Status) {
 		glog.V(2).Infof("node %s status updated", currNode.Name)
 		c.enqueueNode(curr)
@@ -186,7 +201,7 @@ func (c *NodeRecoveryController) Run(threadiness int, stopCh chan struct{}) {
 	glog.Info("starting node-recovery controller.")
 
 	// Wait for cache sync before we start the pod controller
-	if !controller.WaitForCacheSync("node-recovery", stopCh, c.nodeSynced, c.configMapSynced, c.nodeRemediationSynced) {
+	if !controller.WaitForCacheSync("node-recovery", stopCh, c.nodeSynced, c.configMapSynced, c.nodeRemediationSynced, c.machineSynced) {
 		return
 	}
 
@@ -241,6 +256,7 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 		return nil
 	}
 
+	// TODO: I do not sure if cluster API actuator will not delete the node
 	node, err := c.nodeLister.Get(name)
 
 	if err != nil {
@@ -319,6 +335,28 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 			if err != nil {
 				return err
 			}
+
+			machine, err := c.machineLister.Machines(metav1.NamespaceAll).Get(node.Name)
+			if err != nil {
+				if errors.IsNotFound(err) {
+					// TODO: when it possible that node in the wait phase but machine object already does not exist
+					return nil
+				}
+				return err
+			}
+			copyMachine := clusterapiutils.Copy(machine)
+
+			// TODO: divide logic to two phases to avoid creation conflict, still do not sure
+			// where I can save object between controller runs
+			err = c.clusterapiclient.ClusterV1alpha1().Machines(v1alpha1.NamespaceNoderecovery).Delete(machine.Name, &metav1.DeleteOptions{})
+			if err != nil {
+				return err
+			}
+
+			_, err = c.clusterapiclient.ClusterV1alpha1().Machines(v1alpha1.NamespaceNoderecovery).Create(copyMachine)
+			if err != nil {
+				return err
+			}
 			// TODO: call to machine interface to create and delete the relevant node object
 			return nil
 		}
@@ -365,7 +403,7 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 }
 
 func (c *NodeRecoveryController) createNodeRemediationWithEvent(nodeRemediation *v1alpha1.NodeRemediation, node *corev1.Node) error {
-	_, err := c.noderecoveryclientset.NoderecoveryV1alpha1().NodeRemediations().Create(nodeRemediation)
+	_, err := c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Create(nodeRemediation)
 	if err != nil {
 		c.recorder.Eventf(
 			node,
@@ -385,7 +423,7 @@ func (c *NodeRecoveryController) createNodeRemediationWithEvent(nodeRemediation 
 }
 
 func (c *NodeRecoveryController) deleteNodeRemediationWithEvent(nodeRemediation *v1alpha1.NodeRemediation, node *corev1.Node) error {
-	err := c.noderecoveryclientset.NoderecoveryV1alpha1().NodeRemediations().Delete(nodeRemediation.Name, &metav1.DeleteOptions{})
+	err := c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Delete(nodeRemediation.Name, &metav1.DeleteOptions{})
 	if err != nil {
 		c.recorder.Eventf(
 			node,
@@ -405,7 +443,7 @@ func (c *NodeRecoveryController) deleteNodeRemediationWithEvent(nodeRemediation 
 }
 
 func (c *NodeRecoveryController) updateNodeRemediationWithEvent(oldNodeRemediation *v1alpha1.NodeRemediation, newNodeRemediation *v1alpha1.NodeRemediation, node *corev1.Node) error {
-	_, err := c.noderecoveryclientset.NoderecoveryV1alpha1().NodeRemediations().Update(newNodeRemediation)
+	_, err := c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Update(newNodeRemediation)
 	if err != nil {
 		if oldNodeRemediation.Status.Phase != newNodeRemediation.Status.Phase {
 			c.recorder.Eventf(

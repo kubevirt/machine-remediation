@@ -32,11 +32,9 @@ cluster-up:
 
 deps-install:
 	SYNC_VENDOR=true hack/dockerized "dep ensure"
-	hack/dep-prune.sh
 
 deps-update:
 	SYNC_VENDOR=true hack/dockerized "dep ensure -update"
-	hack/dep-prune.sh
 
 distclean: clean
 	hack/dockerized "rm -rf vendor/ && rm -f Gopkg.lock"

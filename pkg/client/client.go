@@ -23,6 +23,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	clusterapiclientset "sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset"
+
 	noderecoveryclientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
 )
 
@@ -53,6 +55,18 @@ func NewNodeRecoveryClientSet() *noderecoveryclientset.Clientset {
 	config := getRESTConfig()
 	// creates the clientset
 	clientset, err := noderecoveryclientset.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return clientset
+}
+
+// NewClusterAPIClientSet returns cluster-api client
+func NewClusterAPIClientSet() *clusterapiclientset.Clientset {
+	config := getRESTConfig()
+	// creates the clientset
+	clientset, err := clusterapiclientset.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
 	}

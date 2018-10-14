@@ -37,6 +37,9 @@ import (
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
 
+	clusterapiclientset "sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset"
+	clusterapiinformers "sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions"
+
 	"kubevirt.io/node-recovery/pkg/client"
 	clientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
 	informers "kubevirt.io/node-recovery/pkg/client/informers/externalversions"
@@ -47,11 +50,13 @@ import (
 const controllerThreads = 5
 
 type NodeRecoveryImpl struct {
-	kubeclientset         kubernetes.Interface
-	noderecoveryclientset clientset.Interface
+	kubeclient         kubernetes.Interface
+	noderecoveryclient clientset.Interface
+	clusterapiclient   clusterapiclientset.Interface
 
 	kubeInformerFactory         kubeinformers.SharedInformerFactory
 	nodeRecoveryInformerFactory informers.SharedInformerFactory
+	clusterapiInformerFactory   clusterapiinformers.SharedInformerFactory
 
 	leaderElection leaderelectionconfig.Configuration
 
@@ -67,18 +72,22 @@ func Execute() {
 }
 
 func initializeNodeRecovery(nodeRecoveryApp *NodeRecoveryImpl) {
-	nodeRecoveryApp.kubeclientset = client.NewKubeClientSet()
-	nodeRecoveryApp.noderecoveryclientset = client.NewNodeRecoveryClientSet()
-	nodeRecoveryApp.kubeInformerFactory = kubeinformers.NewSharedInformerFactory(nodeRecoveryApp.kubeclientset, controller.DefaultResyncPeriod())
-	nodeRecoveryApp.nodeRecoveryInformerFactory = informers.NewSharedInformerFactory(nodeRecoveryApp.noderecoveryclientset, controller.DefaultResyncPeriod())
+	nodeRecoveryApp.kubeclient = client.NewKubeClientSet()
+	nodeRecoveryApp.noderecoveryclient = client.NewNodeRecoveryClientSet()
+	nodeRecoveryApp.clusterapiclient = client.NewClusterAPIClientSet()
+	nodeRecoveryApp.kubeInformerFactory = kubeinformers.NewSharedInformerFactory(nodeRecoveryApp.kubeclient, controller.DefaultResyncPeriod())
+	nodeRecoveryApp.nodeRecoveryInformerFactory = informers.NewSharedInformerFactory(nodeRecoveryApp.noderecoveryclient, controller.DefaultResyncPeriod())
+	nodeRecoveryApp.clusterapiInformerFactory = clusterapiinformers.NewSharedInformerFactory(nodeRecoveryApp.clusterapiclient, controller.DefaultResyncPeriod())
 	nodeRecoveryApp.leaderElection = leaderelectionconfig.DefaultLeaderElectionConfiguration()
 
 	nodeRecoveryApp.controller = NewNodeRecoveryController(
-		nodeRecoveryApp.kubeclientset,
-		nodeRecoveryApp.noderecoveryclientset,
+		nodeRecoveryApp.kubeclient,
+		nodeRecoveryApp.noderecoveryclient,
+		nodeRecoveryApp.clusterapiclient,
 		nodeRecoveryApp.kubeInformerFactory.Core().V1().Nodes(),
 		nodeRecoveryApp.kubeInformerFactory.Core().V1().ConfigMaps(),
 		nodeRecoveryApp.nodeRecoveryInformerFactory.Noderecovery().V1alpha1().NodeRemediations(),
+		nodeRecoveryApp.clusterapiInformerFactory.Cluster().V1alpha1().Machines(),
 	)
 }
 
@@ -112,13 +121,13 @@ func (nri *NodeRecoveryImpl) Run() {
 
 	// Create new event recorder for node-recovery leader election
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: typedcorev1.New(nri.kubeclientset.CoreV1().RESTClient()).Events(namespace)})
+	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: typedcorev1.New(nri.kubeclient.CoreV1().RESTClient()).Events(namespace)})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, apiv1.EventSource{Component: leaderelectionconfig.DefaultConfigMapName})
 
 	rl, err := resourcelock.New(nri.leaderElection.ResourceLock,
 		namespace,
 		leaderelectionconfig.DefaultConfigMapName,
-		nri.kubeclientset.CoreV1(),
+		nri.kubeclient.CoreV1(),
 		resourcelock.ResourceLockConfig{
 			Identity:      id,
 			EventRecorder: recorder,

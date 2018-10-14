@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["ginkgo.go"],
+    importmap = "kubevirt.io/node-recovery/vendor/sigs.k8s.io/controller-runtime/pkg/envtest/printer",
+    importpath = "sigs.k8s.io/controller-runtime/pkg/envtest/printer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_onsi_ginkgo//:go_default_library",
+        "@com_github_onsi_ginkgo//config:go_default_library",
+        "@com_github_onsi_ginkgo//types:go_default_library",
+    ],
+)
