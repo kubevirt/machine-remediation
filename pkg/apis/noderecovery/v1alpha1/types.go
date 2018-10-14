@@ -25,6 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const NamespaceNoderecovery = "noderecovery"
+
 const (
 	EventNodeRemediationCreateFailed     = "FailedCreate"
 	EventNodeRemediationCreateSuccessful = "SuccessfulCreate"

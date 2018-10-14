@@ -69,6 +69,7 @@ type NodeRecoveryController struct {
 	nodeRemediationLister listers.NodeRemediationLister
 	nodeRemediationSynced cache.InformerSynced
 
+	// nodeConditionManager provides interface to work with node conditions
 	nodeConditionManager *controller.NodeConditionManager
 
 	// recorder is an event recorder for recording Event resources to the
