@@ -83,6 +83,11 @@ type NodeRecoveryController struct {
 	// recorder is an event recorder for recording Event resources to the
 	// Kubernetes API.
 	recorder record.EventRecorder
+
+	// machineExpectations helps to track Machine creation/deletion by controller
+	machineExpectations *controller.UIDTrackingControllerExpectations
+	// nodeRemediationExpectations helps to track NodeRemediation creation/deletion by controller
+	nodeRemediationExpectations *controller.UIDTrackingControllerExpectations
 }
 
 // NewNodeRecoveryController returns new NodeRecoveryController instance
@@ -97,31 +102,36 @@ func NewNodeRecoveryController(
 ) *NodeRecoveryController {
 
 	c := &NodeRecoveryController{
-		kubeclient:            kubeclient,
-		noderecoveryclient:    noderecoveryclient,
-		clusterapiclient:      clusterapiclient,
-		queue:                 workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
-		nodeLister:            nodeInformer.Lister(),
-		nodeSynced:            nodeInformer.Informer().HasSynced,
-		configMapLister:       configMapInformer.Lister(),
-		configMapSynced:       configMapInformer.Informer().HasSynced,
-		nodeRemediationLister: nodeRemediationInformer.Lister(),
-		nodeRemediationSynced: nodeRemediationInformer.Informer().HasSynced,
-		machineLister:         machineInformer.Lister(),
-		machineSynced:         machineInformer.Informer().HasSynced,
-		nodeConditionManager:  controller.NewNodeConditionManager(),
+		kubeclient:                  kubeclient,
+		noderecoveryclient:          noderecoveryclient,
+		clusterapiclient:            clusterapiclient,
+		queue:                       workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
+		nodeLister:                  nodeInformer.Lister(),
+		nodeSynced:                  nodeInformer.Informer().HasSynced,
+		configMapLister:             configMapInformer.Lister(),
+		configMapSynced:             configMapInformer.Informer().HasSynced,
+		nodeRemediationLister:       nodeRemediationInformer.Lister(),
+		nodeRemediationSynced:       nodeRemediationInformer.Informer().HasSynced,
+		machineLister:               machineInformer.Lister(),
+		machineSynced:               machineInformer.Informer().HasSynced,
+		nodeConditionManager:        controller.NewNodeConditionManager(),
+		machineExpectations:         controller.NewUIDTrackingControllerExpectations(controller.NewControllerExpectations()),
+		nodeRemediationExpectations: controller.NewUIDTrackingControllerExpectations(controller.NewControllerExpectations()),
 	}
 
+	machineInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    c.addMachine,
+		DeleteFunc: c.deleteMachine,
+	})
+
 	nodeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    c.addNode,
-		DeleteFunc: c.deleteNode,
 		UpdateFunc: c.updateNode,
 	})
 
 	nodeRemediationInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    c.addRemediationNode,
-		DeleteFunc: c.deleteRemediationNode,
-		UpdateFunc: c.updateRemediationNode,
+		AddFunc:    c.addNodeRemediation,
+		DeleteFunc: c.deleteNodeRemediation,
+		UpdateFunc: c.updateNodeRemediation,
 	})
 
 	c.nodeConditionManager = controller.NewNodeConditionManager()
@@ -135,11 +145,49 @@ func NewNodeRecoveryController(
 	return c
 }
 
-// TODO: remove unused handlers
-func (c *NodeRecoveryController) addNode(obj interface{}) {
+func (c *NodeRecoveryController) addMachine(obj interface{}) {
+	machine := obj.(*clusterapiv1alpha1.Machine)
+	if machine.DeletionTimestamp != nil {
+		// On a restart of the controller manager, it's possible for an object to
+		// show up in a state that is already pending deletion.
+		c.deleteMachine(machine)
+		return
+	}
+
+	key, err := controller.KeyFunc(obj)
+	if err != nil {
+		return
+	}
+	c.machineExpectations.CreationObserved(key)
+	c.enqueueObj(obj)
 }
 
-func (c *NodeRecoveryController) deleteNode(obj interface{}) {
+func (c *NodeRecoveryController) deleteMachine(obj interface{}) {
+	machine, ok := obj.(*clusterapiv1alpha1.Machine)
+
+	// When a delete is dropped, the relist will notice a pod in the store not
+	// in the list, leading to the insertion of a tombstone object which contains
+	// the deleted key/value. Note that this value might be stale. If the ReplicaSet
+	// changed labels the new deployment will not be woken up till the periodic resync.
+	if !ok {
+		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
+		if !ok {
+			runtime.HandleError(fmt.Errorf("Couldn't get object from tombstone %#v", obj))
+			return
+		}
+		machine, ok = tombstone.Obj.(*clusterapiv1alpha1.Machine)
+		if !ok {
+			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a ReplicaSet %#v", obj))
+			return
+		}
+	}
+
+	key, err := controller.KeyFunc(obj)
+	if err != nil {
+		return
+	}
+	c.machineExpectations.DeletionObserved(machine.Status.NodeRef.Name, key)
+	c.enqueueObj(obj)
 }
 
 func (c *NodeRecoveryController) updateNode(old, curr interface{}) {
@@ -159,19 +207,55 @@ func (c *NodeRecoveryController) updateNode(old, curr interface{}) {
 	// of the master node
 	if !reflect.DeepEqual(currNode.Status, oldNode.Status) {
 		glog.V(2).Infof("node %s status updated", currNode.Name)
-		c.enqueueNode(curr)
+		c.enqueueObj(curr)
 	}
 }
 
-func (c *NodeRecoveryController) addRemediationNode(obj interface{}) {
-	c.enqueueNode(obj)
+func (c *NodeRecoveryController) addNodeRemediation(obj interface{}) {
+	nodeRemediation := obj.(*v1alpha1.NodeRemediation)
+	if nodeRemediation.DeletionTimestamp != nil {
+		// On a restart of the controller manager, it's possible for an object to
+		// show up in a state that is already pending deletion.
+		c.deleteNodeRemediation(nodeRemediation)
+		return
+	}
+
+	key, err := controller.KeyFunc(obj)
+	if err != nil {
+		return
+	}
+	c.nodeRemediationExpectations.CreationObserved(key)
+	c.enqueueObj(obj)
 }
 
-func (c *NodeRecoveryController) deleteRemediationNode(obj interface{}) {
+func (c *NodeRecoveryController) deleteNodeRemediation(obj interface{}) {
+	nodeRemediation, ok := obj.(*v1alpha1.NodeRemediation)
+	// When a delete is dropped, the relist will notice a pod in the store not
+	// in the list, leading to the insertion of a tombstone object which contains
+	// the deleted key/value. Note that this value might be stale. If the ReplicaSet
+	// changed labels the new deployment will not be woken up till the periodic resync.
+	if !ok {
+		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
+		if !ok {
+			runtime.HandleError(fmt.Errorf("Couldn't get object from tombstone %#v", obj))
+			return
+		}
+		nodeRemediation, ok = tombstone.Obj.(*v1alpha1.NodeRemediation)
+		if !ok {
+			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a ReplicaSet %#v", obj))
+			return
+		}
+	}
 	// TODO: if node ready, skip enqueue, otherwise enqueue with some limit on number of tries
+	key, err := controller.KeyFunc(obj)
+	if err != nil {
+		return
+	}
+	c.nodeRemediationExpectations.DeletionObserved(nodeRemediation.Spec.NodeName, key)
+	c.enqueueObj(obj)
 }
 
-func (c *NodeRecoveryController) updateRemediationNode(old, curr interface{}) {
+func (c *NodeRecoveryController) updateNodeRemediation(old, curr interface{}) {
 	currNodeRemediation := curr.(*v1alpha1.NodeRemediation)
 	oldNodeRemediation := old.(*v1alpha1.NodeRemediation)
 	if currNodeRemediation.ResourceVersion == oldNodeRemediation.ResourceVersion {
@@ -183,13 +267,13 @@ func (c *NodeRecoveryController) updateRemediationNode(old, curr interface{}) {
 	if currNodeRemediation.DeletionTimestamp != nil {
 		return
 	}
-	c.enqueueNode(curr)
+	c.enqueueObj(curr)
 }
 
-func (c *NodeRecoveryController) enqueueNode(obj interface{}) {
-	key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
+func (c *NodeRecoveryController) enqueueObj(obj interface{}) {
+	key, err := controller.KeyFunc(obj)
 	if err != nil {
-		glog.Errorf("failed to extract key for the node")
+		glog.Errorf("failed to extract key for the object")
 	}
 	c.queue.Add(key)
 }
@@ -261,11 +345,17 @@ func (c *NodeRecoveryController) sync(key string) error {
 
 	if err != nil {
 		if errors.IsNotFound(err) {
+			c.nodeRemediationExpectations.DeleteExpectations(key)
+			c.machineExpectations.DeleteExpectations(key)
 			runtime.HandleError(fmt.Errorf("node '%s' in work queue no longer exists", key))
 			return nil
 		}
 
 		return err
+	}
+
+	if !(c.nodeRemediationExpectations.SatisfiedExpectations(key) && c.machineExpectations.SatisfiedExpectations(key)) {
+		return nil
 	}
 
 	readyCond := c.nodeConditionManager.GetNodeCondition(node, corev1.NodeReady)
@@ -321,13 +411,14 @@ func (c *NodeRecoveryController) sync(key string) error {
 			currentTime := metav1.Now()
 			// TODO: get timeout from configMap
 			if copyNodeRemediation.Status.StartTime.Add(time.Minute).After(currentTime.Time) {
-				c.enqueueNode(node)
+				c.enqueueObj(node)
 				return nil
 			}
 
 			machine, err := c.machineLister.Machines(metav1.NamespaceAll).Get(node.Name)
 			if err != nil {
 				if errors.IsNotFound(err) {
+					glog.Infof("can not find machine for the node %s", node.Name)
 					return nil
 				}
 				return err
@@ -345,8 +436,14 @@ func (c *NodeRecoveryController) sync(key string) error {
 				return err
 			}
 
+			machineKey, err := controller.KeyFunc(machine)
+			if err != nil {
+				return err
+			}
+			c.machineExpectations.ExpectDeletions(key, []string{machineKey})
 			err = c.clusterapiclient.ClusterV1alpha1().Machines(v1alpha1.NamespaceNoderecovery).Delete(machine.Name, &metav1.DeleteOptions{})
 			if err != nil {
+				c.machineExpectations.DeletionObserved(key, machineKey)
 				return err
 			}
 			return nil
@@ -383,8 +480,15 @@ func (c *NodeRecoveryController) sync(key string) error {
 			machine.Namespace = nodeRemediation.Spec.MachineNamespace
 			nodeRemediation.Spec.MachineSpec.DeepCopyInto(&machine.Spec)
 
-			_, err := c.clusterapiclient.ClusterV1alpha1().Machines(machine.Namespace).Create(machine)
+			machineKey, err := controller.KeyFunc(machine)
 			if err != nil {
+				return err
+			}
+
+			c.machineExpectations.ExpectCreations(machineKey, 1)
+			_, err = c.clusterapiclient.ClusterV1alpha1().Machines(machine.Namespace).Create(machine)
+			if err != nil {
+				c.machineExpectations.CreationObserved(machineKey)
 				c.recorder.Eventf(
 					node,
 					corev1.EventTypeWarning,
@@ -404,7 +508,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 			currentTime := metav1.Now()
 			// TODO: get timeout from configMap or the node label(annotation)
 			if copyNodeRemediation.Status.StartTime.Add(5 * time.Minute).After(currentTime.Time) {
-				c.enqueueNode(node)
+				c.enqueueObj(node)
 				return nil
 			}
 			c.recorder.Eventf(
@@ -432,8 +536,15 @@ func (c *NodeRecoveryController) sync(key string) error {
 }
 
 func (c *NodeRecoveryController) createNodeRemediationWithEvent(nodeRemediation *v1alpha1.NodeRemediation, node *corev1.Node) error {
-	_, err := c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Create(nodeRemediation)
+	key, err := controller.KeyFunc(nodeRemediation)
 	if err != nil {
+		return err
+	}
+	c.nodeRemediationExpectations.ExpectCreations(key, 1)
+
+	_, err = c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Create(nodeRemediation)
+	if err != nil {
+		c.nodeRemediationExpectations.CreationObserved(key)
 		c.recorder.Eventf(
 			node,
 			corev1.EventTypeWarning,
@@ -452,8 +563,15 @@ func (c *NodeRecoveryController) createNodeRemediationWithEvent(nodeRemediation 
 }
 
 func (c *NodeRecoveryController) deleteNodeRemediationWithEvent(nodeRemediation *v1alpha1.NodeRemediation, node *corev1.Node) error {
-	err := c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Delete(nodeRemediation.Name, &metav1.DeleteOptions{})
+	key, err := controller.KeyFunc(nodeRemediation)
 	if err != nil {
+		return err
+	}
+	c.nodeRemediationExpectations.ExpectDeletions(nodeRemediation.Spec.NodeName, []string{key})
+
+	err = c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Delete(nodeRemediation.Name, &metav1.DeleteOptions{})
+	if err != nil {
+		c.nodeRemediationExpectations.DeletionObserved(nodeRemediation.Spec.NodeName, key)
 		c.recorder.Eventf(
 			node,
 			corev1.EventTypeWarning,

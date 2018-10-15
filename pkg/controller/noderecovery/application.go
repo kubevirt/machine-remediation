@@ -146,6 +146,7 @@ func (nri *NodeRecoveryImpl) Run() {
 				OnStartedLeading: func(stopCh <-chan struct{}) {
 					go nri.kubeInformerFactory.Start(stop)
 					go nri.nodeRecoveryInformerFactory.Start(stop)
+					go nri.clusterapiInformerFactory.Start(stop)
 					go nri.controller.Run(controllerThreads, stop)
 				},
 				OnStoppedLeading: func() {
