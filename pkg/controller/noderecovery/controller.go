@@ -40,7 +40,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	clusterapiutils "sigs.k8s.io/cluster-api/pkg/util"
+	clusterapiv1alpha1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
 	clusterapiclientset "sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset"
 	clusterapiinformers "sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions/cluster/v1alpha1"
 	clusterapilisters "sigs.k8s.io/cluster-api/pkg/client/listers_generated/cluster/v1alpha1"
@@ -226,7 +226,7 @@ func (c *NodeRecoveryController) processNextWorkItem() bool {
 		return false
 	}
 	defer c.queue.Done(key)
-	err := c.syncNode(key.(string))
+	err := c.sync(key.(string))
 
 	c.handleErr(err, key)
 	return true
@@ -248,8 +248,7 @@ func (c *NodeRecoveryController) handleErr(err error, key interface{}) {
 	c.queue.Forget(key)
 }
 
-func (c *NodeRecoveryController) syncNode(key string) error {
-	// Fetch the latest Vm state from cache
+func (c *NodeRecoveryController) sync(key string) error {
 	_, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
 		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
@@ -257,6 +256,7 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 	}
 
 	// TODO: I do not sure if cluster API actuator will not delete the node
+	// Fetch the latest node state from cache
 	node, err := c.nodeLister.Get(name)
 
 	if err != nil {
@@ -280,10 +280,9 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 						NodeName: node.Name,
 					},
 					Status: &v1alpha1.NodeRemediationStatus{
-						Phase:       v1alpha1.NodeRemediationPhaseInit,
-						Reason:      "initilize node remediation",
-						StartTime:   metav1.Now(),
-						ElapsedTime: 0,
+						Phase:     v1alpha1.NodeRemediationPhaseInit,
+						Reason:    "initilize node remediation",
+						StartTime: metav1.Now(),
 					},
 				}
 				nodeRemediation.Name = node.Name
@@ -305,7 +304,6 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 			copyNodeRemediation.Status.Phase = v1alpha1.NodeRemediationPhaseWait
 			copyNodeRemediation.Status.Reason = "wait to be sure that it does not transient error"
 			copyNodeRemediation.Status.StartTime = metav1.Now()
-			copyNodeRemediation.Status.ElapsedTime = 0
 			err := c.updateNodeRemediationWithEvent(nodeRemediation, copyNodeRemediation, node)
 			if err != nil {
 				return err
@@ -323,59 +321,90 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 			currentTime := metav1.Now()
 			// TODO: get timeout from configMap
 			if copyNodeRemediation.Status.StartTime.Add(time.Minute).After(currentTime.Time) {
-				copyNodeRemediation.Status.ElapsedTime = time.Since(copyNodeRemediation.Status.StartTime.Time)
-			} else {
-				copyNodeRemediation.Status.Phase = v1alpha1.NodeRemediationPhaseRemediate
-				copyNodeRemediation.Status.Reason = "remediate the node"
-				copyNodeRemediation.Status.StartTime = currentTime
-				copyNodeRemediation.Status.ElapsedTime = 0
-			}
-
-			err := c.updateNodeRemediationWithEvent(nodeRemediation, copyNodeRemediation, node)
-			if err != nil {
-				return err
+				c.enqueueNode(node)
+				return nil
 			}
 
 			machine, err := c.machineLister.Machines(metav1.NamespaceAll).Get(node.Name)
 			if err != nil {
 				if errors.IsNotFound(err) {
-					// TODO: when it possible that node in the wait phase but machine object already does not exist
 					return nil
 				}
 				return err
 			}
-			copyMachine := clusterapiutils.Copy(machine)
 
-			// TODO: divide logic to two phases to avoid creation conflict, still do not sure
-			// where I can save object between controller runs
+			copyNodeRemediation.Spec.MachineCluster = machine.ClusterName
+			copyNodeRemediation.Spec.MachineNamespace = machine.Namespace
+			machine.Spec.DeepCopyInto(copyNodeRemediation.Spec.MachineSpec)
+			copyNodeRemediation.Status.Phase = v1alpha1.NodeRemediationPhaseRemediate
+			copyNodeRemediation.Status.Reason = "remediate the node"
+			copyNodeRemediation.Status.StartTime = currentTime
+
+			err = c.updateNodeRemediationWithEvent(nodeRemediation, copyNodeRemediation, node)
+			if err != nil {
+				return err
+			}
+
 			err = c.clusterapiclient.ClusterV1alpha1().Machines(v1alpha1.NamespaceNoderecovery).Delete(machine.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				return err
 			}
-
-			_, err = c.clusterapiclient.ClusterV1alpha1().Machines(v1alpha1.NamespaceNoderecovery).Create(copyMachine)
-			if err != nil {
-				return err
-			}
-			// TODO: call to machine interface to create and delete the relevant node object
 			return nil
 		}
 
 		err := c.deleteNodeRemediationWithEvent(nodeRemediation, node)
 		if err != nil {
+			c.recorder.Eventf(
+				node,
+				corev1.EventTypeWarning,
+				v1alpha1.EventMachineDeleteFailed,
+				"Failed to delete machine object",
+			)
 			return err
 		}
+		c.recorder.Eventf(
+			node,
+			corev1.EventTypeNormal,
+			v1alpha1.EventMachineDeleteSuccessful,
+			"Succeeded to delete machine object",
+		)
 		return nil
 	case v1alpha1.NodeRemediationPhaseRemediate:
+		_, err := c.machineLister.Machines(metav1.NamespaceAll).Get(node.Name)
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				return err
+			}
+			machine := &clusterapiv1alpha1.Machine{}
+			machine.APIVersion = v1alpha1.MachineAPIVersion
+			machine.ClusterName = nodeRemediation.Spec.MachineCluster
+			machine.Kind = v1alpha1.MachineKind
+			machine.Name = nodeRemediation.Spec.NodeName
+			machine.Namespace = nodeRemediation.Spec.MachineNamespace
+			nodeRemediation.Spec.MachineSpec.DeepCopyInto(&machine.Spec)
+
+			_, err := c.clusterapiclient.ClusterV1alpha1().Machines(machine.Namespace).Create(machine)
+			if err != nil {
+				c.recorder.Eventf(
+					node,
+					corev1.EventTypeWarning,
+					v1alpha1.EventMachineCreateFailed,
+					"Failed to create machine object",
+				)
+				return err
+			}
+			c.recorder.Eventf(
+				node,
+				corev1.EventTypeNormal,
+				v1alpha1.EventMachineCreateSuccessful,
+				"Succeeded to create machine object",
+			)
+		}
 		if !nodeReady {
 			currentTime := metav1.Now()
 			// TODO: get timeout from configMap or the node label(annotation)
 			if copyNodeRemediation.Status.StartTime.Add(5 * time.Minute).After(currentTime.Time) {
-				copyNodeRemediation.Status.ElapsedTime = time.Since(copyNodeRemediation.Status.StartTime.Time)
-				err := c.updateNodeRemediationWithEvent(nodeRemediation, copyNodeRemediation, node)
-				if err != nil {
-					return err
-				}
+				c.enqueueNode(node)
 				return nil
 			}
 			c.recorder.Eventf(
@@ -393,7 +422,7 @@ func (c *NodeRecoveryController) syncNode(key string) error {
 			)
 		}
 
-		err := c.deleteNodeRemediationWithEvent(nodeRemediation, node)
+		err = c.deleteNodeRemediationWithEvent(nodeRemediation, node)
 		if err != nil {
 			return err
 		}

@@ -20,9 +20,9 @@
 package v1alpha1
 
 import (
-	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	clusterapiv1alpha1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
 )
 
 const NamespaceNoderecovery = "noderecovery"
@@ -36,6 +36,18 @@ const (
 	EventNodeRemediationUpdateSuccessful = "SuccessfulUpdate"
 	EventNodeRemediationFailed           = "NodeRemediationFailed"
 	EventNodeRemediationSucceeded        = "NodeRemediationSucceeded"
+)
+
+const (
+	EventMachineCreateFailed = "FailedCreate"
+	EventMachineCreateSuccessful = "SuccessfulCreate"
+	EventMachineDeleteFailed = "FailedDelete"
+	EventMachineDeleteSuccessful = "SuccessfulDelete"
+)
+
+const (
+	MachineAPIVersion = "cluster.k8s.io/v1alpha1"
+	MachineKind = "Machine"
 )
 
 // +genclient
@@ -53,7 +65,10 @@ type NodeRemediation struct {
 
 type NodeRemediationSpec struct {
 	// NodeName maps between node and NodeRemediation object
-	NodeName string `json:"nodeName,omitempty" valid:"required"`
+	NodeName         string                          `json:"nodeName,omitempty" valid:"required"`
+	MachineCluster   string                          `json:"machineCluster,omitempty"`
+	MachineNamespace string                          `json:"machineNamespace,omitempty"`
+	MachineSpec      *clusterapiv1alpha1.MachineSpec `json:"machineSpec,omitempty"`
 }
 
 type NodeRemediationPhase string
@@ -72,8 +87,6 @@ type NodeRemediationStatus struct {
 	Phase NodeRemediationPhase `json:"phase,omitempty"`
 	// StartTime indicates when current phase started
 	StartTime metav1.Time `json:"startTime,omitempty"`
-	// ElapsedTime indicates how many time, object has the same phase
-	ElapsedTime time.Duration `json:"elapsedTime,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

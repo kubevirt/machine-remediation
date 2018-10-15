@@ -35,6 +35,7 @@ go_library(
         "//vendor/k8s.io/client-go/tools/leaderelection/resourcelock:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions/cluster/v1alpha1:go_default_library",
