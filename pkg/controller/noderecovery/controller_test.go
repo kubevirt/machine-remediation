@@ -129,6 +129,8 @@ type fixture struct {
 	kubeObjects       []runtime.Object
 	objects           []runtime.Object
 	clusterapiObjects []runtime.Object
+
+	recorder *record.FakeRecorder
 }
 
 // func (f *fixture) expectGetDeploymentAction(d *apps.Deployment) {
@@ -151,6 +153,10 @@ func (f *fixture) expectCreateNodeRemediationAction(nr *v1alpha1.NodeRemediation
 	f.actions = append(f.actions, core.NewCreateAction(schema.GroupVersionResource{Resource: "noderemediations"}, nr.Namespace, nr))
 }
 
+func (f *fixture) expectDeleteNodeRemediationAction(nr *v1alpha1.NodeRemediation) {
+	f.actions = append(f.actions, core.NewDeleteAction(schema.GroupVersionResource{Resource: "noderemediations"}, nr.Namespace, nr.Name))
+}
+
 func newFixture(t *testing.T) *fixture {
 	f := &fixture{}
 	f.t = t
@@ -169,6 +175,8 @@ func (f *fixture) newController() *NodeRecoveryController {
 	f.clusterapiclient = clusterapifake.NewSimpleClientset(f.clusterapiObjects...)
 	f.clusterapiInformerFactory = clusterapiinformers.NewSharedInformerFactory(f.clusterapiclient, controller.NoResyncPeriodFunc())
 
+	f.recorder = record.NewFakeRecorder(50)
+
 	c := NewNodeRecoveryController(
 		f.kubeclient,
 		f.client,
@@ -179,7 +187,7 @@ func (f *fixture) newController() *NodeRecoveryController {
 		f.clusterapiInformerFactory.Cluster().V1alpha1().Machines(),
 	)
 
-	c.recorder = &record.FakeRecorder{}
+	c.recorder = f.recorder
 	c.machineSynced = alwaysReady
 	c.nodeSynced = alwaysReady
 	c.nodeRemediationSynced = alwaysReady
@@ -260,7 +268,17 @@ func filterInformerActions(actions []core.Action) []core.Action {
 	return ret
 }
 
-func TestSyncNotReadyNodeCreatesNodeRemediation(t *testing.T) {
+func TestSyncWithReadyNodeDoesNotCreateNodeRemediation(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("ready-node", true)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	f.run(testutils.GetKey(n, t))
+}
+
+func TestSyncWithNotReadyNodeCreatesNodeRemediation(t *testing.T) {
 	f := newFixture(t)
 
 	n := newNode("notready-node", false)
@@ -271,5 +289,27 @@ func TestSyncNotReadyNodeCreatesNodeRemediation(t *testing.T) {
 
 	f.expectCreateNodeRemediationAction(nr)
 
+	// Check for expected actions
 	f.run(testutils.GetKey(n, t))
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Succeeded to create NodeRemediation", t)
+}
+
+func TestSyncWithReadyNodeDeletesNodeRemediationInInitPhase(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("ready-node", true)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("ready-node", v1alpha1.NodeRemediationPhaseInit, noTimestamp)
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	f.expectDeleteNodeRemediationAction(nr)
+
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Succeeded to delete NodeRemediation", t)
 }

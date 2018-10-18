@@ -20,9 +20,11 @@
 package testing
 
 import (
+	"strings"
 	"reflect"
 	"testing"
 
+	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -52,4 +54,17 @@ func GetKey(obj interface{}, t *testing.T) string {
 		return ""
 	}
 	return key
+}
+
+// ExpectEvent will check if expected event exists under the recorder
+func ExpectEvent(recorder *record.FakeRecorder, reason string, t *testing.T) {
+	select {
+    case e, ok := <-recorder.Events:
+        if ok && strings.Contains(e, reason) {
+			return
+		}
+		t.Errorf("Failed to find event with the reason \"%s\"", reason)
+    default:
+        t.Errorf("Failed to find event with the reason \"%s\"", reason)
+    }
 }

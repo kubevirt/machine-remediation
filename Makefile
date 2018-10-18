@@ -14,7 +14,7 @@ bazel-push-images-os-3.10.0:
 	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=os_3_10_0"
 
 bazel-tests:
-	./hack/dockerized "bazel test --test_output=errors -- //pkg/... "
+	./hack/dockerized "bazel test --test_output=all -- //pkg/... "
 
 cluster-build:
 	./cluster/build.sh

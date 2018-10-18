@@ -5,5 +5,8 @@ go_library(
     srcs = ["utils.go"],
     importpath = "kubevirt.io/node-recovery/pkg/testing",
     visibility = ["//visibility:public"],
-    deps = ["//vendor/k8s.io/client-go/tools/cache:go_default_library"],
+    deps = [
+        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/k8s.io/client-go/tools/record:go_default_library",
+    ],
 )
