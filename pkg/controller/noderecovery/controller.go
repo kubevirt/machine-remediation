@@ -425,7 +425,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 			machine, err := c.getMachine(node)
 			if err != nil {
 				if errors.IsNotFound(err) {
-					glog.Infof("can not find machine for the node %s", node.Name)
+					glog.V(2).Infof("can not find machine for the node %s", node.Name)
 					return nil
 				}
 				return err

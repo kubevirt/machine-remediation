@@ -363,7 +363,7 @@ func TestSyncWithNotReadyNodeStayInWaitPhaseSpecifiedTime(t *testing.T) {
 	f.run(testutils.GetKey(n, t))
 }
 
-func TestSyncWithNotReadyNodeStayInWaitPhaseMoveToRemediatePhase(t *testing.T) {
+func TestSyncWithNotReadyNodeInWaitPhaseMoveToRemediatePhase(t *testing.T) {
 	f := newFixture(t)
 
 	n := newNode("notready-node", false)
@@ -388,4 +388,75 @@ func TestSyncWithNotReadyNodeStayInWaitPhaseMoveToRemediatePhase(t *testing.T) {
 	// Check for expected events
 	testutils.ExpectEvent(f.recorder, "Succeeded to delete machine object", t)
 	testutils.ExpectEvent(f.recorder, "Succeeded to update NodeRemediation phase to Remediate", t)
+}
+
+func TestSyncWithNotReadyNodeInRemediatePhaseCreatesMachines(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("notready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseRemediate,
+		metav1.Time{Time: time.Now()},
+	)
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	machine := newMachine("notready-node")
+
+	f.expectCreateMachineAction(machine)
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Succeeded to create machine object", t)
+}
+
+func TestSyncWithReadyNodeInRemediatePhaseSucceeds(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("ready-node", true)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("ready-node", v1alpha1.NodeRemediationPhaseRemediate,noTimestamp)
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	machine := newMachine("ready-node")
+	f.machineLister = append(f.machineLister, machine)
+	f.clusterapiObjects = append(f.clusterapiObjects, machine)
+
+	f.expectDeleteNodeRemediationAction(nr)
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Succeeded to remediate the node", t)
+}
+func TestSyncWithNotReadyNodeInRemediatePhaseFailsRemediationAfterTimeout(t *testing.T) {
+	f := newFixture(t)
+	defaultRemediateTimeout := time.Minute*5
+
+	n := newNode("notready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseRemediate,
+		metav1.Time{Time: time.Now().Add(-defaultRemediateTimeout)},
+	)
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	machine := newMachine("notready-node")
+	f.machineLister = append(f.machineLister, machine)
+	f.clusterapiObjects = append(f.clusterapiObjects, machine)
+
+	f.expectDeleteNodeRemediationAction(nr)
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Failed to remediate the node", t)
 }

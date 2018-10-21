@@ -1,0 +1,12 @@
+language: generic
+sudo: required
+dist: trusty
+
+services:
+- docker
+
+install:
+- git reset --hard
+
+script:
+- make bazel-tests
