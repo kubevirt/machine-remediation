@@ -20,7 +20,9 @@
 package noderecovery
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,7 +53,7 @@ func newMachine(name string) *clusterapiv1alpha1.Machine {
 	return &clusterapiv1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: metav1.NamespaceDefault,
+			Namespace: v1alpha1.NamespaceNoderecovery,
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Machine",
@@ -70,6 +72,9 @@ func newNode(name string, ready bool) *corev1.Node {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: metav1.NamespaceNone,
+			Annotations: map[string]string{
+				"machine": fmt.Sprintf("%s/%s", v1alpha1.NamespaceNoderecovery, name),
+			},
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Node",
@@ -133,21 +138,13 @@ type fixture struct {
 	recorder *record.FakeRecorder
 }
 
-// func (f *fixture) expectGetDeploymentAction(d *apps.Deployment) {
-// 	action := core.NewGetAction(schema.GroupVersionResource{Resource: "deployments"}, d.Namespace, d.Name)
-// 	f.actions = append(f.actions, action)
-// }
+func (f *fixture) expectCreateMachineAction(machine *clusterapiv1alpha1.Machine) {
+	f.actions = append(f.actions, core.NewCreateAction(schema.GroupVersionResource{Resource: "machines"}, machine.Namespace, machine))
+}
 
-// func (f *fixture) expectUpdateDeploymentStatusAction(d *apps.Deployment) {
-// 	action := core.NewUpdateAction(schema.GroupVersionResource{Resource: "deployments"}, d.Namespace, d)
-// 	action.Subresource = "status"
-// 	f.actions = append(f.actions, action)
-// }
-
-// func (f *fixture) expectUpdateDeploymentAction(d *apps.Deployment) {
-// 	action := core.NewUpdateAction(schema.GroupVersionResource{Resource: "deployments"}, d.Namespace, d)
-// 	f.actions = append(f.actions, action)
-// }
+func (f *fixture) expectDeleteMachineAction(machine *clusterapiv1alpha1.Machine) {
+	f.actions = append(f.actions, core.NewDeleteAction(schema.GroupVersionResource{Resource: "machines"}, machine.Namespace, machine.Name))
+}
 
 func (f *fixture) expectCreateNodeRemediationAction(nr *v1alpha1.NodeRemediation) {
 	f.actions = append(f.actions, core.NewCreateAction(schema.GroupVersionResource{Resource: "noderemediations"}, nr.Namespace, nr))
@@ -157,11 +154,16 @@ func (f *fixture) expectDeleteNodeRemediationAction(nr *v1alpha1.NodeRemediation
 	f.actions = append(f.actions, core.NewDeleteAction(schema.GroupVersionResource{Resource: "noderemediations"}, nr.Namespace, nr.Name))
 }
 
+func (f *fixture) expectUpdateNodeRemediationAction(nr *v1alpha1.NodeRemediation) {
+	f.actions = append(f.actions, core.NewUpdateAction(schema.GroupVersionResource{Resource: "noderemediations"}, nr.Namespace, nr))
+}
+
 func newFixture(t *testing.T) *fixture {
 	f := &fixture{}
 	f.t = t
 	f.kubeObjects = []runtime.Object{}
 	f.objects = []runtime.Object{}
+	f.clusterapiObjects = []runtime.Object{}
 	return f
 }
 
@@ -228,8 +230,10 @@ func (f *fixture) run_(nodeName string, startInformers bool, expectError bool) {
 	} else if expectError && err == nil {
 		f.t.Error("expected error syncing deployment, got nil")
 	}
-
 	actions := filterInformerActions(f.client.Actions())
+	for _, machineAction := range filterInformerActions(f.clusterapiclient.Actions()) {
+		actions = append(actions, machineAction)
+	}
 	for i, action := range actions {
 		if len(f.actions) < i+1 {
 			f.t.Errorf("%d unexpected actions: %+v", len(actions)-len(f.actions), actions[i:])
@@ -296,13 +300,21 @@ func TestSyncWithNotReadyNodeCreatesNodeRemediation(t *testing.T) {
 }
 
 func TestSyncWithReadyNodeDeletesNodeRemediationInInitPhase(t *testing.T) {
+	deletionOfNodeRemediation(v1alpha1.NodeRemediationPhaseInit, t)
+}
+
+func TestSyncWithReadyNodeDeletesNodeRemediationInWaitPhase(t *testing.T) {
+	deletionOfNodeRemediation(v1alpha1.NodeRemediationPhaseWait, t)
+}
+
+func deletionOfNodeRemediation(phase v1alpha1.NodeRemediationPhase, t *testing.T) {
 	f := newFixture(t)
 
 	n := newNode("ready-node", true)
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
-	nr := newNodeRemediation("ready-node", v1alpha1.NodeRemediationPhaseInit, noTimestamp)
+	nr := newNodeRemediation("ready-node", phase, noTimestamp)
 	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
 	f.objects = append(f.objects, nr)
 
@@ -312,4 +324,68 @@ func TestSyncWithReadyNodeDeletesNodeRemediationInInitPhase(t *testing.T) {
 	f.run(testutils.GetKey(n, t))
 	// Check for expected events
 	testutils.ExpectEvent(f.recorder, "Succeeded to delete NodeRemediation", t)
+}
+
+func TestSyncWithNotReadyNodeMoveNodeRemediationToWaitPhase(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("notready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseInit, noTimestamp)
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	f.expectUpdateNodeRemediationAction(nr)
+
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Succeeded to update NodeRemediation phase to Wait", t)
+}
+
+func TestSyncWithNotReadyNodeStayInWaitPhaseSpecifiedTime(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("notready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseWait, metav1.Time{
+		Time: time.Now(),
+	})
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+}
+
+func TestSyncWithNotReadyNodeStayInWaitPhaseMoveToRemediatePhase(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("notready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseWait, metav1.Time{
+		Time: time.Now().Add(-time.Minute),
+	})
+	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
+	f.objects = append(f.objects, nr)
+
+	machine := newMachine("notready-node")
+	f.machineLister = append(f.machineLister, machine)
+	f.clusterapiObjects = append(f.clusterapiObjects, machine)
+
+	f.expectUpdateNodeRemediationAction(nr)
+	f.expectDeleteMachineAction(machine)
+	// Check for expected actions
+	f.run(testutils.GetKey(n, t))
+
+	// Check for expected events
+	testutils.ExpectEvent(f.recorder, "Succeeded to delete machine object", t)
+	testutils.ExpectEvent(f.recorder, "Succeeded to update NodeRemediation phase to Remediate", t)
 }

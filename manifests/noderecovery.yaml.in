@@ -88,7 +88,6 @@ spec:
           imagePullPolicy: {{.ImagePullPolicy}}
           command:
             - "noderecovery"
-            - "--v=2"
           securityContext:
             runAsUser: 1001
           volumeMounts:

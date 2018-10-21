@@ -33,7 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
+	kubescheme "k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
@@ -50,6 +50,7 @@ import (
 	informers "kubevirt.io/node-recovery/pkg/client/informers/externalversions/noderecovery/v1alpha1"
 	listers "kubevirt.io/node-recovery/pkg/client/listers/noderecovery/v1alpha1"
 	"kubevirt.io/node-recovery/pkg/controller"
+	"kubevirt.io/node-recovery/pkg/client/clientset/versioned/scheme"
 )
 
 const (
@@ -136,11 +137,12 @@ func NewNodeRecoveryController(
 
 	c.nodeConditionManager = controller.NewNodeConditionManager()
 
+	scheme.AddToScheme(kubescheme.Scheme)
 	glog.V(2).Info("Creating event broadcaster")
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclient.CoreV1().Events(metav1.NamespaceAll)})
-	c.recorder = eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: "node-recovery-controller"})
+	c.recorder = eventBroadcaster.NewRecorder(kubescheme.Scheme, corev1.EventSource{Component: "node-recovery-controller"})
 
 	return c
 }
@@ -154,11 +156,12 @@ func (c *NodeRecoveryController) addMachine(obj interface{}) {
 		return
 	}
 
-	key, err := controller.KeyFunc(obj)
+	nodeKey, err := c.getNodeKey(machine)
 	if err != nil {
+		glog.Errorf("failed to get node key: %v", err)
 		return
 	}
-	c.machineExpectations.CreationObserved(key)
+	c.machineExpectations.CreationObserved(nodeKey)
 	c.enqueueObj(obj)
 }
 
@@ -177,16 +180,21 @@ func (c *NodeRecoveryController) deleteMachine(obj interface{}) {
 		}
 		machine, ok = tombstone.Obj.(*clusterapiv1alpha1.Machine)
 		if !ok {
-			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a ReplicaSet %#v", obj))
+			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a Machine %#v", obj))
 			return
 		}
 	}
 
-	key, err := controller.KeyFunc(obj)
+	nodeKey, err := c.getNodeKey(machine)
+	if err != nil {
+		glog.Errorf("failed to get node key: %v", err)
+		return
+	}
+	machineKey, err := controller.KeyFunc(machine)
 	if err != nil {
 		return
 	}
-	c.machineExpectations.DeletionObserved(machine.Status.NodeRef.Name, key)
+	c.machineExpectations.DeletionObserved(nodeKey, machineKey)
 	c.enqueueObj(obj)
 }
 
@@ -229,7 +237,7 @@ func (c *NodeRecoveryController) addNodeRemediation(obj interface{}) {
 }
 
 func (c *NodeRecoveryController) deleteNodeRemediation(obj interface{}) {
-	nodeRemediation, ok := obj.(*v1alpha1.NodeRemediation)
+	_, ok := obj.(*v1alpha1.NodeRemediation)
 	// When a delete is dropped, the relist will notice a pod in the store not
 	// in the list, leading to the insertion of a tombstone object which contains
 	// the deleted key/value. Note that this value might be stale. If the ReplicaSet
@@ -240,18 +248,18 @@ func (c *NodeRecoveryController) deleteNodeRemediation(obj interface{}) {
 			runtime.HandleError(fmt.Errorf("Couldn't get object from tombstone %#v", obj))
 			return
 		}
-		nodeRemediation, ok = tombstone.Obj.(*v1alpha1.NodeRemediation)
+		_, ok = tombstone.Obj.(*v1alpha1.NodeRemediation)
 		if !ok {
-			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a ReplicaSet %#v", obj))
+			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a NodeRemediation %#v", obj))
 			return
 		}
 	}
-	// TODO: if node ready, skip enqueue, otherwise enqueue with some limit on number of tries
 	key, err := controller.KeyFunc(obj)
 	if err != nil {
 		return
 	}
-	c.nodeRemediationExpectations.DeletionObserved(nodeRemediation.Spec.NodeName, key)
+	// TODO: if node ready, skip enqueue, otherwise enqueue with some limit on number of tries
+	c.nodeRemediationExpectations.DeletionObserved(key, key)
 	c.enqueueObj(obj)
 }
 
@@ -414,8 +422,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 				c.enqueueObj(node)
 				return nil
 			}
-
-			machine, err := c.machineLister.Machines(metav1.NamespaceAll).Get(node.Name)
+			machine, err := c.getMachine(node)
 			if err != nil {
 				if errors.IsNotFound(err) {
 					glog.Infof("can not find machine for the node %s", node.Name)
@@ -425,49 +432,51 @@ func (c *NodeRecoveryController) sync(key string) error {
 			}
 
 			copyNodeRemediation.Spec.MachineCluster = machine.ClusterName
+			copyNodeRemediation.Spec.MachineName = machine.Name
 			copyNodeRemediation.Spec.MachineNamespace = machine.Namespace
-			machine.Spec.DeepCopyInto(copyNodeRemediation.Spec.MachineSpec)
+			machine.Spec.DeepCopyInto(&copyNodeRemediation.Spec.MachineSpec)
 			copyNodeRemediation.Status.Phase = v1alpha1.NodeRemediationPhaseRemediate
 			copyNodeRemediation.Status.Reason = "remediate the node"
 			copyNodeRemediation.Status.StartTime = currentTime
-
-			err = c.updateNodeRemediationWithEvent(nodeRemediation, copyNodeRemediation, node)
-			if err != nil {
-				return err
-			}
 
 			machineKey, err := controller.KeyFunc(machine)
 			if err != nil {
 				return err
 			}
+
 			c.machineExpectations.ExpectDeletions(key, []string{machineKey})
-			err = c.clusterapiclient.ClusterV1alpha1().Machines(v1alpha1.NamespaceNoderecovery).Delete(machine.Name, &metav1.DeleteOptions{})
+			err = c.clusterapiclient.ClusterV1alpha1().Machines(machine.Namespace).Delete(machine.Name, &metav1.DeleteOptions{})
 			if err != nil {
+				c.recorder.Eventf(
+					copyNodeRemediation,
+					corev1.EventTypeWarning,
+					v1alpha1.EventMachineDeleteFailed,
+					"Failed to delete machine object",
+				)
 				c.machineExpectations.DeletionObserved(key, machineKey)
 				return err
 			}
+			c.recorder.Eventf(
+				copyNodeRemediation,
+				corev1.EventTypeNormal,
+				v1alpha1.EventMachineDeleteSuccessful,
+				"Succeeded to delete machine object",
+			)
+			err = c.updateNodeRemediationWithEvent(nodeRemediation, copyNodeRemediation, node)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		}
 
 		err := c.deleteNodeRemediationWithEvent(nodeRemediation, node)
 		if err != nil {
-			c.recorder.Eventf(
-				node,
-				corev1.EventTypeWarning,
-				v1alpha1.EventMachineDeleteFailed,
-				"Failed to delete machine object",
-			)
 			return err
 		}
-		c.recorder.Eventf(
-			node,
-			corev1.EventTypeNormal,
-			v1alpha1.EventMachineDeleteSuccessful,
-			"Succeeded to delete machine object",
-		)
 		return nil
 	case v1alpha1.NodeRemediationPhaseRemediate:
-		_, err := c.machineLister.Machines(metav1.NamespaceAll).Get(node.Name)
+		_, err := c.getMachine(node)
 		if err != nil {
 			if !errors.IsNotFound(err) {
 				return err
@@ -476,21 +485,16 @@ func (c *NodeRecoveryController) sync(key string) error {
 			machine.APIVersion = v1alpha1.MachineAPIVersion
 			machine.ClusterName = nodeRemediation.Spec.MachineCluster
 			machine.Kind = v1alpha1.MachineKind
-			machine.Name = nodeRemediation.Spec.NodeName
+			machine.Name = nodeRemediation.Spec.MachineName
 			machine.Namespace = nodeRemediation.Spec.MachineNamespace
 			nodeRemediation.Spec.MachineSpec.DeepCopyInto(&machine.Spec)
 
-			machineKey, err := controller.KeyFunc(machine)
-			if err != nil {
-				return err
-			}
-
-			c.machineExpectations.ExpectCreations(machineKey, 1)
+			c.machineExpectations.ExpectCreations(key, 1)
 			_, err = c.clusterapiclient.ClusterV1alpha1().Machines(machine.Namespace).Create(machine)
 			if err != nil {
-				c.machineExpectations.CreationObserved(machineKey)
+				c.machineExpectations.CreationObserved(key)
 				c.recorder.Eventf(
-					node,
+					copyNodeRemediation,
 					corev1.EventTypeWarning,
 					v1alpha1.EventMachineCreateFailed,
 					"Failed to create machine object",
@@ -498,7 +502,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 				return err
 			}
 			c.recorder.Eventf(
-				node,
+				copyNodeRemediation,
 				corev1.EventTypeNormal,
 				v1alpha1.EventMachineCreateSuccessful,
 				"Succeeded to create machine object",
@@ -567,11 +571,11 @@ func (c *NodeRecoveryController) deleteNodeRemediationWithEvent(nodeRemediation 
 	if err != nil {
 		return err
 	}
-	c.nodeRemediationExpectations.ExpectDeletions(nodeRemediation.Spec.NodeName, []string{key})
+	c.nodeRemediationExpectations.ExpectDeletions(key, []string{key})
 
 	err = c.noderecoveryclient.NoderecoveryV1alpha1().NodeRemediations().Delete(nodeRemediation.Name, &metav1.DeleteOptions{})
 	if err != nil {
-		c.nodeRemediationExpectations.DeletionObserved(nodeRemediation.Spec.NodeName, key)
+		c.nodeRemediationExpectations.DeletionObserved(key, key)
 		c.recorder.Eventf(
 			node,
 			corev1.EventTypeWarning,
@@ -611,4 +615,49 @@ func (c *NodeRecoveryController) updateNodeRemediationWithEvent(oldNodeRemediati
 		)
 	}
 	return nil
+}
+
+func(c *NodeRecoveryController) getNodeKey(machine *clusterapiv1alpha1.Machine) (string, error) {
+	predicate := func (node *corev1.Node) bool {
+		val, ok := node.Annotations["machine"]
+		if !ok {
+			return false
+		}
+		namespace, name, err := cache.SplitMetaNamespaceKey(val)
+		if err != nil {
+			return false
+		}
+		if name != machine.Name || namespace != machine.Namespace {
+			return false
+		}
+		return true
+	}
+
+	nodes, err := c.nodeLister.ListWithPredicate(predicate)
+	if err != nil {
+		return "", err
+	}
+	if len(nodes) < 0 {
+		return "", fmt.Errorf("failed to find node that has machine annotation")
+	}
+	return nodes[0].Name, nil
+}
+
+func(c *NodeRecoveryController) getMachine(node *corev1.Node) (*clusterapiv1alpha1.Machine, error) {
+	val, ok := node.Annotations["machine"]
+	if !ok {
+		return nil, fmt.Errorf("failed to get machine aanotation from the node")
+	}
+
+	namespace, name, err := cache.SplitMetaNamespaceKey(val)
+	if err != nil {
+		return nil, err
+	}
+
+	machine, err := c.machineLister.Machines(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return machine, nil
 }

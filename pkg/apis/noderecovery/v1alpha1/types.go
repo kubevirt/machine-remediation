@@ -39,15 +39,15 @@ const (
 )
 
 const (
-	EventMachineCreateFailed = "FailedCreate"
+	EventMachineCreateFailed     = "FailedCreate"
 	EventMachineCreateSuccessful = "SuccessfulCreate"
-	EventMachineDeleteFailed = "FailedDelete"
+	EventMachineDeleteFailed     = "FailedDelete"
 	EventMachineDeleteSuccessful = "SuccessfulDelete"
 )
 
 const (
 	MachineAPIVersion = "cluster.k8s.io/v1alpha1"
-	MachineKind = "Machine"
+	MachineKind       = "Machine"
 )
 
 // +genclient
@@ -65,10 +65,11 @@ type NodeRemediation struct {
 
 type NodeRemediationSpec struct {
 	// NodeName maps between node and NodeRemediation object
-	NodeName         string                          `json:"nodeName,omitempty" valid:"required"`
-	MachineCluster   string                          `json:"machineCluster,omitempty"`
-	MachineNamespace string                          `json:"machineNamespace,omitempty"`
-	MachineSpec      *clusterapiv1alpha1.MachineSpec `json:"machineSpec,omitempty"`
+	NodeName         string                         `json:"nodeName,omitempty" valid:"required"`
+	MachineCluster   string                         `json:"machineCluster,omitempty"`
+	MachineName      string							`json:"machineName,omitempty"`
+	MachineNamespace string                         `json:"machineNamespace,omitempty"`
+	MachineSpec      clusterapiv1alpha1.MachineSpec `json:"machineSpec,omitempty"`
 }
 
 type NodeRemediationPhase string
