@@ -13,6 +13,9 @@ bazel-push-images-k8s-1.10.4:
 bazel-push-images-os-3.10.0:
 	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=os_3_10_0"
 
+bazel-push-images-release:
+	hack/dockerized "bazel run //:push_images --define release=true"
+
 bazel-tests:
 	./hack/dockerized "bazel test --test_output=all -- //pkg/... "
 
@@ -51,6 +54,7 @@ generate:
 	bazel-generate-manifests-release \
 	bazel-push-images-k8s-1.10.4 \
 	bazel-push-images-os-3.10.0 \
+	bazel-push-images-release \
 	bazel-tests \
 	cluster-build \
 	cluster-clean \
