@@ -24,6 +24,13 @@ spec:
            required: ["nodeName"]
 ---
 apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubevirt.io: noderecovery
+  name: noderecovery
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
@@ -81,7 +88,6 @@ spec:
           imagePullPolicy: {{.ImagePullPolicy}}
           command:
             - "noderecovery"
-            - "--v=2"
           securityContext:
             runAsUser: 1001
           volumeMounts:

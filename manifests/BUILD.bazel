@@ -28,13 +28,13 @@ genrule(
     outs = ["noderecovery.yaml"],
     cmd = select({
         ":dev": "./$(location //tools/manifest-templator:manifest-templator) \
-            --namespace=kube-system \
+            --namespace=noderecovery \
             --docker-prefix=registry:5000 \
             --docker-tag=devel \
             --image-pull-policy=Always \
             --input-file=$(locations :concat_all_manifests) > $@",
         ":release": "./$(location //tools/manifest-templator:manifest-templator) \
-            --namespace=kube-system \
+            --namespace=noderecovery \
             --docker-prefix=docker.io/kubevirt \
             --docker-tag=latest \
             --image-pull-policy=IfNotPresent \
