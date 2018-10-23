@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker push docker.io/alukiano/docker-builder:latest
+docker push docker.io/alukiano/noderecovery-docker-builder:latest
