@@ -18,12 +18,12 @@ Often you fall in the situatuion that your node start to be `non-Ready`, it can 
 
 Apply `noderecovery.yaml` manifest from the desired release.
 
-# To start developing KubeVirt
+# To start developing Node-Recovery
 
 To set up a development environment please read our
 [Getting Started Guide](/docs/getting-started.md).
 
-You can learn more about how KubeVirt is designed (and why it is that way),
+You can learn more about how Node-Recovery is designed (and why it is that way),
 and learn more about the major components by taking a look at
 [our developer documentation](docs/):
 
