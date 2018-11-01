@@ -17,10 +17,10 @@ In additional it runs dnsmasq and docker registry containers.
 ### Compile and run it
 
 To build all required artifacts and launch the
-dockerizied environment, clone the KubeVirt repository, `cd` into it, and:
+dockerizied environment, clone the node-recovery repository, `cd` into it, and:
 
 ```bash
-# Build and deploy KubeVirt on Kubernetes 1.10.4 in our vms inside containers
+# Build and deploy node-recovery on Kubernetes 1.10.4 in our vms inside containers
 export CLUSTER_PROVIDER=k8s-1.10.4 # this is also the default if no CLUSTER_PROVIDER is set
 make cluster-up
 make cluster-sync
