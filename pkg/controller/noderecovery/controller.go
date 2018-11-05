@@ -637,7 +637,7 @@ func(c *NodeRecoveryController) getNodeKey(machine *clusterapiv1alpha1.Machine) 
 	if err != nil {
 		return "", err
 	}
-	if len(nodes) < 0 {
+	if len(nodes) == 0 {
 		return "", fmt.Errorf("failed to find node that has machine annotation")
 	}
 	return nodes[0].Name, nil
