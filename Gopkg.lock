@@ -18,6 +18,22 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:65587005c6fa4293c0b8a2e457e689df7fda48cc5e1f5449ea2c1e7784551558"
+  name = "github.com/go-logr/logr"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "9fb12b3b21c5415d16ac18dc5cd42c1cfdd40c4e"
+
+[[projects]]
+  digest = "1:ce43ad4015e7cdad3f0e8f2c8339439dd4470859a828d2a6988b0f713699e94a"
+  name = "github.com/go-logr/zapr"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "7536572e8d55209135cd5e7ccf7fce43dca217ab"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:da39f4a22829ca95e63566208e0ea42d6f055f41dff1b14fdab88d88f62df653"
   name = "github.com/gogo/protobuf"
   packages = [
@@ -38,11 +54,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:29342f636f875ca5478b6fd926212c37d89ae3c858ab3ec4680ee1eed7d32945"
+  digest = "1:8f3489cb7352125027252a6517757cbd1706523119f1e14e20741ae8d2f70428"
   name = "github.com/golang/groupcache"
   packages = ["lru"]
   pruneopts = "T"
-  revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
+  revision = "c65c006176ff7ff98bb916961c7abbc6b0afc0aa"
 
 [[projects]]
   digest = "1:a2ecb56e5053d942aafc86738915fb94c9131bac848c543b8b6764365fd69080"
@@ -88,14 +104,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4607fd19c69c3deee61840fca759fedb3908e4fcb09385e2f3783b93e0035c73"
+  digest = "1:8c0ceab65d43f49dce22aac0e8f670c170fc74dcf2dfba66d3a89516f7ae2c15"
   name = "github.com/gregjones/httpcache"
   packages = [
     ".",
     "diskcache",
   ]
   pruneopts = "T"
-  revision = "9cad4c3443a7200dd6400aef47183728de563a38"
+  revision = "c63ab54fda8f77302f8d414e19933f2b6026a089"
 
 [[projects]]
   digest = "1:8ec8d88c248041a6df5f6574b87bc00e7e0b493881dad2e7ef47b11dc69093b5"
@@ -107,6 +123,14 @@
   pruneopts = "T"
   revision = "20f1fb78b0740ba8c3cb143a61e86ba5c8669768"
   version = "v0.5.0"
+
+[[projects]]
+  digest = "1:3477d9dd8c135faab978bac762eaeafb31f28d6da97ef500d5c271966f74140a"
+  name = "github.com/imdario/mergo"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4"
+  version = "v0.3.6"
 
 [[projects]]
   digest = "1:5d713dbcad44f3358fec51fd5573d4f733c02cac5a40dcb177787ad5ffe9272f"
@@ -157,37 +181,67 @@
   version = "v1.0.3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:56a43b9f51e5c5ea734e866b82d57c842b022c795a0611ff5f57f3d7c47de45d"
-  name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  digest = "1:365b8ecb35a5faf5aa0ee8d798548fc9cd4200cb95d77a5b0b285ac881bae499"
+  name = "go.uber.org/atomic"
+  packages = ["."]
   pruneopts = "T"
-  revision = "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
+  revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
+  version = "v1.3.2"
+
+[[projects]]
+  digest = "1:8da5d356e645cc806b953f35966e9185e9f3817c6cee54f9b33ca602544ee434"
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:c57d4b95825e74f8eb3b0c851d04aac3626a602de613f8702c0de41de26856b6"
+  name = "go.uber.org/zap"
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore",
+  ]
+  pruneopts = "T"
+  revision = "ff33455a0e382e8a81d14dd7c922020b6b5e7982"
+  version = "v1.9.1"
 
 [[projects]]
   branch = "master"
-  digest = "1:1244f7fbc53a2b9c4174e7e1e62ed5cad5f2f42c67abeac2400a7a72c6c76643"
+  digest = "1:0550efca924537365fba757950ae7b6ec8c11f018b5c2d6a189ac9a2af0f1ba7"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "T"
+  revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f66cd895439d91ce840f7f9ab98f1c9d96d4798e667b64dd29d3953870eeec1a"
   name = "golang.org/x/net"
   packages = [
-    "context",
     "http/httpguts",
     "http2",
     "http2/hpack",
     "idna",
   ]
   pruneopts = "T"
-  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
+  revision = "03003ca0c849e57b6ea29a4bab8d3cb6e4d568fe"
 
 [[projects]]
   branch = "master"
-  digest = "1:bfd82e5d371481eff9c9653181f398061479c35bc3be2a5bd5f017c9c8b5c894"
+  digest = "1:a810055cfbdd9025f18eac69cc78b9284f549cd2c2a3990765de09dc828b713f"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "T"
-  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
+  revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
 
 [[projects]]
   digest = "1:6164911cb5e94e8d8d5131d646613ff82c14f5a8ce869de2f6d80d9889df8c5a"
@@ -214,11 +268,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:59a73243379bd5412feb268ec3d9ec0c55acb596ce15fdf937ec29ea6dab441f"
+  digest = "1:077216d94c076b8cd7bd057cb6f7c6d224970cc991bdfe49c0c7a24e8e39ee33"
   name = "golang.org/x/time"
   packages = ["rate"]
   pruneopts = "T"
-  revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+  revision = "85acf8d2951cb2a3bde7632f9ff273ef0379bcbd"
 
 [[projects]]
   digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"
@@ -466,8 +520,12 @@
     "rest",
     "rest/watch",
     "testing",
+    "tools/auth",
     "tools/cache",
+    "tools/clientcmd",
     "tools/clientcmd/api",
+    "tools/clientcmd/api/latest",
+    "tools/clientcmd/api/v1",
     "tools/leaderelection",
     "tools/leaderelection/resourcelock",
     "tools/metrics",
@@ -479,6 +537,7 @@
     "util/cert",
     "util/connrotation",
     "util/flowcontrol",
+    "util/homedir",
     "util/integer",
     "util/retry",
     "util/workqueue",
@@ -489,11 +548,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:467e3b52bb290ca4aabe58702b82d9c5b43fe02b7ef193bda3a54da8c21a1200"
+  digest = "1:867966a68ff48186062e9b2604affd6a2e82ffec071d4f0b840539abcb1138af"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
   pruneopts = "T"
-  revision = "5d05df014ac640f14b5e777958248251c2ef5e86"
+  revision = "c59034cc13d587f5ef4e85ca0ade0c1866ae8e1d"
 
 [[projects]]
   digest = "1:25e4c5e17fbb1e8071e08902a68e7704af43c9186adb8993049e26c6543168e2"
@@ -515,12 +574,16 @@
   revision = "70dec6624df750599dbf25b206020dca640fc761"
 
 [[projects]]
-  digest = "1:4c3be496e0e0977b54e265fea184b57e9928fed12a1a14687c04b5d42e044abc"
+  digest = "1:ca3f51201a90f3a23bf35938ee910d2fb3095ece453cf56c8b723e935c194ebd"
   name = "sigs.k8s.io/controller-runtime"
-  packages = ["pkg/runtime/scheme"]
+  packages = [
+    "pkg/client/config",
+    "pkg/runtime/log",
+    "pkg/runtime/scheme",
+  ]
   pruneopts = "T"
-  revision = "53fc44b56078cd095b11bd44cfa0288ee4cf718f"
-  version = "v0.1.4"
+  revision = "5fd1e9e9fac5261e9ad9d47c375afc014fc31d21"
+  version = "v0.1.7"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -565,6 +628,7 @@
     "sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions",
     "sigs.k8s.io/cluster-api/pkg/client/informers_generated/externalversions/cluster/v1alpha1",
     "sigs.k8s.io/cluster-api/pkg/client/listers_generated/cluster/v1alpha1",
+    "sigs.k8s.io/controller-runtime/pkg/client/config",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

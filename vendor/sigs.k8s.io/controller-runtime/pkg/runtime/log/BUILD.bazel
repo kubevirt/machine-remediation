@@ -11,9 +11,9 @@ go_library(
     importpath = "sigs.k8s.io/controller-runtime/pkg/runtime/log",
     visibility = ["//visibility:public"],
     deps = [
-        "@com_github_go_logr_logr//:go_default_library",
-        "@com_github_go_logr_zapr//:go_default_library",
-        "@org_uber_go_zap//:go_default_library",
-        "@org_uber_go_zap//zapcore:go_default_library",
+        "//vendor/github.com/go-logr/logr:go_default_library",
+        "//vendor/github.com/go-logr/zapr:go_default_library",
+        "//vendor/go.uber.org/zap:go_default_library",
+        "//vendor/go.uber.org/zap/zapcore:go_default_library",
     ],
 )

@@ -7,7 +7,7 @@ go_library(
     importpath = "sigs.k8s.io/controller-runtime/pkg/webhook/internal/cert/writer/atomic",
     visibility = ["//vendor/sigs.k8s.io/controller-runtime/pkg/webhook:__subpackages__"],
     deps = [
+        "//vendor/github.com/go-logr/logr:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
-        "@com_github_go_logr_logr//:go_default_library",
     ],
 )
