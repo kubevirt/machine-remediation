@@ -7,7 +7,7 @@ load(
 container_bundle(
     name = "noderecovery_images",
     images = {
-        "localhost:33001/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
+        "localhost:33001/kubevirt/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
     },
     visibility = ["//visibility:public"],
 )

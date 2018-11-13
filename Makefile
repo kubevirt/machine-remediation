@@ -46,6 +46,12 @@ distclean: clean
 	hack/dockerized "rm -rf vendor/ && rm -f Gopkg.lock"
 	rm -rf vendor/
 
+functests-build:
+	hack/dockerized "hack/functests-build.sh"
+
+functests-run-devel: functests-build
+	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINER_TAG=devel hack/functests-run.sh
+
 generate:
 	hack/dockerized "hack/update-codegen.sh"
 
@@ -65,4 +71,6 @@ generate:
 	deps-install \
 	deps-update \
 	distclean \
+	functests-build \
+	functests-run-devel \
 	generate
