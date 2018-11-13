@@ -8,6 +8,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/gregjones/httpcache:go_default_library",
-        "@com_github_garyburd_redigo//redis:go_default_library",
+        "@com_github_gomodule_redigo//redis:go_default_library",
     ],
 )

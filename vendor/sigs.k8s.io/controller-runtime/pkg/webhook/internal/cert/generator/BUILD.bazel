@@ -6,6 +6,7 @@ go_library(
         "certgenerator.go",
         "doc.go",
         "selfsigned.go",
+        "util.go",
     ],
     importmap = "kubevirt.io/node-recovery/vendor/sigs.k8s.io/controller-runtime/pkg/webhook/internal/cert/generator",
     importpath = "sigs.k8s.io/controller-runtime/pkg/webhook/internal/cert/generator",

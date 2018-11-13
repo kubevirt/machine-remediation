@@ -24,13 +24,14 @@ import (
 	"k8s.io/client-go/rest"
 
 	clusterapiclientset "sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	noderecoveryclientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
 )
 
 func getRESTConfig() *rest.Config {
 	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
+	config, err := config.GetConfig()
 	if err != nil {
 		panic(err.Error())
 	}

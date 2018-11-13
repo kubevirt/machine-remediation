@@ -10,6 +10,7 @@ go_library(
         "//vendor/k8s.io/kube-openapi/pkg/builder:go_default_library",
         "//vendor/k8s.io/kube-openapi/pkg/common:go_default_library",
         "//vendor/k8s.io/kube-openapi/test/integration/pkg/generated:go_default_library",
+        "@com_github_emicklei_go_restful//:go_default_library",
         "@com_github_go_openapi_spec//:go_default_library",
     ],
 )

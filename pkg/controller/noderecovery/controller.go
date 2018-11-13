@@ -363,6 +363,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 	}
 
 	if !(c.nodeRemediationExpectations.SatisfiedExpectations(key) && c.machineExpectations.SatisfiedExpectations(key)) {
+		glog.V(2).Infof("key %s does not satisfy expectations", key)
 		return nil
 	}
 

@@ -12,6 +12,7 @@ go_library(
     importpath = "sigs.k8s.io/controller-runtime/pkg/manager",
     visibility = ["//visibility:public"],
     deps = [
+        "//vendor/github.com/go-logr/logr:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
@@ -29,6 +30,5 @@ go_library(
         "//vendor/sigs.k8s.io/controller-runtime/pkg/runtime/log:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/webhook/admission:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/webhook/admission/types:go_default_library",
-        "@com_github_go_logr_logr//:go_default_library",
     ],
 )
