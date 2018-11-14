@@ -47,7 +47,7 @@ distclean:
 	rm -rf vendor/
 
 functests-build:
-	hack/dockerized "hack/functests-build.sh"
+	SYNC_OUT=true hack/dockerized "hack/functests-build.sh"
 
 functests-run-devel: functests-build
 	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINER_TAG=devel hack/functests-run.sh

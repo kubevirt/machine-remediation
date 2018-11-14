@@ -5,7 +5,7 @@ source $(dirname "$0")/common.sh
 
 DOCKER_DIR=${REPO_DIR}/hack/docker-builder
 
-SYNC_OUT=${SYNC_OUT:-true}
+SYNC_OUT=${SYNC_OUT:-false}
 SYNC_MANIFESTS=${SYNC_MANIFESTS:-false}
 SYNC_VENDOR=${SYNC_VENDOR:-false}
 
@@ -28,7 +28,7 @@ if [ -z "$(docker volume list | grep ${BUILDER})" ]; then
 fi
 
 # Make sure that the out directory exists
-docker run -v "${BUILDER}:/root:rw,z" --security-opt label:disable --rm ${BUILDER} mkdir -p /root/go/src/kubevirt.io/node-recovery/_out
+docker run -v "${BUILDER}:/root:rw,z" --security-opt label:disable --rm ${BUILDER} mkdir -p /root/go/src/kubevirt.io/node-recovery/_out/manifests
 
 # Start an rsyncd instance and make sure it gets stopped after the script exits
 RSYNC_CID=$(docker run -d -v "${BUILDER}:/root:rw,z" --security-opt label:disable --expose 873 -P ${BUILDER} /usr/bin/rsync --no-detach --daemon --verbose)
@@ -83,7 +83,13 @@ _rsync --exclude '.Gopkg*' --exclude 'cluster/**/.kubectl' --exclude 'cluster/**
 if [ "$SYNC_VENDOR" = "true" ]; then
     _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/vendor" "${VENDOR_DIR}/"
 fi
+
+# Copy out directory
+if [ "$SYNC_OUT" = "true" ]; then
+    _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/out/" ${OUT_DIR}
+fi
+
 # Copy generated noderecovery manifest from basel-genfiles to _out/manifests
 if [ "$SYNC_MANIFESTS" = "true" ]; then
-    _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/bazel-genfiles/" ${OUT_DIR}/
+    _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/bazel-genfiles/manifests/" ${MANIFESTS_OUT_DIR}
 fi
