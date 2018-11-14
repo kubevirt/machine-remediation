@@ -37,12 +37,12 @@ cluster-up:
 	./cluster/up.sh
 
 deps-install:
-	SYNC_VENDOR=true hack/dockerized "dep ensure"
+	SYNC_VENDOR=true hack/dockerized "dep ensure -v"
 
 deps-update:
-	SYNC_VENDOR=true hack/dockerized "dep ensure -update"
+	SYNC_VENDOR=true hack/dockerized "dep ensure -v -update"
 
-distclean: clean
+distclean:
 	hack/dockerized "rm -rf vendor/ && rm -f Gopkg.lock"
 	rm -rf vendor/
 

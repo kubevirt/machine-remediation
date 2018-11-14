@@ -42,3 +42,17 @@
 [[constraint]]
   name = "sigs.k8s.io/cluster-api"
   revision = "70dec6624df750599dbf25b206020dca640fc761"
+
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "gopkg.in/fsnotify/fsnotify.v1"
+
+[[constraint]]
+  source = "https://github.com/onsi/ginkgo.git"
+  name = "github.com/onsi/ginkgo"
+  version = "v1.6.0"
+
+[[constraint]]
+  source = "https://github.com/onsi/gomega.git"
+  name = "github.com/onsi/gomega"
+  version = "v1.4.2"
