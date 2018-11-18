@@ -1,0 +1,140 @@
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: machines.cluster.k8s.io
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+spec:
+  group: cluster.k8s.io
+  names:
+    kind: Machine
+    listKind: MachineList
+    plural: machines
+    shortNames:
+    - ma
+    singular: machine
+  scope: Namespaced
+  version: v1alpha1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusters.cluster.k8s.io
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+spec:
+  group: cluster.k8s.io
+  names:
+    kind: Cluster
+    listKind: ClusterList
+    plural: clusters
+    shortNames:
+    - cl
+    singular: cluster
+  scope: Namespaced
+  version: v1alpha1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+  name: {{.Namespace}}
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: ipmi-secret
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+data:
+  username: YWRtaW4K
+  password: cGFzc3dvcmQK
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: machine-setup
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+data:
+  machine_setup_configs.yaml: |-
+    items:
+    - machineParams:
+      - label: ipmilan-machine
+        roles:
+        - node
+        fencingConfig:
+          name: fake-ipmilan
+          container:
+            name: fence-agents
+            image: quay.io/beekhof/fence-agents:0.0.11
+            command: [ "/bin/secret-handler.sh", "/sbin/fence_ipmilan", "-v" ]
+            imagePullPolicy: {{.ImagePullPolicy}}
+          checkArgs:  [ "-o", "status" ]
+          createArgs: [ "-o", "on"  ]
+          deleteArgs: [ "-o", "off" ]
+          argumentFormat: cli
+          passTargetAs: port
+          dynamicConfig:
+            - field: ip
+              values:
+                node02: 10.104.200.255
+            - field: ipport
+              values:
+                node02: 6230
+          secrets:	
+            username: ipmi-secret	
+            password: ipmi-secret
+
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: cluster-api-external-provider-controller
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        cluster-api-external-provider.kubevirt.io: ""
+    spec:
+      serviceAccountName: cluster-api-external-provider
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoExecute
+        key: node.alpha.kubernetes.io/notReady
+        operator: Exists
+      - effect: NoExecute
+        key: node.alpha.kubernetes.io/unreachable
+        operator: Exists
+      containers:
+      - name: clusterapi-external-controller
+        image: {{.ContainerPrefix}}/cluster-api-external-provider:{{.ContainerTag}}
+        command:
+        - "/usr/bin/external-controller"
+        args:	
+        - --machinesetup=/etc/machinesetup/machine_setup_configs.yaml
+        imagePullPolicy: {{.ImagePullPolicy}}
+        volumeMounts:	
+        - name: machine-setup	
+          mountPath: /etc/machinesetup
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+      volumes:	
+      - name: machine-setup	
+        configMap:	
+          name: machine-setup

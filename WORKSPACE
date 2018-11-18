@@ -38,11 +38,21 @@ load(
 )
 container_repositories()
 
+# Pull base image fedora28
 container_pull(
   name = "fedora",
   registry = "index.docker.io",
   repository = "library/fedora",
   digest = "sha256:57d86e03971841e79585379f8346289ceb5a3e8ee06933fbd5064b4f004659d1",
+  #tag = "28",
+)
+
+# Pull base image openssh-client
+container_pull(
+  name = "openssh_client",
+  registry = "index.docker.io",
+  repository = "alukiano/openssh-client",
+  digest = "sha256:8f5775bcead5bd74af50e250af07d2fbae753ca3abf517bc69087d4faa0bfd53",
   #tag = "28",
 )
 

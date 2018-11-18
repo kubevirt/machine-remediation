@@ -25,6 +25,7 @@ function build() {
     # Build everyting and publish it
     make bazel-generate
     make bazel-generate-manifests-dev
+    make bazel-generate-manifests-tests
     make bazel-push-images-$CLUSTER_PROVIDER
 }
 

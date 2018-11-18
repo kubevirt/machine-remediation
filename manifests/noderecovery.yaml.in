@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   labels:
-    kubevirt.io: noderecovery
+    noderecovery.kubevirt.io: ""
   name: noderemediations.noderecovery.kubevirt.io
 spec:
   group: noderecovery.kubevirt.io
@@ -27,14 +27,14 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    kubevirt.io: noderecovery
+    noderecovery.kubevirt.io: ""
   name: noderecovery
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    kubevirt.io: noderecovery
+    noderecovery.kubevirt.io: ""
   name: noderecovery-config
   namespace: {{.Namespace}}
 data:
@@ -55,7 +55,7 @@ metadata:
   name: noderecovery
   namespace: {{.Namespace}}
   labels:
-    kubevirt.io: noderecovery
+    noderecovery.kubevirt.io: ""
 spec:
   template:
     metadata:
@@ -84,7 +84,7 @@ spec:
         effect: NoSchedule
       containers:
         - name: noderecovery
-          image: {{.DockerPrefix}}/noderecovery:{{.DockerTag}}
+          image: {{.ContainerPrefix}}/noderecovery:{{.ContainerTag}}
           imagePullPolicy: {{.ImagePullPolicy}}
           command:
             - "noderecovery"

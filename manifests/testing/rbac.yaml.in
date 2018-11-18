@@ -2,40 +2,34 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: noderecovery
+  name: cluster-api-external-provider
   labels:
-    noderecovery.kubevirt.io: ""
+    cluster-api-external-provider.kubevirt.io: ""
 rules:
-  - apiGroups:
-      - noderecovery.kubevirt.io
-    resources:
-      - noderemediations
-    verbs:
-      - create
-      - patch
-      - list
-      - watch
-      - get
-      - update
-      - delete
   - apiGroups:
       - cluster.k8s.io
     resources:
+      - clusters
       - machines
     verbs:
-      - create
-      - list
-      - watch
       - get
-      - delete
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - cluster.k8s.io
+    resources:
+      - machines/status
+    verbs:
+      - update
   - apiGroups:
       - ''
     resources:
       - nodes
+      - pods
     verbs:
       - list
       - watch
-      - get
   - apiGroups:
       - ''
     resources:
@@ -45,20 +39,13 @@ rules:
       - create
       - patch
   - apiGroups:
-      - ''
-    resources:
-      - configmaps
-    verbs:
-      - create
-      - list
-      - watch
-      - get
-      - update
-  - apiGroups:
       - batch
     resources:
       - jobs
     verbs:
+      - create
+      - update
+      - delete
       - list
       - watch
       - get
@@ -66,22 +53,22 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: noderecovery
+  name: cluster-api-external-provider
   namespace: {{.Namespace}}
   labels:
-    noderecovery.kubevirt.io: ""
+    cluster-api-external-provider.kubevirt.io: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: noderecovery
+  name: cluster-api-external-provider
   labels:
-    noderecovery.kubevirt.io: ""
+    cluster-api-external-provider.kubevirt.io: ""
 roleRef:
   kind: ClusterRole
-  name: noderecovery
+  name: cluster-api-external-provider
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: noderecovery
+    name: cluster-api-external-provider
     namespace: {{.Namespace}}

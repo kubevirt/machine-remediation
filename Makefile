@@ -7,6 +7,9 @@ bazel-generate-manifests-dev:
 bazel-generate-manifests-release:
 	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests:generate_manifests --define release=true"
 
+bazel-generate-manifests-tests:
+	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests/testing:generate_manifests"
+
 bazel-push-images-k8s-1.10.4:
 	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=k8s_1_10_4"
 
@@ -58,6 +61,7 @@ generate:
 .PHONY: bazel-generate \
 	bazel-generate-manifests-dev \
 	bazel-generate-manifests-release \
+	bazel-generate-manifests-tests \
 	bazel-push-images-k8s-1.10.4 \
 	bazel-push-images-os-3.10.0 \
 	bazel-push-images-release \

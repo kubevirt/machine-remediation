@@ -1,0 +1,27 @@
+filegroup(
+    name = "manifests",
+    srcs = glob([
+        "*.yaml.in",
+    ]),
+)
+
+genrule(
+    name = "concat_all_manifests",
+    srcs = [":manifests"],
+    outs = ["external-provier-all.yaml.in"],
+    cmd = "cat $(locations :manifests) > $@",
+)
+
+genrule(
+    name = "generate_manifests",
+    srcs = [":concat_all_manifests"],
+    outs = ["cluster-api-external-provider.yaml"],
+    cmd = "./$(location //tools/manifest-templator:manifest-templator) \
+            --namespace=cluster-api-external-provider \
+            --container-prefix=docker.io/kubevirt \
+            --container-tag=latest \
+            --image-pull-policy=Always \
+            --input-file=$(locations :concat_all_manifests) > $@",
+    tools = ["//tools/manifest-templator:manifest-templator"],
+    visibility = ["//visibility:public"],
+)
