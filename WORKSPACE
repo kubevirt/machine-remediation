@@ -56,6 +56,15 @@ container_pull(
   #tag = "28",
 )
 
+# Pull base image ipmisim
+container_pull(
+  name = "ipmisim",
+  registry = "index.docker.io",
+  repository = "alukiano/ipmisim",
+  digest = "sha256:5cd56ea9f306d7ba5799b8099265f886a4fb4472d71f4e9703050e9c97860b07",
+  #tag = "28",
+)
+
 load(
     "@io_bazel_rules_docker//go:image.bzl",
     _go_image_repos = "repositories",

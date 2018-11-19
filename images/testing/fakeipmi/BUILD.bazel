@@ -1,0 +1,28 @@
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+)
+
+py_binary(
+    name = "fakeipmi",
+    main = "fakeipmi.py",
+    srcs = ["fakeipmi.py"],
+)
+
+container_image(
+    name = "passwd_image",
+    base = "@ipmisim//image",
+    tars = ["//:passwd_tar"],
+    user = "nonroot-user",
+    visibility = ["//visibility:private"],
+)
+
+container_image(
+    name = "fakeipmi_image",
+    base = ":passwd_image",
+    files = [":fakeipmi"],
+    directory = "/usr/bin",
+    entrypoint = ["/usr/bin/fakeipmi"],
+    user = "nonroot-user",
+    visibility = ["//visibility:public"],
+)
