@@ -1,0 +1,35 @@
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+)
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+container_image(
+    name = "passwd_image",
+    base = "@openssh_client//image",
+    tars = ["//:passwd_tar"],
+    user = "nonroot-user",
+    visibility = ["//visibility:private"],
+)
+
+pkg_tar(
+    name = "ssh_executor_tar",
+    srcs = [
+        ":ssh.sh",
+        ":vagrant.key",
+    ],
+    package_dir = "/usr/local/bin",
+    modes = {
+        "ssh.sh": "0755",
+        "vagrant.key": "0644",
+    },
+)
+
+container_image(
+    name = "ssh_executor_image",
+    base = ":passwd_image",
+    tars = [":ssh_executor_tar"],
+    entrypoint = ["/usr/local/bin/ssh.sh"],
+    user = "nonroot-user",
+    visibility = ["//visibility:public"],
+)

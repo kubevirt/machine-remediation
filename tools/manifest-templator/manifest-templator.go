@@ -29,16 +29,16 @@ import (
 
 type templateData struct {
 	Namespace          string
-	DockerTag          string
-	DockerPrefix       string
+	ContainerTag       string
+	ContainerPrefix    string
 	ImagePullPolicy    string
 	GeneratedManifests map[string]string
 }
 
 func main() {
 	namespace := flag.String("namespace", "", "")
-	dockerPrefix := flag.String("docker-prefix", "", "")
-	dockerTag := flag.String("docker-tag", "", "")
+	containerPrefix := flag.String("container-prefix", "", "")
+	containerTag := flag.String("container-tag", "", "")
 	imagePullPolicy := flag.String("image-pull-policy", "IfNotPresent", "")
 	genDir := flag.String("generated-manifests-dir", "", "")
 	inputFile := flag.String("input-file", "", "")
@@ -46,8 +46,8 @@ func main() {
 
 	data := templateData{
 		Namespace:          *namespace,
-		DockerTag:          *dockerTag,
-		DockerPrefix:       *dockerPrefix,
+		ContainerTag:       *containerTag,
+		ContainerPrefix:    *containerPrefix,
 		ImagePullPolicy:    *imagePullPolicy,
 		GeneratedManifests: make(map[string]string),
 	}

@@ -7,7 +7,9 @@ load(
 container_bundle(
     name = "noderecovery_images",
     images = {
-        "localhost:33000/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
+        "localhost:33000/kubevirt/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
+        "localhost:33000/kubevirt/ssh-executor:devel": "//images/testing/ssh-executor:ssh_executor_image",
+        "localhost:33000/kubevirt/fakeipmi:devel": "//images/testing/fakeipmi:fakeipmi_image",
     },
     visibility = ["//visibility:public"],
 )

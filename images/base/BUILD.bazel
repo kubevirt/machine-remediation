@@ -1,0 +1,26 @@
+filegroup(
+    name = "build_files",
+    srcs = glob([
+        "**/Dockerfile",
+    ]),
+)
+
+genrule(
+    name = "build_images",
+    srcs = [
+        ":build_files",
+        "build-all.sh",
+    ],
+    outs = ["build-all.log"],
+    cmd = "./$(location build-all.sh) $(locations :build_files) > $@",
+)
+
+genrule(
+    name = "push_images",
+    srcs = [
+        ":build_files",
+        "publish-all.sh",
+    ],
+    outs = ["publish-all.log"],
+    cmd = "./$(location publish-all.sh) $(locations :build_files) > $@",
+)

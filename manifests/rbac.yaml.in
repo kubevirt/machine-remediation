@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   name: noderecovery
   labels:
-    kubevirt.io: "noderecovery"
+    noderecovery.kubevirt.io: ""
 rules:
   - apiGroups:
       - noderecovery.kubevirt.io
@@ -69,14 +69,14 @@ metadata:
   name: noderecovery
   namespace: {{.Namespace}}
   labels:
-    kubevirt.io: "noderecovery"
+    noderecovery.kubevirt.io: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   name: noderecovery
   labels:
-    kubevirt.io: "noderecovery"
+    noderecovery.kubevirt.io: ""
 roleRef:
   kind: ClusterRole
   name: noderecovery

@@ -8,15 +8,14 @@ OUT_DIR=$REPO_DIR/_out
 VENDOR_DIR=$REPO_DIR/vendor
 CMD_OUT_DIR=$OUT_DIR/cmd
 TESTS_OUT_DIR=$OUT_DIR/tests
-
-function build_func_tests() {
-    mkdir -p ${TESTS_OUT_DIR}/
-    ginkgo build ${REPO_DIR}/tests
-    mv ${REPO_DIR}/tests/tests.test ${TESTS_OUT_DIR}/
-}
+MANIFESTS_OUT_DIR=$OUT_DIR/manifests
 
 CLUSTER_PROVIDER=${CLUSTER_PROVIDER:-k8s-1.10.4}
 CLUSTER_NUM_NODES=${CLUSTER_NUM_NODES:-1}
+CLUSTER_PROVIDER_KUBECONFIG=$REPO_DIR/cluster/$CLUSTER_PROVIDER/.kubeconfig
+
+CONTAINERS_PREFIX=${CONTAINERS_PREFIX:-docker.io/kubevirt}
+CONTAINERS_TAG=${CONTAINERS_TAG:-latest}
 
 # If on a developer setup, expose ocp on 8443, so that the openshift web console can be used (the port is important because of auth redirects)
 if [ -z "${JOB_NAME}" ]; then

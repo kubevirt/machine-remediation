@@ -1,0 +1,16 @@
+---
+apiVersion: "cluster.k8s.io/v1alpha1"
+kind: Machine
+metadata:
+  name: node02
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+spec:
+  providerConfig:
+    value:
+      apiVersion: "extproviderconfig/v1alpha1"
+      kind: "ExternalMachineProviderConfig"
+      label: ipmilan-machine
+      roles:
+        - node

@@ -7,6 +7,15 @@ bazel-generate-manifests-dev:
 bazel-generate-manifests-release:
 	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests:generate_manifests --define release=true"
 
+bazel-generate-manifests-tests:
+	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests/testing:generate_manifests"
+
+bazel-base-images-build:
+	./hack/dockerized "bazel build //images/base:build_images"
+
+bazel-base-images-push:
+	./hack/dockerized "bazel build //images/base:push_images"
+
 bazel-push-images-k8s-1.10.4:
 	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=k8s_1_10_4"
 
@@ -37,21 +46,30 @@ cluster-up:
 	./cluster/up.sh
 
 deps-install:
-	SYNC_VENDOR=true hack/dockerized "dep ensure"
+	SYNC_VENDOR=true hack/dockerized "dep ensure -v"
 
 deps-update:
-	SYNC_VENDOR=true hack/dockerized "dep ensure -update"
+	SYNC_VENDOR=true hack/dockerized "dep ensure -v -update"
 
-distclean: clean
+distclean:
 	hack/dockerized "rm -rf vendor/ && rm -f Gopkg.lock"
 	rm -rf vendor/
+
+functests-build:
+	SYNC_OUT=true hack/dockerized "hack/functests-build.sh"
+
+functests-run-devel: functests-build
+	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINER_TAG=devel hack/functests-run.sh
 
 generate:
 	hack/dockerized "hack/update-codegen.sh"
 
 .PHONY: bazel-generate \
+	bazel-base-images-build \
+	bazel-base-images-push \
 	bazel-generate-manifests-dev \
 	bazel-generate-manifests-release \
+	bazel-generate-manifests-tests \
 	bazel-push-images-k8s-1.10.4 \
 	bazel-push-images-os-3.10.0 \
 	bazel-push-images-release \
@@ -65,4 +83,6 @@ generate:
 	deps-install \
 	deps-update \
 	distclean \
+	functests-build \
+	functests-run-devel \
 	generate

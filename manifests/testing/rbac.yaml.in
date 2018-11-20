@@ -1,0 +1,74 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: cluster-api-external-provider
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+rules:
+  - apiGroups:
+      - cluster.k8s.io
+    resources:
+      - clusters
+      - machines
+    verbs:
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - cluster.k8s.io
+    resources:
+      - machines/status
+    verbs:
+      - update
+  - apiGroups:
+      - ''
+    resources:
+      - nodes
+      - pods
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - events
+    verbs:
+      - update
+      - create
+      - patch
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - create
+      - update
+      - delete
+      - list
+      - watch
+      - get
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-api-external-provider
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-api-external-provider
+  labels:
+    cluster-api-external-provider.kubevirt.io: ""
+roleRef:
+  kind: ClusterRole
+  name: cluster-api-external-provider
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: cluster-api-external-provider
+    namespace: {{.Namespace}}
