@@ -156,13 +156,13 @@ func (c *NodeRecoveryController) addMachine(obj interface{}) {
 		return
 	}
 
-	nodeKey, err := c.getNodeKey(machine)
+	node, err := c.getNodeByMachine(machine)
 	if err != nil {
 		glog.Errorf("failed to get node key: %v", err)
 		return
 	}
-	c.machineExpectations.CreationObserved(nodeKey)
-	c.enqueueObj(obj)
+	c.machineExpectations.CreationObserved(node.Name)
+	c.enqueueObj(node)
 }
 
 func (c *NodeRecoveryController) deleteMachine(obj interface{}) {
@@ -185,7 +185,7 @@ func (c *NodeRecoveryController) deleteMachine(obj interface{}) {
 		}
 	}
 
-	nodeKey, err := c.getNodeKey(machine)
+	node, err := c.getNodeByMachine(machine)
 	if err != nil {
 		glog.Errorf("failed to get node key: %v", err)
 		return
@@ -194,8 +194,8 @@ func (c *NodeRecoveryController) deleteMachine(obj interface{}) {
 	if err != nil {
 		return
 	}
-	c.machineExpectations.DeletionObserved(nodeKey, machineKey)
-	c.enqueueObj(obj)
+	c.machineExpectations.DeletionObserved(node.Name, machineKey)
+	c.enqueueObj(node)
 }
 
 func (c *NodeRecoveryController) updateNode(old, curr interface{}) {
@@ -618,7 +618,7 @@ func (c *NodeRecoveryController) updateNodeRemediationWithEvent(oldNodeRemediati
 	return nil
 }
 
-func(c *NodeRecoveryController) getNodeKey(machine *clusterapiv1alpha1.Machine) (string, error) {
+func(c *NodeRecoveryController) getNodeByMachine(machine *clusterapiv1alpha1.Machine) (*corev1.Node, error) {
 	predicate := func (node *corev1.Node) bool {
 		val, ok := node.Annotations["machine"]
 		if !ok {
@@ -636,12 +636,12 @@ func(c *NodeRecoveryController) getNodeKey(machine *clusterapiv1alpha1.Machine) 
 
 	nodes, err := c.nodeLister.ListWithPredicate(predicate)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if len(nodes) == 0 {
-		return "", fmt.Errorf("failed to find node that has machine annotation")
+		return nil, fmt.Errorf("failed to find node that has machine annotation")
 	}
-	return nodes[0].Name, nil
+	return nodes[0], nil
 }
 
 func(c *NodeRecoveryController) getMachine(node *corev1.Node) (*clusterapiv1alpha1.Machine, error) {
