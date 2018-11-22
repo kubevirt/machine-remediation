@@ -59,7 +59,7 @@ functests-build:
 	SYNC_OUT=true hack/dockerized "hack/functests-build.sh"
 
 functests-run-devel: functests-build
-	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINER_TAG=devel hack/functests-run.sh
+	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINERS_TAG="devel" hack/functests-run.sh
 
 generate:
 	hack/dockerized "hack/update-codegen.sh"
