@@ -2,7 +2,7 @@
 
 set -e
 
-image="k8s-1.10.4@sha256:e697f59d5b3b09130a8854b08417959eb70197fcc1b47cf64fe83c5164f00cfa"
+image="k8s-1.11.0@sha256:3412f158ecad53543c9b0aa8468db84dd043f01832a66f0db90327b7dc36a8e8"
 
 source cluster/provider-common.sh
 

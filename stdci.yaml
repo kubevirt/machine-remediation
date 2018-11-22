@@ -1,0 +1,9 @@
+---
+sub-stages:
+  - k8s-1.11.0-devel
+  - openshift-3.11-devel
+runtime_requirements:
+  support_nesting_level: 2
+  isolation_level: container
+reporting:
+  style: stdci

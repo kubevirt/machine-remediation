@@ -15,9 +15,9 @@ container_bundle(
 )
 
 config_setting(
-    name = "cluster_provider_os_3_10_0",
+    name = "cluster_provider_os_3_11_0",
     define_values = {
         "dev": "true",
-        "cluster_provider": "os_3_10_0",
+        "cluster_provider": "os_3_11_0",
     },
 )

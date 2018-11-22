@@ -16,11 +16,11 @@ bazel-base-images-build:
 bazel-base-images-push:
 	./hack/dockerized "bazel build //images/base:push_images"
 
-bazel-push-images-k8s-1.10.4:
-	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=k8s_1_10_4"
+bazel-push-images-k8s-1.11.0:
+	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=k8s_1_11_0"
 
-bazel-push-images-os-3.10.0:
-	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=os_3_10_0"
+bazel-push-images-os-3.11.0:
+	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=os_3_11_0"
 
 bazel-push-images-release:
 	hack/dockerized "bazel run //:push_images --define release=true"
@@ -70,8 +70,8 @@ generate:
 	bazel-generate-manifests-dev \
 	bazel-generate-manifests-release \
 	bazel-generate-manifests-tests \
-	bazel-push-images-k8s-1.10.4 \
-	bazel-push-images-os-3.10.0 \
+	bazel-push-images-k8s-1.11.0 \
+	bazel-push-images-os-3.11.0 \
 	bazel-push-images-release \
 	bazel-tests \
 	cluster-build \
