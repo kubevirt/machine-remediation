@@ -15,9 +15,9 @@ genrule(
 genrule(
     name = "generate_manifests",
     srcs = [":concat_all_manifests"],
-    outs = ["cluster-api-external-provider.yaml"],
+    outs = ["cluster-api-provider-external.yaml"],
     cmd = "./$(location //tools/manifest-templator:manifest-templator) \
-            --namespace=cluster-api-external-provider \
+            --namespace=cluster-api-provider-external \
             --container-prefix=docker.io/kubevirt \
             --container-tag=latest \
             --image-pull-policy=Always \

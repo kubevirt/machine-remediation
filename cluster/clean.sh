@@ -7,7 +7,7 @@ source cluster/$CLUSTER_PROVIDER/provider.sh
 
 echo "Cleaning up ..."
 
-namespaces=(noderecovery cluster-api-external-provider)
+namespaces=(noderecovery cluster-api-provider-external)
 for namespace in ${namespaces[@]}; do
     # Remove finalizers from all machines, to not block the cleanup
     _kubectl -n ${namespace} get machines -o=custom-columns=NAME:.metadata.name,FINALIZERS:.metadata.finalizers --no-headers | grep "machine.cluster.k8s.io" | while read p; do
@@ -26,23 +26,26 @@ for namespace in ${namespaces[@]}; do
     done
 
     _kubectl -n ${namespace} delete ds -l "${namespace}.kubevirt.io"
+    _kubectl -n ${namespace} delete deployment -l "${namespace}.kubevirt.io"
     _kubectl -n ${namespace} delete pods -l "${namespace}.kubevirt.io"
+    _kubectl -n ${namespace} delete pods -l "job-name" --force --grace-period=0
+    _kubectl -n ${namespace} delete jobs -l "${namespace}.kubevirt.io"
     _kubectl -n ${namespace} delete clusterrolebinding -l "${namespace}.kubevirt.io"
     _kubectl -n ${namespace} delete clusterroles -l "${namespace}.kubevirt.io"
     _kubectl -n ${namespace} delete serviceaccounts -l "${namespace}.kubevirt.io"
-    _kubectl -n ${namespace} delete configmaps -l "${namespace}.kubevirt.io"
-    _kubectl -n ${namespace} delete secrets -l "${namespace}.kubevirt.io"
     _kubectl -n ${namespace} delete services -l "${namespace}.kubevirt.io"
     _kubectl -n ${namespace} delete customresourcedefinitions -l "${namespace}.kubevirt.io"
 
     if [ "$(_kubectl get ns | grep ${namespace})" ]; then
-        echo "Clean ${namespace} namespace"
-        _kubectl delete ns ${namespace}
+        if [ "$(_kubectl get ns | grep ${namespace})" ]; then
+            echo "Clean ${namespace} namespace"
+            _kubectl delete ns ${namespace}
+        fi
 
         current_time=0
         sample=10
         timeout=120
-        echo "Waiting for noderecovery namespace to dissappear ..."
+        echo "Waiting for ${namespace} namespace to dissappear ..."
         while  [ "$(_kubectl get ns | grep ${namespace})" ]; do
             sleep $sample
             current_time=$((current_time + sample))
