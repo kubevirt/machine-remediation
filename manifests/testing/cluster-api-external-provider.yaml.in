@@ -79,6 +79,13 @@ spec:
       - effect: NoExecute
         key: node.alpha.kubernetes.io/unreachable
         operator: Exists
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
       containers:
       - name: clusterapi-external-controller
         image: {{.ContainerPrefix}}/cluster-api-provider-external:{{.ContainerTag}}

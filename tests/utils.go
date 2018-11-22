@@ -21,7 +21,6 @@ package tests
 
 import (
 	"bytes"
-	"encoding/base64"
 	"flag"
 	"fmt"
 
@@ -104,7 +103,6 @@ func AfterTestSuitCleanup() error {
 		return err
 	}
 
-
 	err = removeMachine(MachineName, NamespaceClusterApiExternalProvider)
 	if err != nil {
 		return err
@@ -152,7 +150,7 @@ func BeforeTestSuitSetup() error {
 		return err
 	}
 
-	err = updateNodeAnnotation(NonMasterNode, MachineName, NamespaceTest)
+	err = updateNodeAnnotation(NonMasterNode, MachineName, NamespaceClusterApiExternalProvider)
 	if err != nil {
 		return err
 	}
@@ -287,7 +285,7 @@ func createSecret(name string, namespace string, data map[string]string) error {
 		StringData: map[string]string{},
 	}
 	for k, v := range data {
-		secret.StringData[k] = base64.StdEncoding.EncodeToString([]byte(v))
+		secret.StringData[k] = v
 	}
 
 	kubeClient := client.NewKubeClientSet()
@@ -337,9 +335,9 @@ func updateMachineSetupConfigMap(
 								"-v",
 							},
 						},
-						CheckArgs:      []string{"-o", "status"},
-						CreateArgs:     []string{"-o", "on"},
-						DeleteArgs:     []string{"-o", "off"},
+						CheckArgs:      []string{"-o", "status", "-P"},
+						CreateArgs:     []string{"-o", "on", "-P"},
+						DeleteArgs:     []string{"-o", "off", "-P"},
 						ArgumentFormat: "cli",
 						PassTargetAs:   "port",
 						Secrets:        secrets,
@@ -440,6 +438,13 @@ func createPod(
 	return kubeClient.CoreV1().Pods(namespace).Create(pod)
 }
 
+// RemovePod removes pod from the namespace
+func RemovePod(name string, namespace string) error {
+	kubeClient := client.NewKubeClientSet()
+	err := kubeClient.CoreV1().Pods(namespace).Delete(name, &metav1.DeleteOptions{})
+	return err
+}
+
 // CreateSSHExecPod will create new pod on the specific node to execute ssh commands
 func CreateSSHExecPod(nodeName string) (*corev1.Pod, error) {
 	tolerations := []corev1.Toleration{
@@ -496,6 +501,13 @@ func CreateFakeIpmiService(clusterip string, port int) (*corev1.Service, error) 
 		},
 	}
 	return kubeClient.CoreV1().Services(NamespaceTest).Create(service)
+}
+
+// RemoveService removes service from the specific namespace
+func RemoveService(name string, namespace string) error {
+	kubeClient := client.NewKubeClientSet()
+	err := kubeClient.CoreV1().Services(namespace).Delete(name, &metav1.DeleteOptions{})
+	return err
 }
 
 // GetImageName generates image name from container prefix and tag
