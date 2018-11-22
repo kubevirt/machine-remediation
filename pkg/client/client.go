@@ -29,7 +29,8 @@ import (
 	noderecoveryclientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
 )
 
-func getRESTConfig() *rest.Config {
+// GetRESTConfig returns REST client configuration
+func GetRESTConfig() *rest.Config {
 	// creates the in-cluster config
 	config, err := config.GetConfig()
 	if err != nil {
@@ -41,7 +42,7 @@ func getRESTConfig() *rest.Config {
 
 // NewKubeClientSet returns k8s client
 func NewKubeClientSet() *kubernetes.Clientset {
-	config := getRESTConfig()
+	config := GetRESTConfig()
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -53,7 +54,7 @@ func NewKubeClientSet() *kubernetes.Clientset {
 
 // NewNodeRecoveryClientSet returns node-recovery client
 func NewNodeRecoveryClientSet() *noderecoveryclientset.Clientset {
-	config := getRESTConfig()
+	config := GetRESTConfig()
 	// creates the clientset
 	clientset, err := noderecoveryclientset.NewForConfig(config)
 	if err != nil {
@@ -65,7 +66,7 @@ func NewNodeRecoveryClientSet() *noderecoveryclientset.Clientset {
 
 // NewClusterAPIClientSet returns cluster-api client
 func NewClusterAPIClientSet() *clusterapiclientset.Clientset {
-	config := getRESTConfig()
+	config := GetRESTConfig()
 	// creates the clientset
 	clientset, err := clusterapiclientset.NewForConfig(config)
 	if err != nil {
