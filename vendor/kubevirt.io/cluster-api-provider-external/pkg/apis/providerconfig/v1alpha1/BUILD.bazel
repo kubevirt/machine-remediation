@@ -8,6 +8,7 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importmap = "kubevirt.io/node-recovery/vendor/kubevirt.io/cluster-api-provider-external/pkg/apis/providerconfig/v1alpha1",
     importpath = "kubevirt.io/cluster-api-provider-external/pkg/apis/providerconfig/v1alpha1",
     visibility = ["//visibility:public"],
     deps = [

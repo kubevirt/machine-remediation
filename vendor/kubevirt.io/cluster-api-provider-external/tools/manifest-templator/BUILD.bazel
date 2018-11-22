@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["manifest-templator.go"],
+    importmap = "kubevirt.io/node-recovery/vendor/kubevirt.io/cluster-api-provider-external/tools/manifest-templator",
     importpath = "kubevirt.io/cluster-api-provider-external/tools/manifest-templator",
     visibility = ["//visibility:private"],
 )

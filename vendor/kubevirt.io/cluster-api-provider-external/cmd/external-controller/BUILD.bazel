@@ -3,14 +3,15 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importmap = "kubevirt.io/node-recovery/vendor/kubevirt.io/cluster-api-provider-external/cmd/external-controller",
     importpath = "kubevirt.io/cluster-api-provider-external/cmd/external-controller",
     visibility = ["//visibility:private"],
     deps = [
-        "//pkg/external:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/spf13/pflag:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/plugin/pkg/client/auth/gcp:go_default_library",
+        "//vendor/kubevirt.io/cluster-api-provider-external/pkg/external:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/apis:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/controller/cluster:go_default_library",
