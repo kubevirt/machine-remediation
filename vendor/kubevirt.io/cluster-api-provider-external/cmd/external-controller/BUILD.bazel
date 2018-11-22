@@ -1,0 +1,77 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "kubevirt.io/cluster-api-provider-external/cmd/external-controller",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/external:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/client-go/plugin/pkg/client/auth/gcp:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/apis:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/client/clientset_generated/clientset:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/controller/cluster:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/controller/machine:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/client/config:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/manager:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/runtime/signals:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "external-controller",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+    container_repositories = "repositories",
+)
+load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_entry", "passwd_file")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+passwd_entry(
+    name = "nonroot_user",
+    home = "/home/cluster-api-external-provider",
+    shell = "/bin/bash",
+    uid = 1001,
+    gid = 1001,
+    username = "cluster-api-external-provider",
+)
+
+passwd_file(
+    name = "passwd",
+    entries = [
+        ":nonroot_user",
+    ],
+)
+
+pkg_tar(
+    name = "passwd_tar",
+    srcs = [":passwd"],
+    mode = "0644",
+    package_dir = "etc",
+)
+
+container_image(
+    name = "passwd_image",
+    base = "@fedora//image",
+    tars = [":passwd_tar"],
+    user = "cluster-api-external-provider",
+    visibility = ["//visibility:private"],
+)
+
+container_image(
+    name = "cluster_api_external_provider_image",
+    base = ":passwd_image",
+    files = [":external-controller"],
+    directory = "/usr/bin",
+    entrypoint = ["/usr/bin/external-controller"],
+    user = "cluster-api-external-provider",
+    visibility = ["//visibility:public"],
+)

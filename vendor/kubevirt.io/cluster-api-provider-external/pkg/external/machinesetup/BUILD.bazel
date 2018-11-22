@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["config.go"],
+    importpath = "kubevirt.io/cluster-api-provider-external/pkg/external/machinesetup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/apis/providerconfig/v1alpha1:go_default_library",
+        "//vendor/github.com/ghodss/yaml:go_default_library",
+    ],
+)

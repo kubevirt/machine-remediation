@@ -18,7 +18,6 @@ git_repository(
     tag = "v0.5.1",
 )
 
-
 load(
     "@io_bazel_rules_go//go:def.bzl",
     "go_rules_dependencies",

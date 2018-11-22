@@ -1,0 +1,101 @@
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: machines.cluster.k8s.io
+  labels:
+    kubevirt.io: "clusterapi-external-provider"
+spec:
+  group: cluster.k8s.io
+  names:
+    kind: Machine
+    listKind: MachineList
+    plural: machines
+    shortNames:
+    - ma
+    singular: machine
+  scope: Namespaced
+  version: v1alpha1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusters.cluster.k8s.io
+  labels:
+    kubevirt.io: "clusterapi-external-provider"
+spec:
+  group: cluster.k8s.io
+  names:
+    kind: Cluster
+    listKind: ClusterList
+    plural: clusters
+    shortNames:
+    - cl
+    singular: cluster
+  scope: Namespaced
+  version: v1alpha1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubevirt.io: "clusterapi-external-provider"
+  name: {{.Namespace}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: machine-setup
+  namespace: {{.Namespace}}
+  labels:
+    kubevirt.io: "clusterapi-external-provider"
+data:
+  machine_setup_configs.yaml: |-
+    items: []
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: clusterapi-external-provider-controller
+  namespace: {{.Namespace}}
+  labels:
+    kubevirt.io: "clusterapi-external-provider"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        kubevirt.io: "clusterapi-external-provider"
+    spec:
+      serviceAccountName: clusterapi-external-provider
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoExecute
+        key: node.alpha.kubernetes.io/notReady
+        operator: Exists
+      - effect: NoExecute
+        key: node.alpha.kubernetes.io/unreachable
+        operator: Exists
+      containers:
+      - name: clusterapi-external-controller
+        image: {{.DockerPrefix}}/cluster-api-external-provider:{{.DockerTag}}
+        command:
+        - "/usr/bin/external-controller"
+        args:	
+        - --machinesetup=/etc/machinesetup/machine_setup_configs.yaml
+        imagePullPolicy: Always
+        volumeMounts:	
+        - name: machine-setup	
+          mountPath: /etc/machinesetup
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+      volumes:	
+      - name: machine-setup	
+        configMap:	
+          name: machine-setup
