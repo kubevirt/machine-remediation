@@ -5,11 +5,9 @@ load(
 )
 
 container_bundle(
-    name = "noderecovery_images",
+    name = "clusterapi_external_provider_images",
     images = {
-        "localhost:33001/kubevirt/noderecovery:devel": "//cmd/noderecovery:noderecovery_image",
-        "localhost:33001/kubevirt/ssh-executor:devel": "//images/testing/ssh-executor:ssh_executor_image",
-        "localhost:33001/kubevirt/fakeipmi:devel": "//images/testing/fakeipmi:fakeipmi_image",
+        "localhost:33001/cluster-api-external-provider:devel": "//cmd/external-controller:cluster_api_external_provider_image",
     },
     visibility = ["//visibility:public"],
 )

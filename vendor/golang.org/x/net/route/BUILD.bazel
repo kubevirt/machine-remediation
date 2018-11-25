@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "address.go",
         "binary.go",
+        "empty.s",
         "interface.go",
         "interface_announce.go",
         "interface_classic.go",
@@ -22,6 +23,8 @@ go_library(
         "sys_netbsd.go",
         "sys_openbsd.go",
         "syscall.go",
+        "syscall_go1_11_darwin.go",
+        "syscall_go1_12_darwin.go",
         "zsys_darwin.go",
         "zsys_dragonfly.go",
         "zsys_freebsd_386.go",

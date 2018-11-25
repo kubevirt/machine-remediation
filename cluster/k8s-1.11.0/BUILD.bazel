@@ -15,9 +15,9 @@ container_bundle(
 )
 
 config_setting(
-    name = "cluster_provider_k8s_1_10_4",
+    name = "cluster_provider_k8s_1_11_0",
     define_values = {
         "dev": "true",
-        "cluster_provider": "k8s_1_10_4",
+        "cluster_provider": "k8s_1_11_0",
     },
 )

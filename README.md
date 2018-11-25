@@ -14,7 +14,7 @@ Often you fall in the situatuion that your node start to be `non-Ready`, it can 
 
 ### Prerequisite
 
-- you must install `machine` and `cluster` controllers on your cluster, for bare metal nodes you can use [cluster-api-external-provider][cluster-api-external-provider], for other possibilities check [cluster API repository](https://github.com/kubernetes-sigs/cluster-api#provider-implementations)
+- you must install `machine` and `cluster` controllers on your cluster, for bare metal nodes you can use [cluster-api-provider-external][cluster-api-provider-external], for other possibilities check [cluster API repository](https://github.com/kubernetes-sigs/cluster-api#provider-implementations)
 
 Apply `noderecovery.yaml` manifest from the desired release.
 
@@ -45,7 +45,7 @@ of options:
  * [Kubernetes][k8s]
  * [node-detector][node-detector]
  * [cluster-API][cluster-api]
- * [cluster-api-external-provider][cluster-api-external-provider]
+ * [cluster-api-provider-external][cluster-api-provider-external]
 
 ## Submitting patches
 
@@ -83,4 +83,4 @@ Node-Recovery is distributed under the
    [k8s]: https://kubernetes.io
    [node-detector]: https://github.com/kubernetes/node-problem-detector
    [cluster-api]: https://github.com/kubernetes-sigs/cluster-api
-   [cluster-api-external-provider]: https://github.com/kubevirt/cluster-api-provider-external
+   [cluster-api-provider-external]: https://github.com/kubevirt/cluster-api-provider-external

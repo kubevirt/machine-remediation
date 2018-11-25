@@ -1,0 +1,10 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["connection.go"],
+    importmap = "kubevirt.io/node-recovery/vendor/github.com/docker/spdystream/ws",
+    importpath = "github.com/docker/spdystream/ws",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_gorilla_websocket//:go_default_library"],
+)

@@ -21,11 +21,14 @@ package tests_test
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/golang/glog"
+	"k8s.io/apimachinery/pkg/api/errors"
+
+	"kubevirt.io/node-recovery/tests"
 )
 
 func TestTests(t *testing.T) {
@@ -34,9 +37,14 @@ func TestTests(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	glog.Info("Run test suite setup")
+	ExpectWithOffset(1, tests.BeforeTestSuitSetup()).ToNot(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
-	glog.Info("Run test suite teardown")
+	ExpectWithOffset(1, tests.AfterTestSuitCleanup()).ToNot(HaveOccurred())
+	Eventually(
+		func() bool {
+			_, err := tests.GetNamespace(tests.NamespaceTest)
+			return errors.IsNotFound(err)
+		}, 180*time.Second, time.Second).Should(BeTrue())
 })

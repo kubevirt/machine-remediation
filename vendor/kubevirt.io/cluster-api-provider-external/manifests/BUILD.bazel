@@ -1,0 +1,45 @@
+config_setting(
+    name = "release",
+    values = {"define": "release=true"},
+)
+
+config_setting(
+    name = "dev",
+    values = {"define": "dev=true"},
+)
+
+filegroup(
+    name = "manifests",
+    srcs = glob([
+        "*.yaml.in",
+    ]),
+)
+
+genrule(
+    name = "concat_all_manifests",
+    srcs = [":manifests"],
+    outs = ["clusterapi-external-provider-all.yaml.in"],
+    cmd = "cat $(locations :manifests) > $@",
+)
+
+genrule(
+    name = "generate_manifests",
+    srcs = [":concat_all_manifests"],
+    outs = ["clusterapi-external-provider.yaml"],
+    cmd = select({
+        ":dev": "./$(location //tools/manifest-templator:manifest-templator) \
+            --namespace=clusterapi-external-provider \
+            --docker-prefix=registry:5000 \
+            --docker-tag=devel \
+            --image-pull-policy=Always \
+            --input-file=$(locations :concat_all_manifests) > $@",
+        ":release": "./$(location //tools/manifest-templator:manifest-templator) \
+            --namespace=clusterapi-external-provider \
+            --docker-prefix=docker.io/kubevirt \
+            --docker-tag=latest \
+            --image-pull-policy=IfNotPresent \
+            --input-file=$(locations :concat_all_manifests) > $@",
+    }),
+    tools = ["//tools/manifest-templator:manifest-templator"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,21 @@
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_bundle",
+    container_repositories = "repositories",
+)
+
+container_bundle(
+    name = "clusterapi_external_provider_images",
+    images = {
+        "localhost:33000/cluster-api-external-provider:devel": "//cmd/external-controller:cluster_api_external_provider_image",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "cluster_provider_k8s_1_11_0",
+    define_values = {
+        "dev": "true",
+        "cluster_provider": "k8s_1_11_0",
+    },
+)

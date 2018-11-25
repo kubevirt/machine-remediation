@@ -1,0 +1,8 @@
+[vbatts-bazel]
+name=Copr repo for bazel owned by vbatts
+baseurl=https://copr-be.cloud.fedoraproject.org/results/vbatts/bazel/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=0
+enabled=1
+enabled_metadata=1
