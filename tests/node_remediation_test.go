@@ -20,7 +20,6 @@
 package tests_test
 
 import (
-	"fmt"
 	"flag"
 	"time"
 
@@ -121,8 +120,7 @@ var _ = Describe("Node Remediation", func() {
 
 			By("Checking that the node remediation object changed phase to \"Remediate\"")
 			waitForNodeRemediatioPhase(v1.NodeRemediationPhaseRemediate, 70*time.Second)
-			
-			fmt.Println(time.Now())
+
 			By("Checking that the machine object was recreated after node remediation start")
 			Eventually(func() bool {
 				machine, err := clusterClient.ClusterV1alpha1().Machines(tests.NamespaceClusterApiExternalProvider).Get(tests.MachineName, metav1.GetOptions{})
@@ -131,7 +129,6 @@ var _ = Describe("Node Remediation", func() {
 				}
 				return machine.CreationTimestamp.After(remediationStart)
 			}, 180*time.Second, time.Second).Should(BeTrue())
-			fmt.Println(time.Now())
 		})
 
 		AfterEach(func() {
