@@ -35,7 +35,21 @@ kind: ConfigMap
 metadata:
   labels:
     noderecovery.kubevirt.io: ""
-  name: noderecovery-config
+  name: remediation-conditions
+  namespace: {{.Namespace}}
+data:
+  conditions: |
+    items:
+    - name: Ready 
+      timeout: 60s
+      status: Unknown
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    noderecovery.kubevirt.io: ""
+  name: recovery-config
   namespace: {{.Namespace}}
 data:
   remediation-config: |
@@ -90,10 +104,3 @@ spec:
             - "noderecovery"
           securityContext:
             runAsUser: 1001
-          volumeMounts:
-          - name: noderecovery-config-volume
-            mountPath: /etc/noderecovery-config
-      volumes:
-      - name: noderecovery-config-volume
-        configMap:
-          name: noderecovery-config

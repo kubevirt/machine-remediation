@@ -25,6 +25,10 @@ import (
 	clusterapiv1alpha1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
 )
 
+const (
+	ConfigMapRemediationConditions = "remediation-conditions"
+	ConfigMapNodeRecovery          = "recovery-config"
+)
 const NamespaceNoderecovery = "noderecovery"
 
 const (
@@ -67,7 +71,7 @@ type NodeRemediationSpec struct {
 	// NodeName maps between node and NodeRemediation object
 	NodeName         string                         `json:"nodeName,omitempty" valid:"required"`
 	MachineCluster   string                         `json:"machineCluster,omitempty"`
-	MachineName      string							`json:"machineName,omitempty"`
+	MachineName      string                         `json:"machineName,omitempty"`
 	MachineNamespace string                         `json:"machineNamespace,omitempty"`
 	MachineSpec      clusterapiv1alpha1.MachineSpec `json:"machineSpec,omitempty"`
 }

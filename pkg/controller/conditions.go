@@ -20,14 +20,19 @@
 package controller
 
 import (
-	apiv1 "k8s.io/api/core/v1"
+	"fmt"
+
+	"github.com/ghodss/yaml"
+	"github.com/golang/glog"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 type NodeConditionManager struct {
 }
 
 // GetNodeCondition returns node condition by type
-func (d *NodeConditionManager) GetNodeCondition(node *apiv1.Node, conditionType apiv1.NodeConditionType) *apiv1.NodeCondition {
+func (d *NodeConditionManager) GetNodeCondition(node *corev1.Node, conditionType corev1.NodeConditionType) *corev1.NodeCondition {
 	for _, cond := range node.Status.Conditions {
 		if cond.Type == conditionType {
 			return &cond
@@ -38,4 +43,37 @@ func (d *NodeConditionManager) GetNodeCondition(node *apiv1.Node, conditionType 
 
 func NewNodeConditionManager() *NodeConditionManager {
 	return &NodeConditionManager{}
+}
+
+type RemediationConditions struct {
+	Items []RemediationCondition `json:"items"`
+}
+
+type RemediationCondition struct {
+	Name    string `json:"name"`
+	Timeout string `json:"timeout"`
+	Status  string `json:"status"`
+}
+
+func (d *NodeConditionManager) GetNodeRemediationConditions(node *corev1.Node, remediationConds *corev1.ConfigMap) ([]RemediationCondition, error) {
+	data, ok := remediationConds.Data["conditions"]
+	if !ok {
+		return nil, fmt.Errorf("can not find \"conditions\" under configmap")
+	}
+
+	var remediationConditions RemediationConditions
+	err := yaml.Unmarshal([]byte(data), &remediationConditions)
+	if err != nil {
+		glog.Errorf("failed to umarshal: %v", err)
+		return nil, err
+	}
+
+	conditions := []RemediationCondition{}
+	for _, c := range remediationConditions.Items {
+		cond := d.GetNodeCondition(node, corev1.NodeConditionType(c.Name))
+		if cond != nil && cond.Status == corev1.ConditionStatus(c.Status) {
+			conditions = append(conditions, c)
+		}
+	}
+	return conditions, nil
 }

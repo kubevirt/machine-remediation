@@ -47,10 +47,10 @@ import (
 
 	"kubevirt.io/node-recovery/pkg/apis/noderecovery/v1alpha1"
 	clientset "kubevirt.io/node-recovery/pkg/client/clientset/versioned"
+	"kubevirt.io/node-recovery/pkg/client/clientset/versioned/scheme"
 	informers "kubevirt.io/node-recovery/pkg/client/informers/externalversions/noderecovery/v1alpha1"
 	listers "kubevirt.io/node-recovery/pkg/client/listers/noderecovery/v1alpha1"
 	"kubevirt.io/node-recovery/pkg/controller"
-	"kubevirt.io/node-recovery/pkg/client/clientset/versioned/scheme"
 )
 
 const (
@@ -367,13 +367,21 @@ func (c *NodeRecoveryController) sync(key string) error {
 		return nil
 	}
 
-	readyCond := c.nodeConditionManager.GetNodeCondition(node, corev1.NodeReady)
-	nodeReady := readyCond.Status == corev1.ConditionTrue
+	// TODO: we must fetch controller namespace and use it instead of hard-coded one
+	remediationConditions, err := c.configMapLister.ConfigMaps(v1alpha1.NamespaceNoderecovery).Get(v1alpha1.ConfigMapRemediationConditions)
+	if err != nil {
+		glog.Infof("can not find config map with node remediations conditions")
+		return nil
+	}
+	nodeRemediationConditions, err := c.nodeConditionManager.GetNodeRemediationConditions(node, remediationConditions)
+	if err != nil {
+		return err
+	}
 
 	nodeRemediation, err := c.nodeRemediationLister.Get(name)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			if !nodeReady {
+			if len(nodeRemediationConditions) != 0 {
 				nodeRemediation := &v1alpha1.NodeRemediation{
 					Spec: &v1alpha1.NodeRemediationSpec{
 						NodeName: node.Name,
@@ -399,7 +407,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 	copyNodeRemediation := nodeRemediation.DeepCopy()
 	switch nodeRemediation.Status.Phase {
 	case v1alpha1.NodeRemediationPhaseInit:
-		if !nodeReady {
+		if len(nodeRemediationConditions) != 0 {
 			copyNodeRemediation.Status.Phase = v1alpha1.NodeRemediationPhaseWait
 			copyNodeRemediation.Status.Reason = "wait to be sure that it does not transient error"
 			copyNodeRemediation.Status.StartTime = metav1.Now()
@@ -416,13 +424,23 @@ func (c *NodeRecoveryController) sync(key string) error {
 		}
 		return nil
 	case v1alpha1.NodeRemediationPhaseWait:
-		if !nodeReady {
+		if len(nodeRemediationConditions) != 0 {
 			currentTime := metav1.Now()
-			// TODO: get timeout from configMap
-			if copyNodeRemediation.Status.StartTime.Add(time.Minute).After(currentTime.Time) {
+			startRemediation := false
+			for _, cond := range nodeRemediationConditions {
+				condTimeout, err := time.ParseDuration(cond.Timeout)
+				if err != nil {
+					return err
+				}
+				if copyNodeRemediation.Status.StartTime.Add(condTimeout).Before(currentTime.Time) {
+					startRemediation = true
+				}
+			}
+			if !startRemediation {
 				c.enqueueObj(node)
 				return nil
 			}
+
 			machine, err := c.getMachine(node)
 			if err != nil {
 				if errors.IsNotFound(err) {
@@ -509,7 +527,7 @@ func (c *NodeRecoveryController) sync(key string) error {
 				"Succeeded to create machine object",
 			)
 		}
-		if !nodeReady {
+		if len(nodeRemediationConditions) != 0 {
 			currentTime := metav1.Now()
 			// TODO: get timeout from configMap or the node label(annotation)
 			if copyNodeRemediation.Status.StartTime.Add(5 * time.Minute).After(currentTime.Time) {
@@ -618,8 +636,8 @@ func (c *NodeRecoveryController) updateNodeRemediationWithEvent(oldNodeRemediati
 	return nil
 }
 
-func(c *NodeRecoveryController) getNodeByMachine(machine *clusterapiv1alpha1.Machine) (*corev1.Node, error) {
-	predicate := func (node *corev1.Node) bool {
+func (c *NodeRecoveryController) getNodeByMachine(machine *clusterapiv1alpha1.Machine) (*corev1.Node, error) {
+	predicate := func(node *corev1.Node) bool {
 		val, ok := node.Annotations["machine"]
 		if !ok {
 			return false
@@ -644,7 +662,7 @@ func(c *NodeRecoveryController) getNodeByMachine(machine *clusterapiv1alpha1.Mac
 	return nodes[0], nil
 }
 
-func(c *NodeRecoveryController) getMachine(node *corev1.Node) (*clusterapiv1alpha1.Machine, error) {
+func (c *NodeRecoveryController) getMachine(node *corev1.Node) (*clusterapiv1alpha1.Machine, error) {
 	val, ok := node.Annotations["machine"]
 	if !ok {
 		return nil, fmt.Errorf("failed to get machine aanotation from the node")
