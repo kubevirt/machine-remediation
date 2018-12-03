@@ -52,10 +52,7 @@ const (
 	NamespaceClusterApiExternalProvider = "cluster-api-provider-external"
 )
 
-const (
-	ServiceFakeIpmiClusterIP = "10.104.200.255"
-	ServiceFakeIpmiPort      = 6230
-)
+const ServiceFakeIpmiPort = 6230
 
 const (
 	ConfigMapMachineSetupName = "machine-setup"
@@ -150,19 +147,7 @@ func BeforeTestSuitSetup() error {
 		return err
 	}
 
-	err = updateNodeAnnotation(NonMasterNode, MachineName, NamespaceClusterApiExternalProvider)
-	if err != nil {
-		return err
-	}
-
-	err = updateMachineSetupConfigMap(
-		MachineName,
-		MachineLabel,
-		[]extproviderv1alpha1.MachineRole{extproviderv1alpha1.NodeRole},
-		ServiceFakeIpmiPort,
-		map[string]string{"username": FencingSecretName, "password": FencingSecretName},
-	)
-	return err
+	return updateNodeAnnotation(NonMasterNode, MachineName, NamespaceClusterApiExternalProvider)
 }
 
 func createNamespace(name string) error {
@@ -299,11 +284,13 @@ func removeSecret(name string, namespace string) error {
 	return err
 }
 
-func updateMachineSetupConfigMap(
+// UpdateMachineSetupConfigMap updates machine-setup configuration
+func UpdateMachineSetupConfigMap(
 	machineName string,
 	label string,
 	roles []extproviderv1alpha1.MachineRole,
-	port int,
+	ips map[string]string,
+	ports map[string]string,
 	secrets map[string]string,
 ) error {
 	kubeClient := client.NewKubeClientSet()
@@ -343,16 +330,12 @@ func updateMachineSetupConfigMap(
 						Secrets:        secrets,
 						DynamicConfig: []extproviderv1alpha1.DynamicConfigElement{
 							{
-								Field: "ip",
-								Values: map[string]string{
-									machineName: ServiceFakeIpmiClusterIP,
-								},
+								Field:  "ip",
+								Values: ips,
 							},
 							{
-								Field: "ipport",
-								Values: map[string]string{
-									machineName: fmt.Sprintf("%d", ServiceFakeIpmiPort),
-								},
+								Field:  "ipport",
+								Values: ports,
 							},
 						},
 					},
@@ -482,24 +465,24 @@ func CreateFakeIpmiPod(nodeName string) (*corev1.Pod, error) {
 }
 
 // CreateFakeIpmiService will create service to talk with fake IPMI service
-func CreateFakeIpmiService(clusterip string, port int) (*corev1.Service, error) {
+func CreateFakeIpmiService(port int, targetPort int, protocol corev1.Protocol) (*corev1.Service, error) {
 	kubeClient := client.NewKubeClientSet()
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: PodFakeIpmiName,
 		},
 		Spec: corev1.ServiceSpec{
-			ClusterIP: clusterip,
 			Ports: []corev1.ServicePort{
 				{
 					Port:       int32(port),
-					TargetPort: intstr.FromInt(port),
-					Protocol:   corev1.ProtocolUDP,
+					TargetPort: intstr.FromInt(targetPort),
+					Protocol:   protocol,
 				},
 			},
 			Selector: map[string]string{PodFakeIpmiName: ""},
 		},
 	}
+
 	return kubeClient.CoreV1().Services(NamespaceTest).Create(service)
 }
 
