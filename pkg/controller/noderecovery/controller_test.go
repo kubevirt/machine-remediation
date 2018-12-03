@@ -49,6 +49,21 @@ var (
 	noTimestamp = metav1.Time{}
 )
 
+const remediationConditionsData = `items:
+- name: Ready 
+  timeout: 60s
+  status: Unknown`
+
+const unrelatedConditionData = `items:
+- name: Unrelated 
+  timeout: 60s
+  status: Unknown`
+
+const unrelatedStatusData = `items:
+- name: Ready 
+  timeout: 60s
+  status: Unrelated`
+
 func newMachine(name string) *clusterapiv1alpha1.Machine {
 	return &clusterapiv1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
@@ -65,7 +80,7 @@ func newMachine(name string) *clusterapiv1alpha1.Machine {
 func newNode(name string, ready bool) *corev1.Node {
 	conditionReady := corev1.ConditionTrue
 	if !ready {
-		conditionReady = corev1.ConditionFalse
+		conditionReady = corev1.ConditionUnknown
 	}
 
 	return &corev1.Node{
@@ -109,6 +124,19 @@ func newNodeRemediation(name string, phase v1alpha1.NodeRemediationPhase, startT
 	}
 }
 
+func newConfigMap(name string, data map[string]string) *corev1.ConfigMap {
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: v1alpha1.NamespaceNoderecovery,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind: "ConfigMap",
+		},
+		Data: data,
+	}
+}
+
 type fixture struct {
 	t *testing.T
 
@@ -125,6 +153,7 @@ type fixture struct {
 	// Objects to put in the store.
 	machineLister         []*clusterapiv1alpha1.Machine
 	nodeLister            []*corev1.Node
+	configMapLister       []*corev1.ConfigMap
 	nodeRemediationLister []*v1alpha1.NodeRemediation
 
 	// Actions expected to happen on the client. Objects from here are also
@@ -192,6 +221,7 @@ func (f *fixture) newController() *NodeRecoveryController {
 	c.recorder = f.recorder
 	c.machineSynced = alwaysReady
 	c.nodeSynced = alwaysReady
+	c.configMapSynced = alwaysReady
 	c.nodeRemediationSynced = alwaysReady
 
 	for _, m := range f.machineLister {
@@ -202,6 +232,9 @@ func (f *fixture) newController() *NodeRecoveryController {
 	}
 	for _, nr := range f.nodeRemediationLister {
 		f.informerFactory.Noderecovery().V1alpha1().NodeRemediations().Informer().GetIndexer().Add(nr)
+	}
+	for _, cm := range f.configMapLister {
+		f.kubeInformerFactory.Core().V1().ConfigMaps().Informer().GetIndexer().Add(cm)
 	}
 	return c
 }
@@ -279,6 +312,12 @@ func TestSyncWithReadyNodeDoesNotCreateNodeRemediation(t *testing.T) {
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
 	f.run(testutils.GetKey(n, t))
 }
 
@@ -289,6 +328,12 @@ func TestSyncWithNotReadyNodeCreatesNodeRemediation(t *testing.T) {
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+	
 	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseInit, noTimestamp)
 
 	f.expectCreateNodeRemediationAction(nr)
@@ -314,6 +359,12 @@ func deletionOfNodeRemediation(phase v1alpha1.NodeRemediationPhase, t *testing.T
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
 	nr := newNodeRemediation("ready-node", phase, noTimestamp)
 	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
 	f.objects = append(f.objects, nr)
@@ -332,6 +383,12 @@ func TestSyncWithNotReadyNodeMoveNodeRemediationToWaitPhase(t *testing.T) {
 	n := newNode("notready-node", false)
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
+
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
 
 	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseInit, noTimestamp)
 	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
@@ -353,6 +410,12 @@ func TestSyncWithNotReadyNodeStayInWaitPhaseSpecifiedTime(t *testing.T) {
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
 	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseWait, metav1.Time{
 		Time: time.Now(),
 	})
@@ -369,6 +432,12 @@ func TestSyncWithNotReadyNodeInWaitPhaseMoveToRemediatePhase(t *testing.T) {
 	n := newNode("notready-node", false)
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
+
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
 
 	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseWait, metav1.Time{
 		Time: time.Now().Add(-time.Minute),
@@ -397,6 +466,12 @@ func TestSyncWithNotReadyNodeInRemediatePhaseCreatesMachines(t *testing.T) {
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
 	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseRemediate,
 		metav1.Time{Time: time.Now()},
 	)
@@ -419,6 +494,12 @@ func TestSyncWithReadyNodeInRemediatePhaseSucceeds(t *testing.T) {
 	n := newNode("ready-node", true)
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
+
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
 
 	nr := newNodeRemediation("ready-node", v1alpha1.NodeRemediationPhaseRemediate,noTimestamp)
 	f.nodeRemediationLister = append(f.nodeRemediationLister, nr)
@@ -443,6 +524,12 @@ func TestSyncWithNotReadyNodeInRemediatePhaseFailsRemediationAfterTimeout(t *tes
 	f.nodeLister = append(f.nodeLister, n)
 	f.kubeObjects = append(f.kubeObjects, n)
 
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, map[string]string{
+		"conditions": remediationConditionsData,
+	})
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
 	nr := newNodeRemediation("notready-node", v1alpha1.NodeRemediationPhaseRemediate,
 		metav1.Time{Time: time.Now().Add(-defaultRemediateTimeout)},
 	)
@@ -459,4 +546,58 @@ func TestSyncWithNotReadyNodeInRemediatePhaseFailsRemediationAfterTimeout(t *tes
 
 	// Check for expected events
 	testutils.ExpectEvent(f.recorder, "Failed to remediate the node", t)
+}
+
+func TestSyncWithoutRemediationConditionsConfigMap(t *testing.T) {
+	f := newFixture(t)
+
+	n := newNode("ready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	f.run(testutils.GetKey(n, t))
+}
+
+func testBadData(t *testing.T, data map[string]string) {
+	f := newFixture(t)
+
+	n := newNode("ready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, data)
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
+	f.runExpectError(testutils.GetKey(n, t), true)
+}
+
+func TestSyncWithRemediationConditionsConfigMapWithoutConditionsKey(t *testing.T) {
+	testBadData(t, map[string]string{"test": remediationConditionsData})
+}
+
+func TestSyncWithRemediationConditionsConfigMapWithBadData(t *testing.T) {
+	testBadData(t, map[string]string{"conditions": "bad-data"})
+}
+
+func testUnrelatedData(t *testing.T, data map[string]string) {
+	f := newFixture(t)
+
+	n := newNode("ready-node", false)
+	f.nodeLister = append(f.nodeLister, n)
+	f.kubeObjects = append(f.kubeObjects, n)
+
+	cm := newConfigMap(v1alpha1.ConfigMapRemediationConditions, data)
+	f.configMapLister = append(f.configMapLister, cm)
+	f.kubeObjects = append(f.kubeObjects, cm)
+
+	f.run(testutils.GetKey(n, t))
+}
+
+func TestSyncWithRemediationConditionsConfigMapWithUnrelatedCondition(t *testing.T) {
+	testUnrelatedData(t, map[string]string{"conditions": unrelatedConditionData})
+}
+
+func TestSyncWithRemediationConditionsConfigMapWithUnrelatedConditionStatus(t *testing.T) {
+	testUnrelatedData(t, map[string]string{"conditions": unrelatedStatusData})
 }
