@@ -20,6 +20,7 @@
 package tests_test
 
 import (
+	"fmt"
 	"flag"
 	"time"
 
@@ -28,6 +29,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	extproviderv1alpha1 "kubevirt.io/cluster-api-provider-external/pkg/apis/providerconfig/v1alpha1"
 
 	v1 "kubevirt.io/node-recovery/pkg/apis/noderecovery/v1alpha1"
 	"kubevirt.io/node-recovery/pkg/client"
@@ -67,8 +70,22 @@ var _ = Describe("Node Remediation", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		By("Creating service for fake IPMI server")
-		_, err = tests.CreateFakeIpmiService(tests.ServiceFakeIpmiClusterIP, tests.ServiceFakeIpmiPort)
+		service, err := tests.CreateFakeIpmiService(tests.ServiceFakeIpmiPort, tests.ServiceFakeIpmiPort, corev1.ProtocolUDP)
 		Expect(err).ToNot(HaveOccurred())
+
+		By("Updating machine-setup configuration")
+		err = tests.UpdateMachineSetupConfigMap(
+			tests.MachineName,
+			tests.MachineLabel,
+			[]extproviderv1alpha1.MachineRole{extproviderv1alpha1.NodeRole},
+			map[string]string{
+				tests.MachineName: service.Spec.ClusterIP,
+			},
+			map[string]string{
+				tests.MachineName: fmt.Sprintf("%d", tests.ServiceFakeIpmiPort),
+			},
+			map[string]string{"username": tests.FencingSecretName, "password": tests.FencingSecretName},
+		)
 
 		By("Creating pod to execute SSH commands")
 		sshExecPod, err = tests.CreateSSHExecPod(masterNode.Name)
