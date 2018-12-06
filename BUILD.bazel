@@ -46,7 +46,7 @@ config_setting(
 container_bundle(
     name = "noderecovery_images",
     images = {
-        "index.docker.io/kubevirt/noderecovery:latest": "//cmd/noderecovery:noderecovery_image",
+        "index.docker.io/kubevirt/noderecovery:$(container_tag)": "//cmd/noderecovery:noderecovery_image",
     },
     visibility = ["//visibility:public"],
 )
