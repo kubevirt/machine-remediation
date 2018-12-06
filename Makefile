@@ -5,7 +5,7 @@ bazel-generate-manifests-dev:
 	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests:generate_manifests --define dev=true"
 
 bazel-generate-manifests-release:
-	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests:generate_manifests --define release=true"
+	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests:generate_manifests --define release=true --define container_tag=${CONTAINER_TAG}"
 
 bazel-generate-manifests-tests:
 	SYNC_MANIFESTS=true hack/dockerized "bazel build //manifests/testing:generate_manifests"
@@ -23,7 +23,7 @@ bazel-push-images-os-3.11.0:
 	hack/dockerized "bazel run //:push_images --define dev=true --define cluster_provider=os_3_11_0"
 
 bazel-push-images-release:
-	hack/dockerized "bazel run //:push_images --define release=true"
+	hack/dockerized "bazel run //:push_images --define release=true --define container_tag=${CONTAINER_TAG}"
 
 bazel-tests:
 	./hack/dockerized "bazel test --test_output=all -- //pkg/... "
