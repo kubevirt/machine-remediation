@@ -1,0 +1,46 @@
+language: generic
+sudo: required
+dist: trusty
+services:
+- docker
+env:
+  global:
+  - secure: Jhj6d0tcVmjHwAWgmTNnnGJ8K4/gXmoxcNghBCr08fa3afWrzmX5maAhCnR2dgv8rhzCkjfnPElAE891gXAJSEnQXLq/f+JWgxXen9gYO+5K9W68JOfPmW2qKCixHij8Bu6ghG8rbr76hbe2Sn/5WzIdRKkMr6F8x8Jjd7/qifTumntLUhZLIxP1Xkh7gplYQ4cNxwCzyONEAlq19jDOrsTeXDk+LziPzUfxlprY3FeBaSBs/MtaV4rz70+ZOOabP53VLxpBS9i++Sgk0aCv0qHc3itD/L3nyZRejVled0kAu68ttB9rmo9eRhGTMYbvQYyOD655i6cnr4Aaukb4WqtW0suYSCMDvRTyQk8ywoHqF1nfS1Adaj7IWD5eMYwNCQjul8a4KRBvJLqGoVa1THhty2hQkvsEWFj4tHOg4qTfyQT1gcfO9/vSqDdvpu2BdNQ48TBDDrI4mk5Du+mzPRY6jKPE06UxLzPNHcr2nkEL4m5D/nQT1nVNGV3rwb1bvBCRiigW1R+6tvtTqd7DTK1bPUfftbpP/+gA7kupUHUiOD0qSLM8m4G69VigKadS9KdAkg2zt9bhaADp4P4cOaDHfRO+ozEhAhh2/6gZO85PXldgxWErk9tKIWNO0tuGPeJaK+ZcKK1p7qPQMg96v8AerkmFnVJRl8RN4sU3zUI=
+  - secure: gV1oiUlw8jR2ajzC5Tj6dYUthydGGY3GBXvYDfh1LCEBkyzCx4IUUMkAsviA+yGfStS5DCBOIc4ncV1s0S2FAZakEjNV07QTIJfSW/txVU1N0eqq508RGs8Ep3kqW3p4xBxMMoKl6yqjqjEaUGQypTkxF/av9T/N/WfUNmcR6zJ112jeYztvbqYFzyJm0Q8ccn5UxWL/a+rJA3yTXTTEZHZwF8zDqj2kwUoUOWIlf7Z9JCsb+/kSGbfzcHH39HgwJSeoHdI9c6OuPuqpTCfQyEYBSLwCBn+BftZT0F9QhQdiMGmMMORjDoQEiGz0dbwt8UJWjKcE2joYLmEHlN/8XRktryxqyIKkdpkRjjQ4e4mpdLZGAKunEaqNBA74S59bDjs5cjPZcZrPnXg9as38ZQpUtbQo5rwrQKUqPcyoVyevou/i3PEBggxcHW1xHIFlX40qhC2jI9/RM6xWVQMDI+mSeY1qxGJFd5WoyE90GDEfSQ6jl5lff5hoAKA6VzyN8IAbvPc0XbLAdKmtwneSliktnoWHj/nSzDjsBI/uATkdyW2pviBJQHm+1+e8smiImnWsQsQXl3ej98B4M6deYme3JbC3dFi7yikVXCmbLvLBk0Pig/O4diCKdf2FoTUmNFOIKQT91sc4k7Ql9TblkA7Qud9zk5J7RzVpdC4WesA=
+install:
+- git reset --hard
+script:
+- make bazel-generate
+- if [[ -n "$(git status --porcelain)" ]] ; then echo "It seems like you need to run
+  `make bazel-generate`. Please run it and commit the changes"; git status --porcelain;
+  false; fi
+- CONTAINER_TAG=$TRAVIS_TAG make bazel-generate-manifests-release
+deploy:
+- provider: script
+  script: hack/dockerized "docker login -u=${DOCKER_USER} -p=${DOCKER_PASS}" && CONTAINER_TAG=latest make bazel-push-images-release
+  skip_cleanup: true
+  on:
+    branch: master
+- provider: script
+  script: hack/dockerized "docker login -u=${DOCKER_USER} -p=${DOCKER_PASS}" && CONTAINER_TAG=$TRAVIS_TAG make bazel-push-images-release
+  skip_cleanup: true
+  file:
+  on:
+    tags: true
+- provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: HfTOaydOlOoZJH6zrRkaBoMRRi6T/qQ48LZOvgYOVVxrY65RJxcJGPIWuSHmTaG4gVnbvZX10X45hb3wdjNHQVAT/fJ4K5+7FFShdSF25bXgYgATJPvXwd4P9efq+4SL9z22NsEDc0vB3f354e5OMcT3USmV9Mp/u5wBporar01JEOeyb9P+PUYJkSZvlOIu3VI0FKEFIxjtaJjBEsbHNJAly+Ccdlpja/vViNxOB6jcq6EvhQZI95BnqSnTt89wG4veRr5L1EGse76FujA69RXvbXnZ3Aq8OdiIMtxXqg4N+jkQWtT2M6SkH6MbKTqW9mRfSIRmYFLhZH+PC429PpHxKGHc/JoVR61H8gy8IxAybNLQtRLIVPZ9pZNrOiLJXDr6TInyWGbYOnGev1FYslSEqllDKzF04b+lBpuzBzfvDj9yzoDo1dqZSAh4SnXtLWx+ML9zldPGEqoDltRdBXEmd72Zn46fApXfQ0N2knHMQPGBJ0kuQTwLl2fjkkV2SwIZrxMaQa/3FrNykkz0iwMwA7MsZmhNMqbMO/IkFUqylWZctfodjPfXuviUfe3Ff5jjbsu7BFexYOVmgLP8fibLpXxGGqwe8Qe748UPhslgPgkqLvPtlTcAa9i1PFPlybEBHY19+STElkl60Qkzo5ftd3rRs66x+oiUOkZCM2Q=
+  file: _out/manifests/cluster-api-provider-external.yaml
+  prerelease: true
+  overwrite: true
+  name: $TRAVIS_TAG
+  on:
+    repo: kubevirt/cluster-api-provider-external
+    tags: true
+notifications:
+  irc:
+    channels:
+    - chat.freenode.net#kubevirt
+    on_success: change
+    on_failure: always

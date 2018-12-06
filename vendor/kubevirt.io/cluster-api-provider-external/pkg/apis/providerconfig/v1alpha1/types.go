@@ -75,15 +75,8 @@ type ExternalClusterProviderConfig struct {
 type FencingConfig struct {
 	metav1.ObjectMeta `json:",inline"`
 
-	// Query that specifies which node(s) this config applies to
-	// Not relevant if setting as part of the machine definition
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-
 	// Container that handles machine operations
 	Container *v1.Container `json:"container"`
-
-	// Volumes that must be mounted to the fencing container
-	Volumes []v1.Volume `json:"volumes"`
 
 	// Optional command to be used instead of the default when
 	// handling machine Create operations (power-on/provisioning)
@@ -101,14 +94,6 @@ type FencingConfig struct {
 	// handling machine Update operations (reboot)
 	RebootArgs []string `json:"rebootArgs,omitempty"`
 
-	// How Secrets and DynamicConfig should be passed to the
-	// container: ([env], cli)
-	ArgumentFormat string `json:"argumentFormat"`
-
-	// Parameters to use for automatic variables
-	PassActionAs string `json:"passActionAs,omitempty"`
-	PassTargetAs string `json:"passTargetAs,omitempty"`
-
 	// Parameters common to all commands that may be passed as either
 	// name/value pairs or "--name value" depending on the value of
 	// ArgumentFormat
@@ -118,8 +103,8 @@ type FencingConfig struct {
 	// Not relevant if setting as part of the machine definition
 	DynamicConfig []DynamicConfigElement `json:"dynamicConfig,omitempty"`
 
-	// A list of Kubernetes secrets to securely pass to the container
-	Secrets map[string]string `json:"secrets"`
+	// Secret contains fencing agent username and password
+	Secret string `json:"secret"`
 
 	// How long to wait for the Job to complete
 	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
@@ -129,6 +114,10 @@ type FencingConfig struct {
 
 	// How long to wait before retrying failed Jobs
 	Retries *int32 `json:"retries,omitempty"`
+
+	// Volumes represent additional volumes that you want to attach
+	// to the container
+	Volumes []v1.Volume `json:"volumes,omitempty"`
 }
 
 type DynamicConfigElement struct {

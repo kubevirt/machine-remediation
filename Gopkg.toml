@@ -57,4 +57,4 @@
 
 [[constraint]]
   name = "kubevirt.io/cluster-api-provider-external"
-  revision = "55695403ff433e3ba27858b731e3102ad37f23d1"
+  revision = "369ec19736c08c875c02f002b21ed6c287cba1e3"

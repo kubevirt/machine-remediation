@@ -1,0 +1,19 @@
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+filegroup(
+    name = "ansible_files",
+    srcs = glob([
+        "**/*.yml",
+        "*.yml",
+    ]),
+)
+
+pkg_tar(
+    name = "ansible_tar",
+    srcs = [":ansible_files"],
+    package_dir = "/home/non-root/ansible",
+    strip_prefix = ".",
+    owner = "1001.1001",
+    mode = "0700",
+    visibility = ["//visibility:public"],
+)

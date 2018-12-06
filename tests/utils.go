@@ -68,8 +68,8 @@ const (
 
 const (
 	FencingConfigName     = "fake-ipmilan"
-	FencingContainerName  = "fence-agents"
-	FencingContainerImage = "quay.io/beekhof/fence-agents:0.0.11"
+	FencingContainerName  = "fence-provision-manager"
+	FencingContainerImage = "docker.io/kubevirt/fence-provision-manager:latest"
 	FencingSecretName     = "ipmi-secret"
 	FencingUsername       = "admin"
 	FencingPassword       = "password"
@@ -291,7 +291,7 @@ func UpdateMachineSetupConfigMap(
 	roles []extproviderv1alpha1.MachineRole,
 	ips map[string]string,
 	ports map[string]string,
-	secrets map[string]string,
+	secret string,
 ) error {
 	kubeClient := client.NewKubeClientSet()
 	configMap, err := kubeClient.CoreV1().ConfigMaps(NamespaceClusterApiExternalProvider).Get(ConfigMapMachineSetupName, metav1.GetOptions{})
@@ -316,18 +316,19 @@ func UpdateMachineSetupConfigMap(
 						Container: &corev1.Container{
 							Name:  FencingContainerName,
 							Image: FencingContainerImage,
-							Command: []string{
-								"/bin/secret-handler.sh",
-								"/sbin/fence_ipmilan",
-								"-v",
+							Command: []string{"fence-provision-manager"},
+							Args: []string{
+								"ansible",
+              					"--agent-type",
+              					"ipmilan",
+              					"--playbook-path",
+              					"/home/non-root/ansible/provision.yml",
 							},
 						},
-						CheckArgs:      []string{"-o", "status", "-P"},
-						CreateArgs:     []string{"-o", "on", "-P"},
-						DeleteArgs:     []string{"-o", "off", "-P"},
-						ArgumentFormat: "cli",
-						PassTargetAs:   "port",
-						Secrets:        secrets,
+						CheckArgs:      []string{"--action", "discover"},
+						CreateArgs:     []string{"--action", "provision"},
+						DeleteArgs:     []string{"--action", "deprovision"},
+						Secret:        	secret,
 						DynamicConfig: []extproviderv1alpha1.DynamicConfigElement{
 							{
 								Field:  "ip",
@@ -336,6 +337,12 @@ func UpdateMachineSetupConfigMap(
 							{
 								Field:  "ipport",
 								Values: ports,
+							},
+							{
+								Field: "lanplus",
+								Values: map[string]string{
+									MachineName: "",
+								},
 							},
 						},
 					},

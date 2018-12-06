@@ -185,32 +185,10 @@ func (c *ExternalClient) waitForJob(jobName string, namespace string, retries in
 	}
 	glog.Infof("Waiting %d times for job %v", retries, job.Name)
 
-	var jobPod *corev1.Pod
 	for lpc := 0; lpc < retries || retries < 0; lpc++ {
-		// TODO: when host has OFF state, fence command returns code 2, so I need to catch it
-		// in the future need to refactor fence logic container
-		jobPods, err := c.kubeclient.CoreV1().Pods(namespace).List(metav1.ListOptions{
-			LabelSelector: "job-name="+job.Name,
-		})
-		if err != nil {
-			return false, err
-		}
-		if len(jobPods.Items) != 0 {
-			jobPod = &jobPods.Items[0]
-		}
-
 		if len(job.Status.Conditions) > 0 {
 			for _, condition := range job.Status.Conditions {
 				if condition.Type == batchv1.JobFailed {
-					if jobPod != nil {
-						for _, containerState := range jobPod.Status.ContainerStatuses {
-							if containerState.State.Terminated != nil {
-								if containerState.State.Terminated.ExitCode == 2 {
-									return false, nil
-								}
-							}
-						}
-					}
 					return false, fmt.Errorf("Job %v failed: %v", job.Name, condition.Message)
 
 				} else if condition.Type == batchv1.JobComplete {

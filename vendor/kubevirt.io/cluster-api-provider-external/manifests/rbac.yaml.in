@@ -2,9 +2,9 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: clusterapi-external-provider
+  name: cluster-api-provider-external
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 rules:
   - apiGroups:
       - cluster.k8s.io
@@ -53,22 +53,22 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: clusterapi-external-provider
+  name: cluster-api-provider-external
   namespace: {{.Namespace}}
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: clusterapi-external-provider
+  name: cluster-api-provider-external
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 roleRef:
   kind: ClusterRole
-  name: clusterapi-external-provider
+  name: cluster-api-provider-external
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: clusterapi-external-provider
+    name: cluster-api-provider-external
     namespace: {{.Namespace}}

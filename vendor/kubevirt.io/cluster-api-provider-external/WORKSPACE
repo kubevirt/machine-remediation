@@ -46,6 +46,14 @@ container_pull(
   #tag = "28",
 )
 
+container_pull(
+  name = "fence-provision-base",
+  registry = "index.docker.io",
+  repository = "alukiano/fence-provision-base",
+  digest = "sha256:b3000c079d1c20b5924cf8615311c950ec34ed45fef7b0616eca819ebe577564",
+  #tag = "28",
+)
+
 load(
     "@io_bazel_rules_docker//go:image.bzl",
     _go_image_repos = "repositories",

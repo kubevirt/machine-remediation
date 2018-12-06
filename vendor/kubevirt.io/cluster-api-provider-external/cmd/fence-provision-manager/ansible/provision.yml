@@ -1,0 +1,7 @@
+- name: playbook to provision hosts
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  roles:
+  - role: power
+    playbook_debug: true

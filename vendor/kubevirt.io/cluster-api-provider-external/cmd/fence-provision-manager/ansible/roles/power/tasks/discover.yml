@@ -1,0 +1,6 @@
+##############################################################################
+## Discover a machine's power status with IPMI
+##############################################################################
+
+- name: Determin machine power state
+  command: "/sbin/fence_{{ agent_type }} --username {{ username }} --password {{ password }} {{ options }} -o status"
