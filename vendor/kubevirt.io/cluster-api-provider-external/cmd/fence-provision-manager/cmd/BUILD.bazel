@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "ansible.go",
+        "fence.go",
+        "root.go",
+        "utils.go",
+    ],
+    importmap = "kubevirt.io/node-recovery/vendor/kubevirt.io/cluster-api-provider-external/cmd/fence-provision-manager/cmd",
+    importpath = "kubevirt.io/cluster-api-provider-external/cmd/fence-provision-manager/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/github.com/spf13/pflag:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)

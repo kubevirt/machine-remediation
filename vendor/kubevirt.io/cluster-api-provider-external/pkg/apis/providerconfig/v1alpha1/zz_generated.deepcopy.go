@@ -135,13 +135,6 @@ func (in *ExternalMachineProviderConfig) DeepCopyObject() runtime.Object {
 func (in *FencingConfig) DeepCopyInto(out *FencingConfig) {
 	*out = *in
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
 	if in.Container != nil {
 		in, out := &in.Container, &out.Container
 		if *in == nil {
@@ -149,13 +142,6 @@ func (in *FencingConfig) DeepCopyInto(out *FencingConfig) {
 		} else {
 			*out = new(v1.Container)
 			(*in).DeepCopyInto(*out)
-		}
-	}
-	if in.Volumes != nil {
-		in, out := &in.Volumes, &out.Volumes
-		*out = make([]v1.Volume, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.CheckArgs != nil {
@@ -192,13 +178,6 @@ func (in *FencingConfig) DeepCopyInto(out *FencingConfig) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.Secrets != nil {
-		in, out := &in.Secrets, &out.Secrets
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
 	if in.TimeoutSeconds != nil {
 		in, out := &in.TimeoutSeconds, &out.TimeoutSeconds
 		if *in == nil {
@@ -224,6 +203,13 @@ func (in *FencingConfig) DeepCopyInto(out *FencingConfig) {
 		} else {
 			*out = new(int32)
 			**out = **in
+		}
+	}
+	if in.Volumes != nil {
+		in, out := &in.Volumes, &out.Volumes
+		*out = make([]v1.Volume, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	return

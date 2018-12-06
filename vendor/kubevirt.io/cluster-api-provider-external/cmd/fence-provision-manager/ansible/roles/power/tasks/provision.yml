@@ -1,0 +1,6 @@
+##############################################################################
+## Power on an machine with IPMI
+##############################################################################
+
+- name: Power on machine
+  command: "/sbin/fence_{{ agent_type }} --username {{ username }} --password {{ password }} {{ options }} -o on"

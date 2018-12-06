@@ -338,6 +338,12 @@ func UpdateMachineSetupConfigMap(
 								Field:  "ipport",
 								Values: ports,
 							},
+							{
+								Field: "lanplus",
+								Values: map[string]string{
+									MachineName: "",
+								},
+							},
 						},
 					},
 				},

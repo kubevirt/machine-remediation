@@ -149,6 +149,14 @@
   version = "v0.3.6"
 
 [[projects]]
+  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
   digest = "1:5d713dbcad44f3358fec51fd5573d4f733c02cac5a40dcb177787ad5ffe9272f"
   name = "github.com/json-iterator/go"
   packages = ["."]
@@ -205,6 +213,14 @@
   version = "v2.0.1"
 
 [[projects]]
+  digest = "1:8be8b3743fc9795ec21bbd3e0fc28ff6234018e1a269b0a7064184be95ac13e0"
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
+  version = "v0.0.3"
+
+[[projects]]
   digest = "1:0f775ea7a72e30d5574267692aaa9ff265aafd15214a7ae7db26bc77f2ca04dc"
   name = "github.com/spf13/pflag"
   packages = ["."]
@@ -245,15 +261,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:482ae811efe307bd9d00f66de80385fba51325054f8ff573e894185e72441f08"
+  digest = "1:e676c83384b449fe5bf1f6878c5c19c5e4809820f8dbd95140a7171d1a039254"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "T"
-  revision = "4d3f4d9ffa16a13f451c3b2999e9c49e9750bf06"
+  revision = "e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa"
 
 [[projects]]
   branch = "master"
-  digest = "1:f424ce07b2aac5a743e2809a4901c0aacdc73acd302f9860ca156e71b088c91d"
+  digest = "1:055779f1eb5d0c71f14d7411fe863852e4986cd1a0e251155dbfec0a357808bc"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -264,11 +280,11 @@
     "idna",
   ]
   pruneopts = "T"
-  revision = "10aee181995363b41f712a55844a0dd52ea04646"
+  revision = "a544f70c90f196e50d198126db0c4cb2b562fec0"
 
 [[projects]]
   branch = "master"
-  digest = "1:8036d85fedacf29a3af647bc7d8c014d9cecf21ec8ac8da00b578431ed1380f7"
+  digest = "1:393565e7d0186f714966d4b80f4c0c3eb132fc03c664c8e7702346324f9c531b"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -278,18 +294,18 @@
     "jwt",
   ]
   pruneopts = "T"
-  revision = "ca4130e427c7982e64cb9b5e717ff67bdb725037"
+  revision = "f42d05182288abf10faef86d16c0d07b8d40ea2d"
 
 [[projects]]
   branch = "master"
-  digest = "1:685e202ccf30edb79c8d4c1ac2d5c136ff14a0dd1b7a1adb4fe63a732d977658"
+  digest = "1:4d04f771b6ad26fb216d1553a474ffb63d837cfb438f6c72eb7b6a50a7f2a4d0"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "T"
-  revision = "7155702f2d47d94b134229da97195d0130cab001"
+  revision = "3a76605856fddce5718553cbb8bd50ca492a7274"
 
 [[projects]]
   digest = "1:6164911cb5e94e8d8d5131d646613ff82c14f5a8ce869de2f6d80d9889df8c5a"
@@ -524,11 +540,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:152cd19bedf58a86d6b8b9ca42a428e4f16a9415f81e248a800b6a46c77dc486"
+  digest = "1:af6d1b699a66ef35772a467223835d1114fe371fcd8a2346fc47d7f0d2dc22f3"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
   pruneopts = "T"
-  revision = "72693cb1fadd73ae2742f6fe29af77d1aecdd8cd"
+  revision = "a9a16210091c9a2b6a937e06a182955c03654c4c"
 
 [[projects]]
   digest = "1:25e4c5e17fbb1e8071e08902a68e7704af43c9186adb8993049e26c6543168e2"
@@ -589,6 +605,7 @@
   input-imports = [
     "github.com/ghodss/yaml",
     "github.com/golang/glog",
+    "github.com/spf13/cobra",
     "github.com/spf13/pflag",
     "k8s.io/api/batch/v1",
     "k8s.io/api/core/v1",

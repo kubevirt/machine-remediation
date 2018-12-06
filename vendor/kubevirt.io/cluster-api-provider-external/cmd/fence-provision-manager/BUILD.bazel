@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importmap = "kubevirt.io/node-recovery/vendor/kubevirt.io/cluster-api-provider-external/cmd/fence-provision-manager",
+    importpath = "kubevirt.io/cluster-api-provider-external/cmd/fence-provision-manager",
+    visibility = ["//visibility:private"],
+    deps = ["//vendor/kubevirt.io/cluster-api-provider-external/cmd/fence-provision-manager/cmd:go_default_library"],
+)
+
+go_binary(
+    name = "fence-provision-manager",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_bundle",
+    "container_image",
+    container_repositories = "repositories",
+)
+
+container_image(
+    name = "passwd_image",
+    base = "@fence-provision-base//image",
+    tars = [
+        "//:passwd_tar",
+        "//cmd/fence-provision-manager/ansible:ansible_tar",
+    ],
+    user = "non-root",
+    visibility = ["//visibility:private"],
+)
+
+container_image(
+    name = "fence_provision_manager_image",
+    base = ":passwd_image",
+    files = [":fence-provision-manager"],
+    #tars = ["//cmd/fence-provision-manager/ansible:ansible_tar"],
+    directory = "/usr/bin",
+    entrypoint = ["/usr/bin/fence-provision-manager"],
+    user = "non-root",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,14 @@
+---
+apiVersion: "cluster.k8s.io/v1alpha1"
+kind: Cluster
+metadata:
+  name: example-cluster
+  namespace: cluster-api-provider-external
+  labels:
+    kubevirt.io: "cluster-api-provider-external"
+spec:
+    providerConfig:
+      value:
+        apiVersion: "externalproviderconfig/v1alpha1"
+        kind: "ExternalClusterProviderConfig"
+        project: "example"

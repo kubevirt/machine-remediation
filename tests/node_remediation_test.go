@@ -84,7 +84,7 @@ var _ = Describe("Node Remediation", func() {
 			map[string]string{
 				tests.MachineName: fmt.Sprintf("%d", tests.ServiceFakeIpmiPort),
 			},
-			map[string]string{"username": tests.FencingSecretName, "password": tests.FencingSecretName},
+			tests.FencingSecretName,
 		)
 
 		By("Creating pod to execute SSH commands")

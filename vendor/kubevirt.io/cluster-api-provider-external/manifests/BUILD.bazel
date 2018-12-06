@@ -18,25 +18,25 @@ filegroup(
 genrule(
     name = "concat_all_manifests",
     srcs = [":manifests"],
-    outs = ["clusterapi-external-provider-all.yaml.in"],
+    outs = ["cluster-api-provider-external-all.yaml.in"],
     cmd = "cat $(locations :manifests) > $@",
 )
 
 genrule(
     name = "generate_manifests",
     srcs = [":concat_all_manifests"],
-    outs = ["clusterapi-external-provider.yaml"],
+    outs = ["cluster-api-provider-external.yaml"],
     cmd = select({
         ":dev": "./$(location //tools/manifest-templator:manifest-templator) \
-            --namespace=clusterapi-external-provider \
-            --docker-prefix=registry:5000 \
-            --docker-tag=devel \
+            --namespace=cluster-api-provider-external \
+            --container-prefix=registry:5000/kubevirt \
+            --container-tag=devel \
             --image-pull-policy=Always \
             --input-file=$(locations :concat_all_manifests) > $@",
         ":release": "./$(location //tools/manifest-templator:manifest-templator) \
-            --namespace=clusterapi-external-provider \
-            --docker-prefix=docker.io/kubevirt \
-            --docker-tag=latest \
+            --namespace=cluster-api-provider-external \
+            --container-prefix=docker.io/kubevirt \
+            --container-tag=$(container_tag) \
             --image-pull-policy=IfNotPresent \
             --input-file=$(locations :concat_all_manifests) > $@",
     }),

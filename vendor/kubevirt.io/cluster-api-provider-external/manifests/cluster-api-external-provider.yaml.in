@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   name: machines.cluster.k8s.io
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 spec:
   group: cluster.k8s.io
   names:
@@ -22,7 +22,7 @@ kind: CustomResourceDefinition
 metadata:
   name: clusters.cluster.k8s.io
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 spec:
   group: cluster.k8s.io
   names:
@@ -39,7 +39,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
   name: {{.Namespace}}
 ---
 apiVersion: v1
@@ -48,26 +48,56 @@ metadata:
   name: machine-setup
   namespace: {{.Namespace}}
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 data:
   machine_setup_configs.yaml: |-
-    items: []
+    items:
+    - machineParams:
+      - label: drac-machine
+        roles:
+        - worker
+      config:
+        fencingConfig:
+          name: had-drac
+          container:
+            name: fence-provision-manager
+            image: {{.ContainerPrefix}}/fence-provision-manager:{{.ContainerTag}}
+            command:
+              - "fence-provision-manager"
+            args:
+              - "ansible"
+              - "--agent-type"
+              - "ipmilan"
+              - "--playbook-path"
+              - "/home/non-root/ansible/provision.yml"
+            imagePullPolicy: {{.ImagePullPolicy}}
+          checkArgs:  [ "--action", "discover" ]
+          createArgs:  [ "--action", "provision" ]
+          deleteArgs:  [ "--action", "deprovision" ]
+          dynamicConfig:
+            - field: server
+              values:
+                example-machine: example-machine-14-drac
+            - field: ipport
+              values:
+                example-machine: 623
+          secret: example-secret
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: clusterapi-external-provider-controller
+  name: cluster-api-provider-external-controller
   namespace: {{.Namespace}}
   labels:
-    kubevirt.io: "clusterapi-external-provider"
+    kubevirt.io: "cluster-api-provider-external"
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        kubevirt.io: "clusterapi-external-provider"
+        kubevirt.io: "cluster-api-provider-external"
     spec:
-      serviceAccountName: clusterapi-external-provider
+      serviceAccountName: cluster-api-provider-external
       tolerations:
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
@@ -79,14 +109,21 @@ spec:
       - effect: NoExecute
         key: node.alpha.kubernetes.io/unreachable
         operator: Exists
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
       containers:
-      - name: clusterapi-external-controller
-        image: {{.DockerPrefix}}/cluster-api-external-provider:{{.DockerTag}}
+      - name: cluster-api-external-controller
+        image: {{.ContainerPrefix}}/cluster-api-provider-external:{{.ContainerTag}}
         command:
         - "/usr/bin/external-controller"
         args:	
         - --machinesetup=/etc/machinesetup/machine_setup_configs.yaml
-        imagePullPolicy: Always
+        imagePullPolicy: {{.ImagePullPolicy}}
         volumeMounts:	
         - name: machine-setup	
           mountPath: /etc/machinesetup

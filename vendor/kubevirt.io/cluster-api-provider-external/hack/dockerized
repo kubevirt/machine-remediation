@@ -66,7 +66,7 @@ _rsync() {
 }
 
 # Copy kubevirt into the persistent docker volume
-_rsync --delete --exclude "_out" ${REPO_DIR}/ "rsync://root@127.0.0.1:${RSYNCD_PORT}/build"
+_rsync --delete --exclude '*bazel-*' --exclude 'cluster/**/.kubectl' --exclude 'cluster/**/.oc' --exclude 'cluster/**/.kubeconfig' --exclude "_out" ${REPO_DIR}/ "rsync://root@127.0.0.1:${RSYNCD_PORT}/build"
 
 # Run the command
 test -t 1 && USE_TTY="-it"
@@ -78,13 +78,13 @@ docker run --rm \
     --network host \
     -w "/root/go/src/kubevirt.io/cluster-api-provider-external" ${BUILDER} "$@"
 
-# Copy the whole external-provider data out to get generated sources and formatting changes
-_rsync --exclude '.Gopkg*' --exclude 'bazel-*' --exclude  "_out" --exclude "vendor" --exclude ".git" "rsync://root@127.0.0.1:${RSYNCD_PORT}/build" ${REPO_DIR}/
+# Copy the whole provider-external data out to get generated sources and formatting changes
+_rsync --exclude 'bazel-*' --exclude '.Gopkg*' --exclude 'cluster/**/.kubectl' --exclude 'cluster/**/.oc' --exclude 'cluster/**/.kubeconfig' --exclude "_out" --exclude "vendor" --exclude ".git" "rsync://root@127.0.0.1:${RSYNCD_PORT}/build" ${REPO_DIR}/
 if [ "$SYNC_VENDOR" = "true" ]; then
     _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/vendor" "${VENDOR_DIR}/"
 fi
 
-# Copy generated external-provider manifest from basel-genfiles to _out/manifests
+# Copy generated provider-external manifest from basel-genfiles to _out/manifests
 if [ "$SYNC_MANIFESTS" = "true" ]; then
     _rsync --delete "rsync://root@127.0.0.1:${RSYNCD_PORT}/bazel-genfiles/" ${OUT_DIR}/
 fi
