@@ -53,16 +53,18 @@ Every release must should be accompanied by release notes describing the
 major highlights of the release.
 The release notes must be provided in the commit message of the tag.
 
-The `hack/release-announce.sh` script should be used to generate the
+The make target `make release-announce` should be used to generate the
 announce email.
 Using this script ensures consistency and documentation of the release
 process and content between releases.
+ 
+To specify first release commit use the varible `PREREF`.
 
 Releasing
 ---------
 The release process is mostly automatic and consists of the following steps:
 
-1. Run the `hack/release-announce.sh` script which runs functional tests,
+1. Run the `make release-announce` script which runs functional tests,
    generates some stats and outputs the announce text.
 2. Tag the commit using `git evtag sign $TAG` (which is a signed and annotated
    tag)
