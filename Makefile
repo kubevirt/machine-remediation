@@ -61,8 +61,14 @@ functests-build:
 functests-run-devel: functests-build
 	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINERS_TAG="devel" hack/functests-run.sh
 
+functests-run-release:
+	CONTAINERS_PREFIX="registry:5000/kubevirt" CONTAINERS_TAG="devel" hack/functests-run.sh > .release-functest 2>&1
+
 generate:
 	hack/dockerized "hack/update-codegen.sh"
+
+release-announce: functests-run-release
+	./hack/release-announce.sh $(RELREF) $(PREREF)
 
 .PHONY: bazel-generate \
 	bazel-base-images-build \
@@ -85,4 +91,6 @@ generate:
 	distclean \
 	functests-build \
 	functests-run-devel \
-	generate
+	functests-run-release \
+	generate \
+	release-announce
