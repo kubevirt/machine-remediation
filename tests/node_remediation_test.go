@@ -20,10 +20,11 @@
 package tests_test
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"time"
 
+	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -148,6 +149,64 @@ var _ = Describe("Node Remediation", func() {
 			}, 180*time.Second, time.Second).Should(BeTrue())
 		})
 
+		Context("with updated remediation conditions config map", func() {
+			updateConditionsCm := func(conditions *controller.RemediationConditions) {
+				data, err := yaml.Marshal(&conditions)
+				Expect(err).ToNot(HaveOccurred())
+
+				conditionsCm, err := kubeClient.CoreV1().ConfigMaps(v1.NamespaceNoderecovery).Get(v1.ConfigMapRemediationConditions, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+
+				conditionsCm.Data["conditions"] = string(data)
+				_, err = kubeClient.CoreV1().ConfigMaps(v1.NamespaceNoderecovery).Update(conditionsCm)
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			It("should move remediation object to wait phase after specific timeout", func() {
+				By("Updating remediation conditions configmap")
+				updateConditionsCm(&controller.RemediationConditions{
+					Items: []controller.RemediationCondition{
+						{
+							Name:    "Ready",
+							Status:  "Unknown",
+							Timeout: "30s",
+						},
+					},
+				})
+
+				By("Checking that the node remediation object changed phase to \"Wait\"")
+				waitForNodeRemediatioPhase(v1.NodeRemediationPhaseWait, 10*time.Second)
+
+				By("Checking that the node remediation object changed phase to \"Remediate\"")
+				waitForNodeRemediatioPhase(v1.NodeRemediationPhaseRemediate, 40*time.Second)
+			})
+
+			Context("with two remediation conditions", func() {
+				It("should move remediation object to wait phase ", func() {
+					updateConditionsCm(&controller.RemediationConditions{
+						Items: []controller.RemediationCondition{
+							{
+								Name:    "OutOfDisk",
+								Status:  "True",
+								Timeout: "120s",
+							},
+							{
+								Name:    "Ready",
+								Status:  "Unknown",
+								Timeout: "30s",
+							},
+						},
+					})
+
+					By("Checking that the node remediation object changed phase to \"Wait\"")
+					waitForNodeRemediatioPhase(v1.NodeRemediationPhaseWait, 10*time.Second)
+
+					By("Checking that the node remediation object changed phase to \"Remediate\"")
+					waitForNodeRemediatioPhase(v1.NodeRemediationPhaseRemediate, 40*time.Second)
+				})
+			})
+		})
+
 		AfterEach(func() {
 			By("Starting the kubelet service on the non-master node")
 			Eventually(
@@ -171,6 +230,16 @@ var _ = Describe("Node Remediation", func() {
 					readyCond := nodeConditionManager.GetNodeCondition(node, corev1.NodeReady)
 					return readyCond.Status == corev1.ConditionTrue
 				}, 90*time.Second, 5*time.Second,
+			).Should(BeTrue())
+
+			By("Waiting until NodeRemediation object will disappear")
+			Eventually(
+				func() bool {
+					nrs, err := nrClient.NoderecoveryV1alpha1().NodeRemediations().List(metav1.ListOptions{})
+					Expect(err).ToNot(HaveOccurred())
+
+					return len(nrs.Items) == 0
+				}, 30*time.Second, 5*time.Second,
 			).Should(BeTrue())
 		})
 	})
