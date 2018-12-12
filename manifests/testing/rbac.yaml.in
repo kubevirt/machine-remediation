@@ -50,14 +50,6 @@ rules:
       - watch
       - get
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cluster-api-provider-external
-  namespace: {{.Namespace}}
-  labels:
-    cluster-api-provider-external.kubevirt.io: ""
----
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -72,3 +64,19 @@ subjects:
   - kind: ServiceAccount
     name: cluster-api-provider-external
     namespace: {{.Namespace}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-api-provider-external
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-provider-external.kubevirt.io: ""
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ansible-job
+  namespace: {{.Namespace}}
+  labels:
+    cluster-api-provider-external.kubevirt.io: ""

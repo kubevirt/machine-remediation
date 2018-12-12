@@ -17,7 +17,7 @@ function _registry_volume() {
 }
 
 function _add_common_params() {
-    local params="--nodes ${CLUSTER_NUM_NODES} --memory 4096M --cpu 4 --random-ports --background --prefix $provider_prefix --registry-volume $(_registry_volume) kubevirtci/${image} ${CLUSTER_PROVIDER_EXTRA_ARGS}"
+    local params="--nodes ${CLUSTER_NUM_NODES} --memory 5192M --cpu 4 --random-ports --background --prefix $provider_prefix --registry-volume $(_registry_volume) kubevirtci/${image} ${CLUSTER_PROVIDER_EXTRA_ARGS}"
     echo $params
 }
 

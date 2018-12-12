@@ -42,6 +42,7 @@ import (
 var _ = Describe("Node Remediation", func() {
 	var sshExecPod *corev1.Pod
 	var fakeIpmiPod *corev1.Pod
+	var serviceToStop string
 
 	flag.Parse()
 
@@ -62,6 +63,11 @@ var _ = Describe("Node Remediation", func() {
 	}
 
 	BeforeEach(func() {
+		serviceToStop = "kubelet"
+		if tests.IsOpenShift() {
+			serviceToStop = "origin-node"
+		}
+
 		By("Getting the master node")
 		masterNode, err := tests.GetMasterNode()
 		Expect(err).ToNot(HaveOccurred())
@@ -100,9 +106,9 @@ var _ = Describe("Node Remediation", func() {
 				func() error {
 					_, _, err := tests.RunSSHCommand(
 						sshExecPod,
-						tests.NonMasterNode,
+						tests.NonMasterNodeIP,
 						tests.NodeUser,
-						[]string{"sudo", "systemctl", "stop", "kubelet"},
+						[]string{"sudo", "systemctl", "stop", serviceToStop},
 					)
 					return err
 				}, 60*time.Second, time.Second,
@@ -213,9 +219,9 @@ var _ = Describe("Node Remediation", func() {
 				func() error {
 					_, _, err := tests.RunSSHCommand(
 						sshExecPod,
-						tests.NonMasterNode,
+						tests.NonMasterNodeIP,
 						tests.NodeUser,
-						[]string{"sudo", "systemctl", "start", "kubelet"},
+						[]string{"sudo", "systemctl", "start", serviceToStop},
 					)
 					return err
 				}, 60*time.Second, time.Second,
@@ -239,7 +245,7 @@ var _ = Describe("Node Remediation", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					return len(nrs.Items) == 0
-				}, 30*time.Second, 5*time.Second,
+				}, 60*time.Second, 5*time.Second,
 			).Should(BeTrue())
 		})
 	})

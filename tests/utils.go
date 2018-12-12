@@ -77,12 +77,17 @@ const (
 
 const NodeUser = "vagrant"
 
+const TestingServiceAccount = "testing-cluster-admin"
+
 var (
 	ContainersPrefix = "docker.io/kubevirt"
 	ContainersTag    = "devel"
 )
 
-var NonMasterNode = ""
+var (
+	NonMasterNode   = ""
+	NonMasterNodeIP = ""
+)
 
 func init() {
 	flag.StringVar(&ContainersPrefix, "container-prefix", "docker.io/kubevirt", "Set the repository prefix for all images")
@@ -314,21 +319,22 @@ func UpdateMachineSetupConfigMap(
 							Name: FencingConfigName,
 						},
 						Container: &corev1.Container{
-							Name:  FencingContainerName,
-							Image: FencingContainerImage,
+							Name:    FencingContainerName,
+							Image:   FencingContainerImage,
 							Command: []string{"fence-provision-manager"},
 							Args: []string{
 								"ansible",
-              					"--agent-type",
-              					"ipmilan",
-              					"--playbook-path",
-              					"/home/non-root/ansible/provision.yml",
+								"--agent-type",
+								"ipmilan",
+								"--playbook-path",
+								"/home/non-root/ansible/provision.yml",
 							},
+							ImagePullPolicy: corev1.PullIfNotPresent,
 						},
-						CheckArgs:      []string{"--action", "discover"},
-						CreateArgs:     []string{"--action", "provision"},
-						DeleteArgs:     []string{"--action", "deprovision"},
-						Secret:        	secret,
+						CheckArgs:  []string{"--action", "discover"},
+						CreateArgs: []string{"--action", "provision"},
+						DeleteArgs: []string{"--action", "deprovision"},
+						Secret:     secret,
 						DynamicConfig: []extproviderv1alpha1.DynamicConfigElement{
 							{
 								Field:  "ip",
@@ -392,6 +398,12 @@ func getNonMasterNode() error {
 	}
 
 	NonMasterNode = node.Name
+	for _, a := range node.Status.Addresses {
+		if a.Type == corev1.NodeInternalIP {
+			NonMasterNodeIP = a.Address
+			break
+		}
+	}
 	return nil
 }
 
@@ -563,4 +575,12 @@ func RunSSHCommand(sshExecutor *corev1.Pod, host string, user string, command []
 	cmd := []string{"ssh.sh", fmt.Sprintf("%s@%s", user, host)}
 	cmd = append(cmd, command...)
 	return ExecuteCommandOnPod(sshExecutor, sshExecutor.Spec.Containers[0].Name, cmd)
+}
+
+// IsOpenShift returns true if we have OpenShift environment
+func IsOpenShift() bool {
+	kubeClient := client.NewKubeClientSet()
+	result := kubeClient.RESTClient().Get().AbsPath("/version/openshift").Do()
+
+	return result.Error() == nil
 }
