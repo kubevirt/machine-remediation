@@ -67,6 +67,6 @@ type MachineRemediationRequestSpec struct {
 
 // MachineRemediationRequestStatus defines the observed status of MachineRemediationRequest
 type MachineRemediationRequestStatus struct {
-	State     RemediationState `json:"state,omitempty"`
-	StartTime metav1.Time      `json:"startTime,omitempty"`
+	State     *RemediationState `json:"state,omitempty"`
+	StartTime *metav1.Time      `json:"startTime,omitempty"`
 }
