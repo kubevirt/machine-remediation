@@ -19,10 +19,9 @@
 package fake
 
 import (
+	v1alpha1 "github.com/metal3-io/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
-
-	v1alpha1 "github.com/metal3-io/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1"
 )
 
 type FakeMachineremediationrequestV1alpha1 struct {

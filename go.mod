@@ -5,6 +5,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/markbates/inflect v1.0.4 // indirect
 	github.com/openshift/cluster-api v0.0.0-20190503193905-cad0f8326cd2 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.3
@@ -18,6 +19,7 @@ require (
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a
 	sigs.k8s.io/cluster-api v0.1.4
 	sigs.k8s.io/controller-runtime v0.1.12
+	sigs.k8s.io/controller-tools v0.1.11
 )
 
 replace k8s.io/code-generator => k8s.io/code-generator v0.0.0-20190311093542-50b561225d70

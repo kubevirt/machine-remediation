@@ -4,17 +4,17 @@ import (
 	"flag"
 	"runtime"
 
+	"github.com/golang/glog"
+	"github.com/metal3-io/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
+	"github.com/metal3-io/machine-remediation-request-operator/pkg/controller"
+	"github.com/metal3-io/machine-remediation-request-operator/pkg/controller/machineremediationrequest"
+
 	"k8s.io/klog"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
-
-	"github.com/golang/glog"
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/controller"
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/controller/machineremediationrequest"
 )
 
 func printVersion() {

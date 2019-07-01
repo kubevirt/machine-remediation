@@ -19,11 +19,10 @@
 package v1alpha1
 
 import (
-	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
-	rest "k8s.io/client-go/rest"
-
 	v1alpha1 "github.com/metal3-io/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
 	"github.com/metal3-io/machine-remediation-request-operator/pkg/client/clientset/versioned/scheme"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
+	rest "k8s.io/client-go/rest"
 )
 
 type MachineremediationrequestV1alpha1Interface interface {

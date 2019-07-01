@@ -8,5 +8,6 @@ go_library(
     deps = [
         "//vendor/k8s.io/code-generator/cmd/client-gen:go_default_library",
         "//vendor/k8s.io/code-generator/cmd/deepcopy-gen:go_default_library",
+        "//vendor/sigs.k8s.io/controller-tools/cmd/controller-gen:go_default_library",
     ],
 )

@@ -35,6 +35,14 @@ fmt:
 generate:
 	./hack/dockerized "./hack/generate.sh"
 
+.PHONY: generate-crds
+generate-crds:
+	./hack/dockerized "./hack/generate-crds.sh"
+
+.PHONY: generate-client
+generate-client:
+	./hack/dockerized "./hack/generate-client.sh"
+
 .PHONY: generate-manifests
 generate-manifests: generate
 	./hack/dockerized "./hack/generate-manifests.sh"
