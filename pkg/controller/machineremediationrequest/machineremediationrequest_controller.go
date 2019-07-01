@@ -14,6 +14,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
+var _ reconcile.Reconciler = &ReconcileMachineRemediationRequest{}
+
+// ReconcileMachineRemediationRequest reconciles a MachineRemediationRequest object
+type ReconcileMachineRemediationRequest struct {
+	// This client, initialized using mgr.Client() above, is a split client
+	// that reads objects from the cache and writes to the apiserver
+	client    client.Client
+	scheme    *runtime.Scheme
+	namespace string
+}
+
 // Add creates a new MachineRemediationRequest Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and start it when the Manager is started.
 func Add(mgr manager.Manager) error {
@@ -48,17 +59,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	return c.Watch(&source.Kind{Type: &mrrv1.MachineRemediationRequest{}}, &handler.EnqueueRequestForObject{})
-}
-
-var _ reconcile.Reconciler = &ReconcileMachineRemediationRequest{}
-
-// ReconcileMachineRemediationRequest reconciles a MachineRemediationRequest object
-type ReconcileMachineRemediationRequest struct {
-	// This client, initialized using mgr.Client() above, is a split client
-	// that reads objects from the cache and writes to the apiserver
-	client    client.Client
-	scheme    *runtime.Scheme
-	namespace string
 }
 
 // Reconcile monitors MachineRemediationRequest and apply the remediation strategy in the case when the

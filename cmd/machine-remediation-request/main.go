@@ -5,9 +5,10 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
-	"github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
+	mrrv1 "github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
 	"github.com/openshift/machine-remediation-request-operator/pkg/controller"
 	"github.com/openshift/machine-remediation-request-operator/pkg/controller/machineremediationrequest"
+	"github.com/openshift/machine-remediation-request-operator/pkg/version"
 
 	"k8s.io/klog"
 
@@ -20,10 +21,11 @@ import (
 func printVersion() {
 	glog.Infof("Go Version: %s", runtime.Version())
 	glog.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
+	glog.Infof("Component version: %s", version.Get())
 }
 
 func main() {
-	watchNamespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile machine-api objects. If unspecified, the controller watches for machine-api objects across all namespaces.")
+	watchNamespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile MachineRemediationRequest objects. If unspecified, the controller watches for machine-api objects across all namespaces.")
 	flag.Parse()
 	printVersion()
 
@@ -36,7 +38,7 @@ func main() {
 	opts := manager.Options{}
 	if *watchNamespace != "" {
 		opts.Namespace = *watchNamespace
-		klog.Infof("Watching machine-api objects only in namespace %q for reconciliation.", opts.Namespace)
+		klog.Infof("Watching MachineRemediationRequest objects only in namespace %q for reconciliation.", opts.Namespace)
 	}
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, opts)
@@ -47,7 +49,7 @@ func main() {
 	glog.Infof("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err := v1alpha1.AddToScheme(mgr.GetScheme()); err != nil {
+	if err := mrrv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
 	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
