@@ -7,7 +7,7 @@ go_library(
         "fake_machineremediationrequest.go",
         "fake_machineremediationrequest_client.go",
     ],
-    importpath = "github.com/metal3-io/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1/fake",
+    importpath = "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1/fake",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediationrequest/v1alpha1:go_default_library",

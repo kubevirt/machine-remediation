@@ -8,7 +8,7 @@ go_library(
         "merge.go",
         "mergo.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/imdario/mergo",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/imdario/mergo",
     importpath = "github.com/imdario/mergo",
     visibility = ["//visibility:public"],
 )

@@ -15,7 +15,7 @@ go_library(
         "time.go",
         "value.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/prometheus/common/model",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/prometheus/common/model",
     importpath = "github.com/prometheus/common/model",
     visibility = ["//visibility:public"],
 )

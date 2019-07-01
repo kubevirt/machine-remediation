@@ -1,8 +1,8 @@
 package machineremediationrequest
 
 import (
-	mrrv1 "github.com/metal3-io/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
-	mrrutils "github.com/metal3-io/machine-remediation-request-operator/pkg/utils"
+	mrrv1 "github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
+	mrrutils "github.com/openshift/machine-remediation-request-operator/pkg/utils"
 
 	"k8s.io/apimachinery/pkg/runtime"
 

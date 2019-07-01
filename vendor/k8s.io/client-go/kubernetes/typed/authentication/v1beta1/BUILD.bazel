@@ -9,7 +9,7 @@ go_library(
         "tokenreview.go",
         "tokenreview_expansion.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/client-go/kubernetes/typed/authentication/v1beta1",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/client-go/kubernetes/typed/authentication/v1beta1",
     importpath = "k8s.io/client-go/kubernetes/typed/authentication/v1beta1",
     visibility = ["//visibility:public"],
     deps = [

@@ -9,7 +9,7 @@ go_library(
         "log.go",
         "unbounded_executor.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/modern-go/concurrent",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/modern-go/concurrent",
     importpath = "github.com/modern-go/concurrent",
     visibility = ["//visibility:public"],
 )

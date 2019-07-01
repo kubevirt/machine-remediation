@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["utils.go"],
-    importpath = "github.com/metal3-io/machine-remediation-request-operator/pkg/utils",
+    importpath = "github.com/openshift/machine-remediation-request-operator/pkg/utils",
     visibility = ["//visibility:public"],
 )
 

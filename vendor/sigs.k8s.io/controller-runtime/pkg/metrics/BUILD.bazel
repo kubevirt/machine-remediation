@@ -8,7 +8,7 @@ go_library(
         "listener.go",
         "registry.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/metrics",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/metrics",
     importpath = "sigs.k8s.io/controller-runtime/pkg/metrics",
     visibility = ["//visibility:public"],
     deps = [

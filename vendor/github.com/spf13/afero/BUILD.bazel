@@ -21,7 +21,7 @@ go_library(
         "unionFile.go",
         "util.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/spf13/afero",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/spf13/afero",
     importpath = "github.com/spf13/afero",
     visibility = ["//visibility:public"],
     deps = [

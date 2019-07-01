@@ -6,7 +6,7 @@ go_library(
         "OpenAPIv2.go",
         "OpenAPIv2.pb.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/googleapis/gnostic/OpenAPIv2",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/googleapis/gnostic/OpenAPIv2",
     importpath = "github.com/googleapis/gnostic/OpenAPIv2",
     visibility = ["//visibility:public"],
     deps = [

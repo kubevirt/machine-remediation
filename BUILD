@@ -4,7 +4,7 @@ goimports(
     name = "goimports",
     display_diffs = True,
     local = ["github.com"],
-    prefix = "github.com/metal3-io/machine-remediation-request-operator",
+    prefix = "github.com/openshift/machine-remediation-request-operator",
     write = True,
 )
 
@@ -45,7 +45,7 @@ nogo(
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix github.com/metal3-io/machine-remediation-request-operator
+# gazelle:prefix github.com/openshift/machine-remediation-request-operator
 gazelle(name = "gazelle")
 
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")

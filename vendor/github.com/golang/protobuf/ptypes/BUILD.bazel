@@ -8,7 +8,7 @@ go_library(
         "duration.go",
         "timestamp.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/golang/protobuf/ptypes",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/golang/protobuf/ptypes",
     importpath = "github.com/golang/protobuf/ptypes",
     visibility = ["//visibility:public"],
     deps = [

@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["resource-generator.go"],
-    importpath = "github.com/metal3-io/machine-remediation-request-operator/tools/resource-generator",
+    importpath = "github.com/openshift/machine-remediation-request-operator/tools/resource-generator",
     visibility = ["//visibility:private"],
     deps = [
         "//vendor/github.com/cynepco3hahue/machine-health-check-operator/tools/components:go_default_library",

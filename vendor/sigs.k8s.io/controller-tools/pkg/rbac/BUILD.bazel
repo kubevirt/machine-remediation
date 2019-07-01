@@ -6,7 +6,7 @@ go_library(
         "manifests.go",
         "parser.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-tools/pkg/rbac",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-tools/pkg/rbac",
     importpath = "sigs.k8s.io/controller-tools/pkg/rbac",
     visibility = ["//visibility:public"],
     deps = [

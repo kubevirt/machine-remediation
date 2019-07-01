@@ -8,7 +8,7 @@ go_library(
         "signal_posix.go",
         "signal_windows.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/manager/signals",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/manager/signals",
     importpath = "sigs.k8s.io/controller-runtime/pkg/manager/signals",
     visibility = ["//visibility:public"],
 )

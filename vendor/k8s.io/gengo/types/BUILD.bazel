@@ -8,7 +8,7 @@ go_library(
         "flatten.go",
         "types.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/gengo/types",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/gengo/types",
     importpath = "k8s.io/gengo/types",
     visibility = ["//visibility:public"],
 )

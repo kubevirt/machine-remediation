@@ -9,7 +9,7 @@ go_library(
         "patch.go",
         "uid.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/apimachinery/pkg/types",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/apimachinery/pkg/types",
     importpath = "k8s.io/apimachinery/pkg/types",
     visibility = ["//visibility:public"],
 )

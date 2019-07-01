@@ -6,7 +6,7 @@ go_library(
         "convert.go",
         "doc.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/apimachinery/pkg/conversion/queryparams",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/apimachinery/pkg/conversion/queryparams",
     importpath = "k8s.io/apimachinery/pkg/conversion/queryparams",
     visibility = ["//visibility:public"],
 )

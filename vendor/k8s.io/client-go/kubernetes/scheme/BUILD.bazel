@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "register.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/client-go/kubernetes/scheme",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/client-go/kubernetes/scheme",
     importpath = "k8s.io/client-go/kubernetes/scheme",
     visibility = ["//visibility:public"],
     deps = [

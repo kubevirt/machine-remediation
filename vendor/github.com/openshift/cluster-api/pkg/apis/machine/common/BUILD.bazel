@@ -6,7 +6,7 @@ go_library(
         "consts.go",
         "plugins.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/github.com/openshift/cluster-api/pkg/apis/machine/common",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/github.com/openshift/cluster-api/pkg/apis/machine/common",
     importpath = "github.com/openshift/cluster-api/pkg/apis/machine/common",
     visibility = ["//visibility:public"],
     deps = [

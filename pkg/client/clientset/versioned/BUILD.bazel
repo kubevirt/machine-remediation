@@ -6,7 +6,7 @@ go_library(
         "clientset.go",
         "doc.go",
     ],
-    importpath = "github.com/metal3-io/machine-remediation-request-operator/pkg/client/clientset/versioned",
+    importpath = "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1:go_default_library",

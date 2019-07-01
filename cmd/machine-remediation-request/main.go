@@ -5,9 +5,9 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/controller"
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/controller/machineremediationrequest"
+	"github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
+	"github.com/openshift/machine-remediation-request-operator/pkg/controller"
+	"github.com/openshift/machine-remediation-request-operator/pkg/controller/machineremediationrequest"
 
 	"k8s.io/klog"
 

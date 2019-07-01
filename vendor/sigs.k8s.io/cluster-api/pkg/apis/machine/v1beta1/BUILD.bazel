@@ -13,7 +13,7 @@ go_library(
         "register.go",
         "zz_generated.deepcopy.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1",
     importpath = "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1",
     visibility = ["//visibility:public"],
     deps = [

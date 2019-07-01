@@ -218,7 +218,7 @@ go_library(
         "ztypes_solaris_amd64.go",
     ],
     cgo = True,
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/golang.org/x/sys/unix",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/golang.org/x/sys/unix",
     importpath = "golang.org/x/sys/unix",
     visibility = ["//visibility:public"],
 )

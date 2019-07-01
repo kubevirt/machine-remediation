@@ -26,7 +26,6 @@ distclean:
 	hack/dockerized "rm -rf vendor/ && rm -f go.sum && GO111MODULE=on go clean -modcache"
 	rm -rf vendor/
 
-
 .PHONY: fmt
 fmt:
 	./hack/dockerized "./hack/bazel/fmt.sh"

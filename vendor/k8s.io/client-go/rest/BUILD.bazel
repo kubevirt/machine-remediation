@@ -12,7 +12,7 @@ go_library(
         "urlbackoff.go",
         "zz_generated.deepcopy.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/client-go/rest",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/client-go/rest",
     importpath = "k8s.io/client-go/rest",
     visibility = ["//visibility:public"],
     deps = [

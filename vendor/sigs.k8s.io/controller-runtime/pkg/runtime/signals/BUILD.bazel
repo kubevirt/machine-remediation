@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["signal.go"],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/runtime/signals",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/runtime/signals",
     importpath = "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
     visibility = ["//visibility:public"],
     deps = ["//vendor/sigs.k8s.io/controller-runtime/pkg/manager/signals:go_default_library"],

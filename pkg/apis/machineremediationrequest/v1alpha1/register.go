@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/metal3-io/machine-remediation-request-operator/pkg/apis/machineremediationrequest"
+	"github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest"
 )
 
 // SchemeGroupVersion is group version used to register these objects

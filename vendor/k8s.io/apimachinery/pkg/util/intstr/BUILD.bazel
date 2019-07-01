@@ -6,7 +6,7 @@ go_library(
         "generated.pb.go",
         "intstr.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/k8s.io/apimachinery/pkg/util/intstr",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/apimachinery/pkg/util/intstr",
     importpath = "k8s.io/apimachinery/pkg/util/intstr",
     visibility = ["//visibility:public"],
     deps = [

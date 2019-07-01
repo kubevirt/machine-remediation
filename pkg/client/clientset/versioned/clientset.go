@@ -19,7 +19,7 @@
 package versioned
 
 import (
-	machineremediationrequestv1alpha1 "github.com/metal3-io/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1"
+	machineremediationrequestv1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

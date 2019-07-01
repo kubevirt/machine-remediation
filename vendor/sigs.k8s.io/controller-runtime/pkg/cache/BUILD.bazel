@@ -8,7 +8,7 @@ go_library(
         "informer_cache.go",
         "multi_namespace_cache.go",
     ],
-    importmap = "github.com/metal3-io/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/cache",
+    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/cache",
     importpath = "sigs.k8s.io/controller-runtime/pkg/cache",
     visibility = ["//visibility:public"],
     deps = [
