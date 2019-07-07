@@ -5,5 +5,5 @@ SCRIPT_DIR="$(
     pwd
 )"
 
-docker tag alukiano/mrro-builder docker.io/alukiano/mrro-builder
-docker push docker.io/alukiano/mrro-builder
+docker tag alukiano/mro-builder docker.io/alukiano/mro-builder
+docker push docker.io/alukiano/mro-builder

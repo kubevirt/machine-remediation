@@ -18,4 +18,4 @@
 
 package v1alpha1
 
-type MachineRemediationRequestExpansion interface{}
+type machineremediationExpansion interface{}

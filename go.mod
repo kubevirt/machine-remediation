@@ -1,4 +1,4 @@
-module github.com/openshift/machine-remediation-request-operator
+module github.com/openshift/machine-remediation-operator
 
 require (
 	github.com/cynepco3hahue/machine-health-check-operator v0.0.0-20190625154545-f9bf53bd55ca

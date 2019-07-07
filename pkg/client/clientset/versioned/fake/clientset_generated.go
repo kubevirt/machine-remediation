@@ -19,9 +19,9 @@
 package fake
 
 import (
-	clientset "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned"
-	machineremediationrequestv1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1"
-	fakemachineremediationrequestv1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1/fake"
+	clientset "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned"
+	machineremediationv1alpha1 "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
+	fakemachineremediationv1alpha1 "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -71,7 +71,7 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 var _ clientset.Interface = &Clientset{}
 
-// MachineremediationrequestV1alpha1 retrieves the MachineremediationrequestV1alpha1Client
-func (c *Clientset) MachineremediationrequestV1alpha1() machineremediationrequestv1alpha1.MachineremediationrequestV1alpha1Interface {
-	return &fakemachineremediationrequestv1alpha1.FakeMachineremediationrequestV1alpha1{Fake: &c.Fake}
+// MachineremediationV1alpha1 retrieves the MachineremediationV1alpha1Client
+func (c *Clientset) MachineremediationV1alpha1() machineremediationv1alpha1.MachineremediationV1alpha1Interface {
+	return &fakemachineremediationv1alpha1.FakeMachineremediationV1alpha1{Fake: &c.Fake}
 }

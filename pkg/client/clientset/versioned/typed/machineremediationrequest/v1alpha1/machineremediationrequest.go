@@ -21,54 +21,54 @@ package v1alpha1
 import (
 	"time"
 
-	v1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
-	scheme "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	scheme "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
 )
 
-// MachineRemediationRequestsGetter has a method to return a MachineRemediationRequestInterface.
+// machineremediationsGetter has a method to return a machineremediationInterface.
 // A group's client should implement this interface.
-type MachineRemediationRequestsGetter interface {
-	MachineRemediationRequests(namespace string) MachineRemediationRequestInterface
+type machineremediationsGetter interface {
+	machineremediations(namespace string) machineremediationInterface
 }
 
-// MachineRemediationRequestInterface has methods to work with MachineRemediationRequest resources.
-type MachineRemediationRequestInterface interface {
-	Create(*v1alpha1.MachineRemediationRequest) (*v1alpha1.MachineRemediationRequest, error)
-	Update(*v1alpha1.MachineRemediationRequest) (*v1alpha1.MachineRemediationRequest, error)
-	UpdateStatus(*v1alpha1.MachineRemediationRequest) (*v1alpha1.MachineRemediationRequest, error)
+// machineremediationInterface has methods to work with machineremediation resources.
+type machineremediationInterface interface {
+	Create(*v1alpha1.machineremediation) (*v1alpha1.machineremediation, error)
+	Update(*v1alpha1.machineremediation) (*v1alpha1.machineremediation, error)
+	UpdateStatus(*v1alpha1.machineremediation) (*v1alpha1.machineremediation, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string, options v1.GetOptions) (*v1alpha1.MachineRemediationRequest, error)
-	List(opts v1.ListOptions) (*v1alpha1.MachineRemediationRequestList, error)
+	Get(name string, options v1.GetOptions) (*v1alpha1.machineremediation, error)
+	List(opts v1.ListOptions) (*v1alpha1.machineremediationList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MachineRemediationRequest, err error)
-	MachineRemediationRequestExpansion
+	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.machineremediation, err error)
+	machineremediationExpansion
 }
 
-// machineRemediationRequests implements MachineRemediationRequestInterface
-type machineRemediationRequests struct {
+// machineremediations implements machineremediationInterface
+type machineremediations struct {
 	client rest.Interface
 	ns     string
 }
 
-// newMachineRemediationRequests returns a MachineRemediationRequests
-func newMachineRemediationRequests(c *MachineremediationrequestV1alpha1Client, namespace string) *machineRemediationRequests {
-	return &machineRemediationRequests{
+// newmachineremediations returns a machineremediations
+func newmachineremediations(c *machineremediationV1alpha1Client, namespace string) *machineremediations {
+	return &machineremediations{
 		client: c.RESTClient(),
 		ns:     namespace,
 	}
 }
 
-// Get takes name of the machineRemediationRequest, and returns the corresponding machineRemediationRequest object, and an error if there is any.
-func (c *machineRemediationRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.MachineRemediationRequest, err error) {
-	result = &v1alpha1.MachineRemediationRequest{}
+// Get takes name of the machineremediation, and returns the corresponding machineremediation object, and an error if there is any.
+func (c *machineremediations) Get(name string, options v1.GetOptions) (result *v1alpha1.machineremediation, err error) {
+	result = &v1alpha1.machineremediation{}
 	err = c.client.Get().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
+		Resource("machineremediations").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
 		Do().
@@ -76,16 +76,16 @@ func (c *machineRemediationRequests) Get(name string, options v1.GetOptions) (re
 	return
 }
 
-// List takes label and field selectors, and returns the list of MachineRemediationRequests that match those selectors.
-func (c *machineRemediationRequests) List(opts v1.ListOptions) (result *v1alpha1.MachineRemediationRequestList, err error) {
+// List takes label and field selectors, and returns the list of machineremediations that match those selectors.
+func (c *machineremediations) List(opts v1.ListOptions) (result *v1alpha1.machineremediationList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
 	}
-	result = &v1alpha1.MachineRemediationRequestList{}
+	result = &v1alpha1.machineremediationList{}
 	err = c.client.Get().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
+		Resource("machineremediations").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
 		Do().
@@ -93,8 +93,8 @@ func (c *machineRemediationRequests) List(opts v1.ListOptions) (result *v1alpha1
 	return
 }
 
-// Watch returns a watch.Interface that watches the requested machineRemediationRequests.
-func (c *machineRemediationRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+// Watch returns a watch.Interface that watches the requested machineremediations.
+func (c *machineremediations) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -102,32 +102,32 @@ func (c *machineRemediationRequests) Watch(opts v1.ListOptions) (watch.Interface
 	opts.Watch = true
 	return c.client.Get().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
+		Resource("machineremediations").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
 		Watch()
 }
 
-// Create takes the representation of a machineRemediationRequest and creates it.  Returns the server's representation of the machineRemediationRequest, and an error, if there is any.
-func (c *machineRemediationRequests) Create(machineRemediationRequest *v1alpha1.MachineRemediationRequest) (result *v1alpha1.MachineRemediationRequest, err error) {
-	result = &v1alpha1.MachineRemediationRequest{}
+// Create takes the representation of a machineremediation and creates it.  Returns the server's representation of the machineremediation, and an error, if there is any.
+func (c *machineremediations) Create(machineremediation *v1alpha1.machineremediation) (result *v1alpha1.machineremediation, err error) {
+	result = &v1alpha1.machineremediation{}
 	err = c.client.Post().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
-		Body(machineRemediationRequest).
+		Resource("machineremediations").
+		Body(machineremediation).
 		Do().
 		Into(result)
 	return
 }
 
-// Update takes the representation of a machineRemediationRequest and updates it. Returns the server's representation of the machineRemediationRequest, and an error, if there is any.
-func (c *machineRemediationRequests) Update(machineRemediationRequest *v1alpha1.MachineRemediationRequest) (result *v1alpha1.MachineRemediationRequest, err error) {
-	result = &v1alpha1.MachineRemediationRequest{}
+// Update takes the representation of a machineremediation and updates it. Returns the server's representation of the machineremediation, and an error, if there is any.
+func (c *machineremediations) Update(machineremediation *v1alpha1.machineremediation) (result *v1alpha1.machineremediation, err error) {
+	result = &v1alpha1.machineremediation{}
 	err = c.client.Put().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
-		Name(machineRemediationRequest.Name).
-		Body(machineRemediationRequest).
+		Resource("machineremediations").
+		Name(machineremediation.Name).
+		Body(machineremediation).
 		Do().
 		Into(result)
 	return
@@ -136,24 +136,24 @@ func (c *machineRemediationRequests) Update(machineRemediationRequest *v1alpha1.
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
 
-func (c *machineRemediationRequests) UpdateStatus(machineRemediationRequest *v1alpha1.MachineRemediationRequest) (result *v1alpha1.MachineRemediationRequest, err error) {
-	result = &v1alpha1.MachineRemediationRequest{}
+func (c *machineremediations) UpdateStatus(machineremediation *v1alpha1.machineremediation) (result *v1alpha1.machineremediation, err error) {
+	result = &v1alpha1.machineremediation{}
 	err = c.client.Put().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
-		Name(machineRemediationRequest.Name).
+		Resource("machineremediations").
+		Name(machineremediation.Name).
 		SubResource("status").
-		Body(machineRemediationRequest).
+		Body(machineremediation).
 		Do().
 		Into(result)
 	return
 }
 
-// Delete takes name of the machineRemediationRequest and deletes it. Returns an error if one occurs.
-func (c *machineRemediationRequests) Delete(name string, options *v1.DeleteOptions) error {
+// Delete takes name of the machineremediation and deletes it. Returns an error if one occurs.
+func (c *machineremediations) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
+		Resource("machineremediations").
 		Name(name).
 		Body(options).
 		Do().
@@ -161,14 +161,14 @@ func (c *machineRemediationRequests) Delete(name string, options *v1.DeleteOptio
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *machineRemediationRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *machineremediations) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	var timeout time.Duration
 	if listOptions.TimeoutSeconds != nil {
 		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
+		Resource("machineremediations").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Timeout(timeout).
 		Body(options).
@@ -176,12 +176,12 @@ func (c *machineRemediationRequests) DeleteCollection(options *v1.DeleteOptions,
 		Error()
 }
 
-// Patch applies the patch and returns the patched machineRemediationRequest.
-func (c *machineRemediationRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MachineRemediationRequest, err error) {
-	result = &v1alpha1.MachineRemediationRequest{}
+// Patch applies the patch and returns the patched machineremediation.
+func (c *machineremediations) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.machineremediation, err error) {
+	result = &v1alpha1.machineremediation{}
 	err = c.client.Patch(pt).
 		Namespace(c.ns).
-		Resource("machineremediationrequests").
+		Resource("machineremediations").
 		SubResource(subresources...).
 		Name(name).
 		Body(data).

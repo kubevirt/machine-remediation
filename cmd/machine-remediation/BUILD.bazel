@@ -3,12 +3,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "github.com/openshift/machine-remediation-request-operator/cmd/machine-remediation-request",
+    importpath = "github.com/openshift/machine-remediation-operator/cmd/machine-remediation",
     visibility = ["//visibility:private"],
     deps = [
-        "//pkg/apis/machineremediationrequest/v1alpha1:go_default_library",
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//pkg/baremetal/remediator:go_default_library",
         "//pkg/controller:go_default_library",
-        "//pkg/controller/machineremediationrequest:go_default_library",
+        "//pkg/controller/machineremediation:go_default_library",
+        "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/klog:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
@@ -19,7 +21,7 @@ go_library(
 )
 
 go_binary(
-    name = "machine-remediation-request",
+    name = "machine-remediation",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )

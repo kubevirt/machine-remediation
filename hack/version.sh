@@ -95,7 +95,7 @@ function version::ldflag() {
     local key=${1}
     local val=${2}
 
-    echo "-X github.com/openshift/machine-remediation-request-operator/pkg/version.${key}=${val}"
+    echo "-X github.com/openshift/machine-remediation-operator/pkg/version.${key}=${val}"
 }
 
 # Prints the value that needs to be passed to the -ldflags parameter of go build

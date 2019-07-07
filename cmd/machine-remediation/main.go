@@ -5,10 +5,11 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
-	mrrv1 "github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
-	"github.com/openshift/machine-remediation-request-operator/pkg/controller"
-	"github.com/openshift/machine-remediation-request-operator/pkg/controller/machineremediationrequest"
-	"github.com/openshift/machine-remediation-request-operator/pkg/version"
+	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"github.com/openshift/machine-remediation-operator/pkg/baremetal/remediator"
+	"github.com/openshift/machine-remediation-operator/pkg/controller"
+	"github.com/openshift/machine-remediation-operator/pkg/controller/machineremediation"
+	"github.com/openshift/machine-remediation-operator/pkg/version"
 
 	"k8s.io/klog"
 
@@ -25,7 +26,7 @@ func printVersion() {
 }
 
 func main() {
-	watchNamespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile MachineRemediationRequest objects. If unspecified, the controller watches for machine-api objects across all namespaces.")
+	watchNamespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile machineremediation objects. If unspecified, the controller watches for machine-api objects across all namespaces.")
 	flag.Parse()
 	printVersion()
 
@@ -38,7 +39,7 @@ func main() {
 	opts := manager.Options{}
 	if *watchNamespace != "" {
 		opts.Namespace = *watchNamespace
-		klog.Infof("Watching MachineRemediationRequest objects only in namespace %q for reconciliation.", opts.Namespace)
+		klog.Infof("Watching machineremediation objects only in namespace %q for reconciliation.", opts.Namespace)
 	}
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, opts)
@@ -49,14 +50,17 @@ func main() {
 	glog.Infof("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err := mrrv1.AddToScheme(mgr.GetScheme()); err != nil {
+	if err := mrv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
 	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
 
-	addControllers := []func(manager.Manager) error{machineremediationrequest.Add}
+	bareMetalRemediator := remediator.NewBareMetalRemediator()
+	addControllers := []func(manager.Manager) error{
+		func(m manager.Manager) error { return machineremediation.AddWithRemediator(m, bareMetalRemediator) },
+	}
 
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr, addControllers); err != nil {

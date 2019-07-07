@@ -17,7 +17,7 @@ go_library(
         "yamlh.go",
         "yamlprivateh.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/gopkg.in/yaml.v2",
+    importmap = "github.com/openshift/machine-remediation-operator/vendor/gopkg.in/yaml.v2",
     importpath = "gopkg.in/yaml.v2",
     visibility = ["//visibility:public"],
 )

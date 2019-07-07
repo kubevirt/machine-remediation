@@ -7,6 +7,6 @@ go_library(
         "types.go",
         "version.go",
     ],
-    importpath = "github.com/openshift/machine-health-check-operator/pkg/version",
+    importpath = "github.com/openshift/machine-remediation-operator/pkg/version",
     visibility = ["//visibility:public"],
 )

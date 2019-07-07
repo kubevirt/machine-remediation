@@ -19,22 +19,22 @@
 package fake
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/typed/machineremediationrequest/v1alpha1"
+	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeMachineremediationrequestV1alpha1 struct {
+type FakemachineremediationV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeMachineremediationrequestV1alpha1) MachineRemediationRequests(namespace string) v1alpha1.MachineRemediationRequestInterface {
-	return &FakeMachineRemediationRequests{c, namespace}
+func (c *FakemachineremediationV1alpha1) machineremediations(namespace string) v1alpha1.machineremediationInterface {
+	return &Fakemachineremediations{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeMachineremediationrequestV1alpha1) RESTClient() rest.Interface {
+func (c *FakemachineremediationV1alpha1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

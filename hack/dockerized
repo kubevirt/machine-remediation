@@ -6,7 +6,7 @@ source $(dirname "$0")/common.sh
 
 BUILDER_DIR=${REPO_DIR}/hack/builder
 BUILDER=${JOB_NAME:-mrro-builder}${EXECUTOR_NUMBER}
-BUILDER_IMAGE="docker.io/alukiano/mrro-builder@sha256:2cd36e6305edee406f36a21c0fb079774ecab2e4c0c1c7671efa34940a53b4c7  "
+BUILDER_IMAGE="docker.io/alukiano/mro-builder@sha256:fddb208509e63067924f89ece8514cd0538eeb24d5a359af503648ec8471c7c8"
 
 SYNC_OUT=${SYNC_OUT:-true}
 SYNC_VENDOR=${SYNC_VENDOR:-false}
@@ -69,7 +69,7 @@ _rsync \
     --delete \
     --exclude 'bazel-bin' \
     --exclude 'bazel-genfiles' \
-    --exclude 'bazel-machine-remediation-request-operator' \
+    --exclude 'bazel-machine-remediation-operator' \
     --exclude 'bazel-out' \
     --exclude 'bazel-testlogs' \
     --exclude 'cluster-up/cluster/**/.kubectl' \
@@ -99,7 +99,7 @@ docker exec ${USE_TTY} ${BUILDER}-bazel-server /entrypoint.sh "$@"
 _rsync \
     --exclude 'bazel-bin' \
     --exclude 'bazel-genfiles' \
-    --exclude 'bazel-machine-remediation-request-operator' \
+    --exclude 'bazel-machine-remediation-operator' \
     --exclude 'bazel-out' \
     --exclude 'bazel-testlogs' \
     --exclude 'cluster-up/cluster/**/.kubectl' \

@@ -33,40 +33,42 @@ const (
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// MachineRemediationRequest is the schema for the machineremediationrequest API
+// MachineRemediation is the schema for the MachineRemediation API
 // kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=mrr;mrrs
+// +kubebuilder:resource:shortName=mr;mrs
 // +k8s:openapi-gen=true
-type MachineRemediationRequest struct {
+type MachineRemediation struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Specification of MachineRemediationRequest
-	Spec MachineRemediationRequestSpec `json:"spec,omitempty"`
+	// Specification of MachineRemediation
+	Spec MachineRemediationSpec `json:"spec,omitempty"`
 
-	// Most recently observed status of MachineRemediationRequest resource
-	Status MachineRemediationRequestStatus `json:"status,omitempty"`
+	// Most recently observed status of MachineRemediation resource
+	Status MachineRemediationStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// MachineRemediationRequestList contains a list of MachineRemediationRequest
-type MachineRemediationRequestList struct {
+// MachineRemediationList contains a list of MachineRemediation
+type MachineRemediationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []MachineRemediationRequest `json:"items"`
+	Items           []MachineRemediation `json:"items"`
 }
 
-// MachineRemediationRequestSpec defines the spec of MachineRemediationRequest
-type MachineRemediationRequestSpec struct {
+// MachineRemediationSpec defines the spec of MachineRemediation
+type MachineRemediationSpec struct {
 	// Type contains the type of the remediation
 	Type RemediationType `json:"type,omitempty" valid:"required"`
 	// MachineName contains the name of machine that should be remediate
 	MachineName string `json:"machineName,omitempty" valid:"required"`
 }
 
-// MachineRemediationRequestStatus defines the observed status of MachineRemediationRequest
-type MachineRemediationRequestStatus struct {
+// MachineRemediationStatus defines the observed status of MachineRemediation
+type MachineRemediationStatus struct {
 	State     *RemediationState `json:"state,omitempty"`
+	Reason    *string           `json:"reason,omitempty"`
 	StartTime *metav1.Time      `json:"startTime,omitempty"`
+	EndTime   *metav1.Time      `json:"endTime,omitempty"`
 }

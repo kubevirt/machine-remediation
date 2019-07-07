@@ -19,7 +19,7 @@
 package fake
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
+	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -28,31 +28,31 @@ import (
 	testing "k8s.io/client-go/testing"
 )
 
-// FakeMachineRemediationRequests implements MachineRemediationRequestInterface
-type FakeMachineRemediationRequests struct {
-	Fake *FakeMachineremediationrequestV1alpha1
+// Fakemachineremediations implements machineremediationInterface
+type Fakemachineremediations struct {
+	Fake *FakemachineremediationV1alpha1
 	ns   string
 }
 
-var machineremediationrequestsResource = schema.GroupVersionResource{Group: "machineremediationrequest.openshift.io", Version: "v1alpha1", Resource: "machineremediationrequests"}
+var machineremediationsResource = schema.GroupVersionResource{Group: "machineremediation.openshift.io", Version: "v1alpha1", Resource: "machineremediations"}
 
-var machineremediationrequestsKind = schema.GroupVersionKind{Group: "machineremediationrequest.openshift.io", Version: "v1alpha1", Kind: "MachineRemediationRequest"}
+var machineremediationsKind = schema.GroupVersionKind{Group: "machineremediation.openshift.io", Version: "v1alpha1", Kind: "machineremediation"}
 
-// Get takes name of the machineRemediationRequest, and returns the corresponding machineRemediationRequest object, and an error if there is any.
-func (c *FakeMachineRemediationRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.MachineRemediationRequest, err error) {
+// Get takes name of the machineremediation, and returns the corresponding machineremediation object, and an error if there is any.
+func (c *Fakemachineremediations) Get(name string, options v1.GetOptions) (result *v1alpha1.machineremediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(machineremediationrequestsResource, c.ns, name), &v1alpha1.MachineRemediationRequest{})
+		Invokes(testing.NewGetAction(machineremediationsResource, c.ns, name), &v1alpha1.machineremediation{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.MachineRemediationRequest), err
+	return obj.(*v1alpha1.machineremediation), err
 }
 
-// List takes label and field selectors, and returns the list of MachineRemediationRequests that match those selectors.
-func (c *FakeMachineRemediationRequests) List(opts v1.ListOptions) (result *v1alpha1.MachineRemediationRequestList, err error) {
+// List takes label and field selectors, and returns the list of machineremediations that match those selectors.
+func (c *Fakemachineremediations) List(opts v1.ListOptions) (result *v1alpha1.machineremediationList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(machineremediationrequestsResource, machineremediationrequestsKind, c.ns, opts), &v1alpha1.MachineRemediationRequestList{})
+		Invokes(testing.NewListAction(machineremediationsResource, machineremediationsKind, c.ns, opts), &v1alpha1.machineremediationList{})
 
 	if obj == nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (c *FakeMachineRemediationRequests) List(opts v1.ListOptions) (result *v1al
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.MachineRemediationRequestList{ListMeta: obj.(*v1alpha1.MachineRemediationRequestList).ListMeta}
-	for _, item := range obj.(*v1alpha1.MachineRemediationRequestList).Items {
+	list := &v1alpha1.machineremediationList{ListMeta: obj.(*v1alpha1.machineremediationList).ListMeta}
+	for _, item := range obj.(*v1alpha1.machineremediationList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -71,70 +71,70 @@ func (c *FakeMachineRemediationRequests) List(opts v1.ListOptions) (result *v1al
 	return list, err
 }
 
-// Watch returns a watch.Interface that watches the requested machineRemediationRequests.
-func (c *FakeMachineRemediationRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+// Watch returns a watch.Interface that watches the requested machineremediations.
+func (c *Fakemachineremediations) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(machineremediationrequestsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchAction(machineremediationsResource, c.ns, opts))
 
 }
 
-// Create takes the representation of a machineRemediationRequest and creates it.  Returns the server's representation of the machineRemediationRequest, and an error, if there is any.
-func (c *FakeMachineRemediationRequests) Create(machineRemediationRequest *v1alpha1.MachineRemediationRequest) (result *v1alpha1.MachineRemediationRequest, err error) {
+// Create takes the representation of a machineremediation and creates it.  Returns the server's representation of the machineremediation, and an error, if there is any.
+func (c *Fakemachineremediations) Create(machineremediation *v1alpha1.machineremediation) (result *v1alpha1.machineremediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(machineremediationrequestsResource, c.ns, machineRemediationRequest), &v1alpha1.MachineRemediationRequest{})
+		Invokes(testing.NewCreateAction(machineremediationsResource, c.ns, machineremediation), &v1alpha1.machineremediation{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.MachineRemediationRequest), err
+	return obj.(*v1alpha1.machineremediation), err
 }
 
-// Update takes the representation of a machineRemediationRequest and updates it. Returns the server's representation of the machineRemediationRequest, and an error, if there is any.
-func (c *FakeMachineRemediationRequests) Update(machineRemediationRequest *v1alpha1.MachineRemediationRequest) (result *v1alpha1.MachineRemediationRequest, err error) {
+// Update takes the representation of a machineremediation and updates it. Returns the server's representation of the machineremediation, and an error, if there is any.
+func (c *Fakemachineremediations) Update(machineremediation *v1alpha1.machineremediation) (result *v1alpha1.machineremediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(machineremediationrequestsResource, c.ns, machineRemediationRequest), &v1alpha1.MachineRemediationRequest{})
+		Invokes(testing.NewUpdateAction(machineremediationsResource, c.ns, machineremediation), &v1alpha1.machineremediation{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.MachineRemediationRequest), err
+	return obj.(*v1alpha1.machineremediation), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeMachineRemediationRequests) UpdateStatus(machineRemediationRequest *v1alpha1.MachineRemediationRequest) (*v1alpha1.MachineRemediationRequest, error) {
+func (c *Fakemachineremediations) UpdateStatus(machineremediation *v1alpha1.machineremediation) (*v1alpha1.machineremediation, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(machineremediationrequestsResource, "status", c.ns, machineRemediationRequest), &v1alpha1.MachineRemediationRequest{})
+		Invokes(testing.NewUpdateSubresourceAction(machineremediationsResource, "status", c.ns, machineremediation), &v1alpha1.machineremediation{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.MachineRemediationRequest), err
+	return obj.(*v1alpha1.machineremediation), err
 }
 
-// Delete takes name of the machineRemediationRequest and deletes it. Returns an error if one occurs.
-func (c *FakeMachineRemediationRequests) Delete(name string, options *v1.DeleteOptions) error {
+// Delete takes name of the machineremediation and deletes it. Returns an error if one occurs.
+func (c *Fakemachineremediations) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(machineremediationrequestsResource, c.ns, name), &v1alpha1.MachineRemediationRequest{})
+		Invokes(testing.NewDeleteAction(machineremediationsResource, c.ns, name), &v1alpha1.machineremediation{})
 
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMachineRemediationRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(machineremediationrequestsResource, c.ns, listOptions)
+func (c *Fakemachineremediations) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(machineremediationsResource, c.ns, listOptions)
 
-	_, err := c.Fake.Invokes(action, &v1alpha1.MachineRemediationRequestList{})
+	_, err := c.Fake.Invokes(action, &v1alpha1.machineremediationList{})
 	return err
 }
 
-// Patch applies the patch and returns the patched machineRemediationRequest.
-func (c *FakeMachineRemediationRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MachineRemediationRequest, err error) {
+// Patch applies the patch and returns the patched machineremediation.
+func (c *Fakemachineremediations) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.machineremediation, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(machineremediationrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.MachineRemediationRequest{})
+		Invokes(testing.NewPatchSubresourceAction(machineremediationsResource, c.ns, name, pt, data, subresources...), &v1alpha1.machineremediation{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha1.MachineRemediationRequest), err
+	return obj.(*v1alpha1.machineremediation), err
 }

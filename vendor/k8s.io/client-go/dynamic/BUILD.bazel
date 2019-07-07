@@ -7,7 +7,7 @@ go_library(
         "scheme.go",
         "simple.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/k8s.io/client-go/dynamic",
+    importmap = "github.com/openshift/machine-remediation-operator/vendor/k8s.io/client-go/dynamic",
     importpath = "k8s.io/client-go/dynamic",
     visibility = ["//visibility:public"],
     deps = [

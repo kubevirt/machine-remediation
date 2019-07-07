@@ -2,7 +2,7 @@
 
 // Package v1alpha1 contains API Schema definitions for the healthchecking v1alpha1 API group
 // +k8s:deepcopy-gen=package,register
-// +groupName=machineremediationrequest.openshift.io
+// +groupName=machineremediation.openshift.io
 package v1alpha1
 
 import (
@@ -10,11 +10,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest"
+	"github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation"
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: machineremediationrequest.GroupName, Version: "v1alpha1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: machineremediation.GroupName, Version: "v1alpha1"}
 
 // Kind takes an unqualified kind and returns back a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {
@@ -36,8 +36,8 @@ var (
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&MachineRemediationRequest{},
-		&MachineRemediationRequestList{},
+		&MachineRemediation{},
+		&MachineRemediationList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

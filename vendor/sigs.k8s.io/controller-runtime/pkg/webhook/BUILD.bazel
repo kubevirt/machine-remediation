@@ -7,7 +7,7 @@ go_library(
         "doc.go",
         "server.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-request-operator/vendor/sigs.k8s.io/controller-runtime/pkg/webhook",
+    importmap = "github.com/openshift/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/webhook",
     importpath = "sigs.k8s.io/controller-runtime/pkg/webhook",
     visibility = ["//visibility:public"],
     deps = [

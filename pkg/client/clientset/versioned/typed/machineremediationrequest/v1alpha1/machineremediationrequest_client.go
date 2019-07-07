@@ -19,28 +19,28 @@
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-request-operator/pkg/apis/machineremediationrequest/v1alpha1"
-	"github.com/openshift/machine-remediation-request-operator/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )
 
-type MachineremediationrequestV1alpha1Interface interface {
+type machineremediationV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	MachineRemediationRequestsGetter
+	machineremediationsGetter
 }
 
-// MachineremediationrequestV1alpha1Client is used to interact with features provided by the machineremediationrequest.openshift.io group.
-type MachineremediationrequestV1alpha1Client struct {
+// machineremediationV1alpha1Client is used to interact with features provided by the machineremediation.openshift.io group.
+type machineremediationV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *MachineremediationrequestV1alpha1Client) MachineRemediationRequests(namespace string) MachineRemediationRequestInterface {
-	return newMachineRemediationRequests(c, namespace)
+func (c *machineremediationV1alpha1Client) machineremediations(namespace string) machineremediationInterface {
+	return newmachineremediations(c, namespace)
 }
 
-// NewForConfig creates a new MachineremediationrequestV1alpha1Client for the given config.
-func NewForConfig(c *rest.Config) (*MachineremediationrequestV1alpha1Client, error) {
+// NewForConfig creates a new machineremediationV1alpha1Client for the given config.
+func NewForConfig(c *rest.Config) (*machineremediationV1alpha1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -49,12 +49,12 @@ func NewForConfig(c *rest.Config) (*MachineremediationrequestV1alpha1Client, err
 	if err != nil {
 		return nil, err
 	}
-	return &MachineremediationrequestV1alpha1Client{client}, nil
+	return &machineremediationV1alpha1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new MachineremediationrequestV1alpha1Client for the given config and
+// NewForConfigOrDie creates a new machineremediationV1alpha1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *MachineremediationrequestV1alpha1Client {
+func NewForConfigOrDie(c *rest.Config) *machineremediationV1alpha1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -62,9 +62,9 @@ func NewForConfigOrDie(c *rest.Config) *MachineremediationrequestV1alpha1Client 
 	return client
 }
 
-// New creates a new MachineremediationrequestV1alpha1Client for the given RESTClient.
-func New(c rest.Interface) *MachineremediationrequestV1alpha1Client {
-	return &MachineremediationrequestV1alpha1Client{c}
+// New creates a new machineremediationV1alpha1Client for the given RESTClient.
+func New(c rest.Interface) *machineremediationV1alpha1Client {
+	return &machineremediationV1alpha1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -82,7 +82,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *MachineremediationrequestV1alpha1Client) RESTClient() rest.Interface {
+func (c *machineremediationV1alpha1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}
