@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 
@@ -66,14 +67,19 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 	var reason string
 	var state mrv1.RemediationState
 
-	switch *machineRemediation.Status.State {
+	switch machineRemediation.Status.State {
 	// initiating the reboot action
 	case "":
+		glog.V(4).Infof("MachineRemediation %s does not have state, start the remediation action", machineRemediation.Name)
+		// skip the reboot in case when the machine has power off state before the reboot action
+		// it can mean that an user power off the machine by purpose
 		if !bmh.Spec.Online {
+			glog.V(4).Infof("Skip the remediation, machine %s has power off state before the remediation action", machine.Name)
 			state = mrv1.RemediationStateSucceeded
-			reason = "Skipping the reboot, the machine power off by an user"
+			reason = "Skip the reboot, the machine power off by an user"
 		} else {
 			// power off the machine
+			glog.V(4).Infof("Power off machine %s", machine.Name)
 			newBmh.Spec.Online = false
 			if err := bmr.client.Update(context.TODO(), newBmh); err != nil {
 				return err
@@ -81,44 +87,26 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 			state = mrv1.RemediationStateStarted
 			reason = "Starts the reboot process"
 		}
-
-		// update the status of the MachineRemediation object
 		newMachineRemediation.Status.StartTime = &metav1.Time{Time: time.Now()}
-		newMachineRemediation.Status.State = &state
-		newMachineRemediation.Status.Reason = &reason
-		return bmr.client.Update(context.TODO(), newMachineRemediation)
+
 	case mrv1.RemediationStateStarted:
 		state = mrv1.RemediationStateInProgress
 		reason = "Reboot in progress"
 
-		// Reboot operation took more than defined timeout
-		if machineRemediation.Status.StartTime.Time.Add(RebootDefaultTimeout * time.Minute).Before(time.Now()) {
-			state = mrv1.RemediationStateFailed
-			reason = "Reboot failed on timeout"
-		}
-
 		// host still has state on, we need to reconcile
 		if bmh.Status.PoweredOn {
-			return fmt.Errorf("machine %s still has power on state equal to true", machine.Name)
+			glog.Warningf("machine %s still has power on state equal to true", machine.Name)
+			return nil
 		}
 
 		// power on the machine
+		glog.V(4).Infof("Power on machine %s", machine.Name)
 		newBmh.Spec.Online = true
 		if err := bmr.client.Update(context.TODO(), newBmh); err != nil {
 			return err
 		}
 
-		// update the status of the MachineRemediation object
-		newMachineRemediation.Status.State = &state
-		newMachineRemediation.Status.Reason = &reason
-		return bmr.client.Update(context.TODO(), newMachineRemediation)
 	case mrv1.RemediationStateInProgress:
-		// Reboot operation took more than defined timeout
-		if machineRemediation.Status.StartTime.Time.Add(RebootDefaultTimeout * time.Minute).Before(time.Now()) {
-			state = mrv1.RemediationStateFailed
-			reason = "Reboot failed on timeout"
-		}
-
 		node, err := GetNodeByMachine(bmr.client, machine)
 		if err != nil {
 			return err
@@ -126,16 +114,23 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 
 		// Node back to Ready under the cluster
 		if NodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
+			glog.V(4).Infof("Remediation of machine %s succeeded", machine.Name)
 			state = mrv1.RemediationStateSucceeded
 			reason = "Reboot succeeded"
 		}
-		// update the status of the MachineRemediation object
-		newMachineRemediation.Status.State = &state
-		newMachineRemediation.Status.Reason = &reason
-		return bmr.client.Update(context.TODO(), newMachineRemediation)
 	}
 
-	return nil
+	// Reboot operation took more than defined timeout
+	if machineRemediation.Status.StartTime.Time.Add(RebootDefaultTimeout * time.Minute).Before(time.Now()) {
+		glog.Errorf("Remediation of machine %s failed on timeout", machine.Name)
+		state = mrv1.RemediationStateFailed
+		reason = "Reboot failed on timeout"
+	}
+
+	newMachineRemediation.Status.State = state
+	newMachineRemediation.Status.Reason = reason
+	glog.V(4).Infof("Update MachineRemediation %s status", machineRemediation.Name)
+	return bmr.client.Update(context.TODO(), newMachineRemediation)
 }
 
 // GetBareMetalHostByMachine returns the bare metal host that linked to the machine

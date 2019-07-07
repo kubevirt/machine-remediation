@@ -69,7 +69,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	glog.Infof("Reconciling MachineRemediation triggered by %s/%s\n", request.Namespace, request.Name)
+	glog.V(4).Infof("Reconciling MachineRemediation triggered by %s/%s\n", request.Namespace, request.Name)
 
 	// Get MachineRemediation from request
 	mr := &mrv1.MachineRemediation{}
@@ -93,17 +93,21 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 
 	switch mr.Spec.Type {
 	case mrv1.RemediationTypeReboot:
+		glog.V(4).Infof("Run remediation reboot acion for MachineRemediation %s", mr.Name)
 		if err := r.remediator.Reboot(context.TODO(), mr); err != nil {
+			glog.Errorf("Remediation reboot acion for MachineRemediation %s failed with error: %v", mr.Name, err)
 			return reconcile.Result{}, err
 		}
 	case mrv1.RemediationTypeRecreate:
+		glog.V(4).Infof("Run remediation recreate acion for MachineRemediation %s", mr.Name)
 		if err := r.remediator.Recreate(context.TODO(), mr); err != nil {
+			glog.Errorf("Remediation recreate acion for MachineRemediation %s failed with error: %v", mr.Name, err)
 			return reconcile.Result{}, err
 		}
 	}
 
-	switch *mr.Status.State {
-	// we want to stop reconcile the object once it reaches Succeed or Failed state
+	switch mr.Status.State {
+	// we want to stop reconcile the object once it reaches Succeeded or Failed state
 	case mrv1.RemediationStateFailed, mrv1.RemediationStateSucceeded:
 		return reconcile.Result{}, nil
 	// for all other cases we want to reconcile object in ten seconds
