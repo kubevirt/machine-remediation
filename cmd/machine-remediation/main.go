@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
+	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"github.com/openshift/machine-remediation-operator/pkg/baremetal/remediator"
 	"github.com/openshift/machine-remediation-operator/pkg/controller"
@@ -56,9 +57,9 @@ func main() {
 	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
-	// if err := bmov1.AddToScheme(mgr.GetScheme()); err != nil {
-	// 	glog.Fatal(err)
-	// }
+	if err := bmov1.SchemeBuilder.AddToScheme(mgr.GetScheme()); err != nil {
+		glog.Fatal(err)
+	}
 
 	bareMetalRemediator := remediator.NewBareMetalRemediator()
 	addControllers := []func(manager.Manager) error{
