@@ -16,6 +16,7 @@ import (
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 const (
@@ -31,7 +32,7 @@ type BareMetalRemediator struct {
 }
 
 // NewBareMetalRemediator returns new BareMetalRemediator object
-func NewBareMetalRemediator() *BareMetalRemediator {
+func NewBareMetalRemediator(mgr manager.Manager) *BareMetalRemediator {
 	return &BareMetalRemediator{}
 }
 

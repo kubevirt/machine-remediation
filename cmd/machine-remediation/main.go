@@ -61,7 +61,7 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	bareMetalRemediator := remediator.NewBareMetalRemediator()
+	bareMetalRemediator := remediator.NewBareMetalRemediator(mgr)
 	addControllers := []func(manager.Manager) error{
 		func(m manager.Manager) error { return machineremediation.AddWithRemediator(m, bareMetalRemediator) },
 	}
