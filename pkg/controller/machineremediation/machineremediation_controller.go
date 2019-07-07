@@ -2,15 +2,14 @@ package machineremediation
 
 import (
 	"context"
+	"time"
 
 	"github.com/golang/glog"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	mrutils "github.com/openshift/machine-remediation-operator/pkg/utils"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 
-	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -92,14 +91,6 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 		return reconcile.Result{}, nil
 	}
 
-	// Get the machine from the MachineRemediation
-	key := types.NamespacedName{
-		Namespace: mr.Namespace,
-		Name:      mr.Spec.MachineName,
-	}
-	machine := &mapiv1.Machine{}
-	err = r.client.Get(context.TODO(), key, machine)
-
 	switch mr.Spec.Type {
 	case mrv1.RemediationTypeReboot:
 		if err := r.remediator.Reboot(context.TODO(), mr); err != nil {
@@ -111,5 +102,12 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 		}
 	}
 
-	return reconcile.Result{}, nil
+	switch *mr.Status.State {
+	// we want to stop reconcile the object once it reaches Succeed or Failed state
+	case mrv1.RemediationStateFailed, mrv1.RemediationStateSucceeded:
+		return reconcile.Result{}, nil
+	// for all other cases we want to reconcile object in ten seconds
+	default:
+		return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+	}
 }

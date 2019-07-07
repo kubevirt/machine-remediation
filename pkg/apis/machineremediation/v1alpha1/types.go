@@ -26,8 +26,6 @@ const (
 	RemediationStateSucceeded RemediationState = "Succeeded"
 	// RemediationStateFailed contains remediation state when the operation failed
 	RemediationStateFailed RemediationState = "Failed"
-	// RemediationStateFailedOnTimeout contains remediation state when the operation failed on the timeout
-	RemediationStateFailedOnTimeout RemediationState = "FailedOnTimeout"
 )
 
 // +genclient

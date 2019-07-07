@@ -1,5 +1,5 @@
 .PHONY: bazel-build-images
-bazel-build:
+bazel-build: bazel-generate
 	./hack/dockerized "./hack/bazel/build.sh"
 
 .PHONY: bazel-generate
@@ -31,8 +31,7 @@ fmt:
 	./hack/dockerized "./hack/bazel/fmt.sh"
 
 .PHONY: generate
-generate:
-	./hack/dockerized "./hack/generate.sh"
+generate: generate-crds generate-client generate-manifests
 
 .PHONY: generate-crds
 generate-crds:

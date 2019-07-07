@@ -56,6 +56,9 @@ func main() {
 	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
+	// if err := bmov1.AddToScheme(mgr.GetScheme()); err != nil {
+	// 	glog.Fatal(err)
+	// }
 
 	bareMetalRemediator := remediator.NewBareMetalRemediator()
 	addControllers := []func(manager.Manager) error{

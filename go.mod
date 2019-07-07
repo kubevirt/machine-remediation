@@ -6,6 +6,7 @@ require (
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/markbates/inflect v1.0.4 // indirect
+	github.com/metal3-io/baremetal-operator v0.0.0-20190705194231-6d5a9e11b6d0
 	github.com/openshift/cluster-api v0.0.0-20190503193905-cad0f8326cd2 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.3
@@ -21,6 +22,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.1.12
 	sigs.k8s.io/controller-tools v0.1.11
 )
+
+replace github.com/metal3-io/baremetal-operator => github.com/cynepco3hahue/baremetal-operator v0.0.0-20190703074131-22b01a873954
 
 replace k8s.io/code-generator => k8s.io/code-generator v0.0.0-20190311093542-50b561225d70
 
