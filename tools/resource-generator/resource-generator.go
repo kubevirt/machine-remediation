@@ -26,8 +26,8 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/cynepco3hahue/machine-health-check-operator/tools/components"
-	"github.com/cynepco3hahue/machine-health-check-operator/tools/utils"
+	"github.com/openshift/machine-remediation-operator/tools/components"
+	"github.com/openshift/machine-remediation-operator/tools/utils"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 	imagePullPolicy := v1.PullPolicy(*pullPolicy)
 
 	switch *resourceType {
-	case "machine-health-check-operator":
+	case "machine-remediation-operator":
 		operator, err := components.NewOperatorDeployment(*namespace, *repository, *version, imagePullPolicy, *verbosity)
 		if err != nil {
 			panic(fmt.Errorf("error generating machine-health-check-operator deployment %v", err))

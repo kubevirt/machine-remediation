@@ -31,7 +31,7 @@ fmt:
 	./hack/dockerized "./hack/bazel/fmt.sh"
 
 .PHONY: generate
-generate: generate-crds generate-client generate-manifests
+generate: generate-crds generate-client generate-templates generate-manifests
 
 .PHONY: generate-crds
 generate-crds:
@@ -42,5 +42,9 @@ generate-client:
 	./hack/dockerized "./hack/generate-client.sh"
 
 .PHONY: generate-manifests
-generate-manifests: generate
+generate-manifests: generate-templates
 	./hack/dockerized "./hack/generate-manifests.sh"
+
+.PHONY: generate-templates
+generate-templates:
+	./hack/dockerized "./hack/generate-templates.sh"

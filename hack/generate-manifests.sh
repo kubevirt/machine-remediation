@@ -9,7 +9,7 @@ manifest_container_prefix=${manifest_container_prefix-${container_prefix}}
 
 rm -rf ${MANIFESTS_OUT_DIR}
 
-(cd ${REPO_DIR}/tools/manifest-templator/ && go build)
+(cd ${REPO_DIR}/tools/manifest-templator/ && go install)
 
 # then process variables
 args=$(cd ${REPO_DIR}/manifests && find . -type f -name "*.yaml.in")
@@ -21,7 +21,7 @@ for arg in $args; do
     manifest=$(basename -s .in ${arg})
     outfile=${final_out_dir}/${manifest}
 
-    ${REPO_DIR}/tools/manifest-templator/manifest-templator \
+    manifest-templator \
         --process-vars \
         --namespace=${namespace} \
         --container-prefix=${manifest_container_prefix} \
