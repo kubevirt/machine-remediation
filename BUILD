@@ -116,7 +116,8 @@ container_bundle(
     name = "build-images",
     images = {
         # cmd images
-        "$(container_prefix)/machine-remediation:$(container_tag)": "//cmd/machine-remediation:machine-remediation",
+        "$(container_prefix)/machine-remediation:$(container_tag)": "//cmd/machine-remediation:machine-remediation-image",
+        "$(container_prefix)/reboot-annotation:$(container_tag)": "//cmd/reboot-annotation:reboot-annotation-image",
     },
 )
 

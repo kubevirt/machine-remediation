@@ -21,6 +21,7 @@ import (
 
 const (
 	annotationBareMetalHost = "metal3.io/BareMetalHost"
+	annotationReboot        = "metal3.io/BareMetalHostReboot"
 	rebootDefaultTimeout    = 5
 )
 
@@ -59,6 +60,11 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		return err
 	}
 
+	node, err := GetNodeByMachine(bmr.client, machine)
+	if err != nil {
+		return err
+	}
+
 	// Copy the BareMetalHost object to prevent modification of the original one
 	newBmh := bmh.DeepCopy()
 
@@ -89,6 +95,7 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 			state = mrv1.RemediationStatePowerOff
 			reason = "Starts the reboot process"
 		}
+
 	case mrv1.RemediationStatePowerOff:
 		state = mrv1.RemediationStatePowerOn
 		reason = "Reboot in progress"
@@ -107,11 +114,6 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		}
 
 	case mrv1.RemediationStatePowerOn:
-		node, err := GetNodeByMachine(bmr.client, machine)
-		if err != nil {
-			return err
-		}
-
 		// Node back to Ready under the cluster
 		if NodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
 			glog.V(4).Infof("Remediation of machine %s succeeded", machine.Name)
@@ -119,6 +121,18 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 			reason = "Reboot succeeded"
 			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
 		}
+
+	case mrv1.RemediationStateSucceeded:
+		// remove reboot annotation when the reboot succeeded
+		if _, ok := node.Annotations[annotationReboot]; ok {
+			delete(node.Annotations, annotationReboot)
+		}
+		return bmr.client.Update(context.TODO(), node)
+
+	case mrv1.RemediationStateFailed:
+		// remove the unhealthy node from the cluster when the remediation failed
+		// to free attached resources
+		return bmr.client.Delete(context.TODO(), node)
 	}
 
 	// Reboot operation took more than defined timeout
