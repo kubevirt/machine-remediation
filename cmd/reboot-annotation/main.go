@@ -4,11 +4,9 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
-	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"github.com/openshift/machine-remediation-operator/pkg/baremetal/remediator"
 	"github.com/openshift/machine-remediation-operator/pkg/controller"
-	"github.com/openshift/machine-remediation-operator/pkg/controller/machineremediation"
+	"github.com/openshift/machine-remediation-operator/pkg/controller/rebootannotation"
 	"github.com/openshift/machine-remediation-operator/pkg/version"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -47,14 +45,8 @@ func main() {
 	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
-	if err := bmov1.SchemeBuilder.AddToScheme(mgr.GetScheme()); err != nil {
-		glog.Fatal(err)
-	}
 
-	bareMetalRemediator := remediator.NewBareMetalRemediator(mgr)
-	addControllers := []func(manager.Manager) error{
-		func(m manager.Manager) error { return machineremediation.AddWithRemediator(m, bareMetalRemediator) },
-	}
+	addControllers := []func(manager.Manager) error{rebootannotation.Add}
 
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr, addControllers); err != nil {

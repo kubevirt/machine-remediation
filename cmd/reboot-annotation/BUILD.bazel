@@ -3,16 +3,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "github.com/openshift/machine-remediation-operator/cmd/machine-remediation",
+    importpath = "github.com/openshift/machine-remediation-operator/cmd/reboot-annotation",
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",
-        "//pkg/baremetal/remediator:go_default_library",
         "//pkg/controller:go_default_library",
-        "//pkg/controller/machineremediation:go_default_library",
+        "//pkg/controller/rebootannotation:go_default_library",
         "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/client/config:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/manager:go_default_library",
@@ -21,7 +19,7 @@ go_library(
 )
 
 go_binary(
-    name = "machine-remediation",
+    name = "reboot-annotation",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -32,11 +30,11 @@ load(
 )
 
 container_image(
-    name = "machine-remediation-image",
+    name = "reboot-annotation-image",
     base = "//:passwd-image",
     directory = "/usr/bin/",
-    entrypoint = ["/usr/bin/machine-remediation"],
-    files = [":machine-remediation"],
+    entrypoint = ["/usr/bin/reboot-annotation"],
+    files = [":reboot-annotation"],
     user = "65534",
     visibility = ["//visibility:public"],
 )

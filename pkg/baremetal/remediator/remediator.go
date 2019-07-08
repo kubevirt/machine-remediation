@@ -20,10 +20,8 @@ import (
 )
 
 const (
-	// AnnotationBareMetalHost contains key for the bare metal host annotation
-	AnnotationBareMetalHost = "metal3.io/BareMetalHost"
-	// RebootDefaultTimeout contains minutes until the reboot will fail on the timeout
-	RebootDefaultTimeout = 5
+	annotationBareMetalHost = "metal3.io/BareMetalHost"
+	rebootDefaultTimeout    = 5
 )
 
 // BareMetalRemediator implements Remediator interface for bare metal machines
@@ -43,6 +41,8 @@ func (bmr *BareMetalRemediator) Recreate(ctx context.Context, machineRemediation
 
 // Reboot reboots the bare metal machine
 func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *mrv1.MachineRemediation) error {
+	glog.V(4).Infof("MachineRemediation %s has state %s", machineRemediation.Name, machineRemediation.Status.State)
+
 	// Get the machine from the MachineRemediation
 	key := types.NamespacedName{
 		Namespace: machineRemediation.Namespace,
@@ -67,17 +67,18 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 
 	var reason string
 	var state mrv1.RemediationState
+	now := time.Now()
 
 	switch machineRemediation.Status.State {
 	// initiating the reboot action
-	case "":
-		glog.V(4).Infof("MachineRemediation %s does not have state, start the remediation action", machineRemediation.Name)
+	case mrv1.RemediationStateStarted:
 		// skip the reboot in case when the machine has power off state before the reboot action
 		// it can mean that an user power off the machine by purpose
 		if !bmh.Spec.Online {
 			glog.V(4).Infof("Skip the remediation, machine %s has power off state before the remediation action", machine.Name)
 			state = mrv1.RemediationStateSucceeded
 			reason = "Skip the reboot, the machine power off by an user"
+			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
 		} else {
 			// power off the machine
 			glog.V(4).Infof("Power off machine %s", machine.Name)
@@ -85,13 +86,11 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 			if err := bmr.client.Update(context.TODO(), newBmh); err != nil {
 				return err
 			}
-			state = mrv1.RemediationStateStarted
+			state = mrv1.RemediationStatePowerOff
 			reason = "Starts the reboot process"
 		}
-		newMachineRemediation.Status.StartTime = &metav1.Time{Time: time.Now()}
-
-	case mrv1.RemediationStateStarted:
-		state = mrv1.RemediationStateInProgress
+	case mrv1.RemediationStatePowerOff:
+		state = mrv1.RemediationStatePowerOn
 		reason = "Reboot in progress"
 
 		// host still has state on, we need to reconcile
@@ -107,7 +106,7 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 			return err
 		}
 
-	case mrv1.RemediationStateInProgress:
+	case mrv1.RemediationStatePowerOn:
 		node, err := GetNodeByMachine(bmr.client, machine)
 		if err != nil {
 			return err
@@ -118,14 +117,16 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 			glog.V(4).Infof("Remediation of machine %s succeeded", machine.Name)
 			state = mrv1.RemediationStateSucceeded
 			reason = "Reboot succeeded"
+			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
 		}
 	}
 
 	// Reboot operation took more than defined timeout
-	if machineRemediation.Status.StartTime.Time.Add(RebootDefaultTimeout * time.Minute).Before(time.Now()) {
+	if machineRemediation.Status.StartTime.Time.Add(rebootDefaultTimeout * time.Minute).Before(now) {
 		glog.Errorf("Remediation of machine %s failed on timeout", machine.Name)
 		state = mrv1.RemediationStateFailed
 		reason = "Reboot failed on timeout"
+		newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
 	}
 
 	newMachineRemediation.Status.State = state
@@ -136,7 +137,7 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 
 // GetBareMetalHostByMachine returns the bare metal host that linked to the machine
 func GetBareMetalHostByMachine(c client.Client, machine *mapiv1.Machine) (*bmov1.BareMetalHost, error) {
-	bmhKey, ok := machine.Annotations[AnnotationBareMetalHost]
+	bmhKey, ok := machine.Annotations[annotationBareMetalHost]
 	if !ok {
 		return nil, fmt.Errorf("machine does not have bare metal host annotation")
 	}

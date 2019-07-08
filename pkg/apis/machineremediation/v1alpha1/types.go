@@ -18,10 +18,12 @@ const (
 type RemediationState string
 
 const (
-	// RemediationStateStarted contains remediation state when the operation started
+	// RemediationStateStarted contains remediation state when the machine remediation object was created
 	RemediationStateStarted RemediationState = "Started"
-	// RemediationStateInProgress contains remediation state when the operation in progress
-	RemediationStateInProgress RemediationState = "InProgress"
+	// RemediationStatePowerOff contains remediation state when the host power offed by the controller
+	RemediationStatePowerOff RemediationState = "PowerOff"
+	// RemediationStatePowerOn contains remediation state when the host power oned again by the controller
+	RemediationStatePowerOn RemediationState = "PowerOn"
 	// RemediationStateSucceeded contains remediation state when the operation succeeded
 	RemediationStateSucceeded RemediationState = "Succeeded"
 	// RemediationStateFailed contains remediation state when the operation failed

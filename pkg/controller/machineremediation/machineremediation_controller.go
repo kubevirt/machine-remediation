@@ -74,7 +74,7 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 	// Get MachineRemediation from request
 	mr := &mrv1.MachineRemediation{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, mr)
-	glog.V(4).Infof("Reconciling, getting MachineRemediation %v", mr.Name)
+	glog.V(4).Infof("Reconciling, getting MachineRemediation %v", mr)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -110,7 +110,7 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 	// we want to stop reconcile the object once it reaches Succeeded or Failed state
 	case mrv1.RemediationStateFailed, mrv1.RemediationStateSucceeded:
 		return reconcile.Result{}, nil
-	// for all other cases we want to reconcile object in ten seconds
+	// for all other cases we want to reconcile object in ten seconds, to give time for the object update
 	default:
 		return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
 	}
