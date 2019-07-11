@@ -10,11 +10,11 @@ import (
 	"k8s.io/utils/pointer"
 )
 
-// NewOperatorDeployment returns deployment object that represents machine-remediation-operator
+// NewOperatorDeployment returns deployment object that represents machine-health-check-operator
 func NewOperatorDeployment(namespace string, repository string, version string, pullPolicy corev1.PullPolicy, verbosity string) (*appsv1.Deployment, error) {
-	name := "machine-remediation-operator"
+	name := "machine-health-check-operator"
 	image := fmt.Sprintf("%s/%s:%s", repository, name, version)
-	labels := map[string]string{"k8s-app": "machine-remediation-operator"}
+	labels := map[string]string{"k8s-app": "machine-health-check-operator"}
 	tolerations := []corev1.Toleration{
 		{
 			Key:    "node-role.kubernetes.io/master",
@@ -81,7 +81,7 @@ func NewOperatorDeployment(namespace string, repository string, version string, 
 							Name:            name,
 							Image:           image,
 							ImagePullPolicy: pullPolicy,
-							Command:         []string{"/usr/bin/machine-remediation-operator"},
+							Command:         []string{"/usr/bin/machine-health-check-operator"},
 							Args: []string{
 								"start",
 								"--alsologtostderr",

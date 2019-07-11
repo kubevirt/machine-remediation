@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/glog"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"github.com/openshift/machine-remediation-operator/pkg/consts"
 	mrutils "github.com/openshift/machine-remediation-operator/pkg/utils"
 
 	corev1 "k8s.io/api/core/v1"
@@ -25,9 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
-
-const annotationReboot = "metal3.io/BareMetalHostReboot"
-const annotationMachine = "machine.openshift.io/machine"
 
 var _ reconcile.Reconciler = &ReconcileRebootAnnotation{}
 
@@ -82,7 +80,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 				return false
 			}
 
-			if _, ok = node.Annotations[annotationReboot]; !ok {
+			if _, ok = node.Annotations[consts.AnnotationReboot]; !ok {
 				return false
 			}
 			return true
@@ -115,7 +113,7 @@ func (r *ReconcileRebootAnnotation) Reconcile(request reconcile.Request) (reconc
 	}
 
 	// Get machine object from the node annotation
-	machine, err := GetMachineByNode(r.client, node)
+	machine, err := getMachineByNode(r.client, node)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -142,9 +140,9 @@ func (r *ReconcileRebootAnnotation) Reconcile(request reconcile.Request) (reconc
 	return reconcile.Result{}, nil
 }
 
-// GetMachineByNode returns the machine object that mapped to the node
-func GetMachineByNode(c client.Client, node *corev1.Node) (*mapiv1.Machine, error) {
-	machineKey, ok := node.Annotations[annotationMachine]
+// getMachineByNode returns the machine object that mapped to the node
+func getMachineByNode(c client.Client, node *corev1.Node) (*mapiv1.Machine, error) {
+	machineKey, ok := node.Annotations[consts.AnnotationMachine]
 	if !ok {
 		glog.Warningf("No machine annotation for node %s", node.Name)
 		return nil, fmt.Errorf("No machine annotation for node %s", node.Name)

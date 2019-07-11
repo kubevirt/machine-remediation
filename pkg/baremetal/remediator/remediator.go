@@ -8,8 +8,10 @@ import (
 	"github.com/golang/glog"
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"github.com/openshift/machine-remediation-operator/pkg/consts"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
@@ -20,9 +22,7 @@ import (
 )
 
 const (
-	annotationBareMetalHost = "metal3.io/BareMetalHost"
-	annotationReboot        = "metal3.io/BareMetalHostReboot"
-	rebootDefaultTimeout    = 5
+	rebootDefaultTimeout = 5
 )
 
 // BareMetalRemediator implements Remediator interface for bare metal machines
@@ -32,7 +32,9 @@ type BareMetalRemediator struct {
 
 // NewBareMetalRemediator returns new BareMetalRemediator object
 func NewBareMetalRemediator(mgr manager.Manager) *BareMetalRemediator {
-	return &BareMetalRemediator{}
+	return &BareMetalRemediator{
+		client: mgr.GetClient(),
+	}
 }
 
 // Recreate recreates the bare metal machine under the cluster
@@ -42,7 +44,7 @@ func (bmr *BareMetalRemediator) Recreate(ctx context.Context, machineRemediation
 
 // Reboot reboots the bare metal machine
 func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *mrv1.MachineRemediation) error {
-	glog.V(4).Infof("MachineRemediation %s has state %s", machineRemediation.Name, machineRemediation.Status.State)
+	glog.V(4).Infof("MachineRemediation %q has state %q", machineRemediation.Name, machineRemediation.Status.State)
 
 	// Get the machine from the MachineRemediation
 	key := types.NamespacedName{
@@ -55,12 +57,7 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 	}
 
 	// Get the bare metal host object
-	bmh, err := GetBareMetalHostByMachine(bmr.client, machine)
-	if err != nil {
-		return err
-	}
-
-	node, err := GetNodeByMachine(bmr.client, machine)
+	bmh, err := getBareMetalHostByMachine(bmr.client, machine)
 	if err != nil {
 		return err
 	}
@@ -71,87 +68,111 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 	// Copy the MachineRemediation object to prevent modification of the original one
 	newMachineRemediation := machineRemediation.DeepCopy()
 
-	var reason string
-	var state mrv1.RemediationState
 	now := time.Now()
-
 	switch machineRemediation.Status.State {
 	// initiating the reboot action
 	case mrv1.RemediationStateStarted:
 		// skip the reboot in case when the machine has power off state before the reboot action
 		// it can mean that an user power off the machine by purpose
 		if !bmh.Spec.Online {
-			glog.V(4).Infof("Skip the remediation, machine %s has power off state before the remediation action", machine.Name)
-			state = mrv1.RemediationStateSucceeded
-			reason = "Skip the reboot, the machine power off by an user"
+			glog.V(4).Infof("Skip the remediation, machine %q has power off state before the remediation action", machine.Name)
+			newMachineRemediation.Status.State = mrv1.RemediationStateSucceeded
+			newMachineRemediation.Status.Reason = "Skip the reboot, the machine power off by an user"
 			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
 		} else {
 			// power off the machine
-			glog.V(4).Infof("Power off machine %s", machine.Name)
+			glog.V(4).Infof("Power off machine %q", machine.Name)
 			newBmh.Spec.Online = false
 			if err := bmr.client.Update(context.TODO(), newBmh); err != nil {
 				return err
 			}
-			state = mrv1.RemediationStatePowerOff
-			reason = "Starts the reboot process"
+
+			newMachineRemediation.Status.State = mrv1.RemediationStatePowerOff
+			newMachineRemediation.Status.Reason = "Starts the reboot process"
 		}
+		return bmr.client.Update(context.TODO(), newMachineRemediation)
 
 	case mrv1.RemediationStatePowerOff:
-		state = mrv1.RemediationStatePowerOn
-		reason = "Reboot in progress"
+		// failed the remediation on timeout
+		if machineRemediation.Status.StartTime.Time.Add(rebootDefaultTimeout * time.Minute).Before(now) {
+			glog.Errorf("Remediation of machine %q failed on timeout", machine.Name)
+			newMachineRemediation.Status.State = mrv1.RemediationStateFailed
+			newMachineRemediation.Status.Reason = "Reboot failed on timeout"
+			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
+			return bmr.client.Update(context.TODO(), newMachineRemediation)
+		}
 
 		// host still has state on, we need to reconcile
 		if bmh.Status.PoweredOn {
-			glog.Warningf("machine %s still has power on state equal to true", machine.Name)
+			glog.Warningf("machine %q still has power on state", machine.Name)
 			return nil
 		}
 
+		// delete the node to release workloads, once we are sure that host has state power off
+		if err := deleteMachineNode(bmr.client, machine); err != nil {
+			return err
+		}
+
 		// power on the machine
-		glog.V(4).Infof("Power on machine %s", machine.Name)
+		glog.V(4).Infof("Power on machine %q", machine.Name)
 		newBmh.Spec.Online = true
 		if err := bmr.client.Update(context.TODO(), newBmh); err != nil {
 			return err
 		}
 
+		newMachineRemediation.Status.State = mrv1.RemediationStatePowerOn
+		newMachineRemediation.Status.Reason = "Reboot in progress"
+		return bmr.client.Update(context.TODO(), newMachineRemediation)
+
 	case mrv1.RemediationStatePowerOn:
-		// Node back to Ready under the cluster
-		if NodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
-			glog.V(4).Infof("Remediation of machine %s succeeded", machine.Name)
-			state = mrv1.RemediationStateSucceeded
-			reason = "Reboot succeeded"
+		// failed the remediation on timeout
+		if machineRemediation.Status.StartTime.Time.Add(rebootDefaultTimeout * time.Minute).Before(now) {
+			glog.Errorf("Remediation of machine %q failed on timeout", machine.Name)
+			newMachineRemediation.Status.State = mrv1.RemediationStateFailed
+			newMachineRemediation.Status.Reason = "Reboot failed on timeout"
 			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
+			return bmr.client.Update(context.TODO(), newMachineRemediation)
 		}
+
+		node, err := getNodeByMachine(bmr.client, machine)
+		if err != nil {
+			// we want to reconcile with delay of 10 seconds when the machine does not have node reference
+			// or node does not exist
+			if errors.IsNotFound(err) {
+				glog.Warningf("The machine %q node does not exist", machine.Name)
+				return nil
+			}
+			return err
+		}
+
+		// Node back to Ready under the cluster
+		if nodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
+			glog.V(4).Infof("Remediation of machine %q succeeded", machine.Name)
+			newMachineRemediation.Status.State = mrv1.RemediationStateSucceeded
+			newMachineRemediation.Status.Reason = "Reboot succeeded"
+			newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
+			return bmr.client.Update(context.TODO(), newMachineRemediation)
+		}
+		return nil
 
 	case mrv1.RemediationStateSucceeded:
 		// remove reboot annotation when the reboot succeeded
-		if _, ok := node.Annotations[annotationReboot]; ok {
-			delete(node.Annotations, annotationReboot)
+		node, err := getNodeByMachine(bmr.client, machine)
+		if err != nil {
+			return err
 		}
-		return bmr.client.Update(context.TODO(), node)
 
-	case mrv1.RemediationStateFailed:
-		// remove the unhealthy node from the cluster when the remediation failed
-		// to free attached resources
-		return bmr.client.Delete(context.TODO(), node)
+		if _, ok := node.Annotations[consts.AnnotationReboot]; ok {
+			delete(node.Annotations, consts.AnnotationReboot)
+			return bmr.client.Update(context.TODO(), node)
+		}
 	}
-
-	// Reboot operation took more than defined timeout
-	if machineRemediation.Status.StartTime.Time.Add(rebootDefaultTimeout * time.Minute).Before(now) {
-		glog.Errorf("Remediation of machine %s failed on timeout", machine.Name)
-		state = mrv1.RemediationStateFailed
-		reason = "Reboot failed on timeout"
-		newMachineRemediation.Status.EndTime = &metav1.Time{Time: now}
-	}
-
-	newMachineRemediation.Status.State = state
-	newMachineRemediation.Status.Reason = reason
-	glog.V(4).Infof("Update MachineRemediation %s status", machineRemediation.Name)
-	return bmr.client.Update(context.TODO(), newMachineRemediation)
+	return nil
 }
 
-// GetBareMetalHostByMachine returns the bare metal host that linked to the machine
-func GetBareMetalHostByMachine(c client.Client, machine *mapiv1.Machine) (*bmov1.BareMetalHost, error) {
-	bmhKey, ok := machine.Annotations[annotationBareMetalHost]
+// getBareMetalHostByMachine returns the bare metal host that linked to the machine
+func getBareMetalHostByMachine(c client.Client, machine *mapiv1.Machine) (*bmov1.BareMetalHost, error) {
+	bmhKey, ok := machine.Annotations[consts.AnnotationBareMetalHost]
 	if !ok {
 		return nil, fmt.Errorf("machine does not have bare metal host annotation")
 	}
@@ -170,8 +191,8 @@ func GetBareMetalHostByMachine(c client.Client, machine *mapiv1.Machine) (*bmov1
 	return bmh, nil
 }
 
-// NodeHasCondition returns true when the node has condition of the specific type and status
-func NodeHasCondition(node *corev1.Node, conditionType corev1.NodeConditionType, contidionStatus corev1.ConditionStatus) bool {
+// nodeHasCondition returns true when the node has condition of the specific type and status
+func nodeHasCondition(node *corev1.Node, conditionType corev1.NodeConditionType, contidionStatus corev1.ConditionStatus) bool {
 	for _, cond := range node.Status.Conditions {
 		if cond.Type == conditionType && cond.Status == contidionStatus {
 			return true
@@ -180,10 +201,10 @@ func NodeHasCondition(node *corev1.Node, conditionType corev1.NodeConditionType,
 	return false
 }
 
-// GetNodeByMachine returns the node object referenced by machine
-func GetNodeByMachine(c client.Client, machine *mapiv1.Machine) (*corev1.Node, error) {
+// getNodeByMachine returns the node object referenced by machine
+func getNodeByMachine(c client.Client, machine *mapiv1.Machine) (*corev1.Node, error) {
 	if machine.Status.NodeRef == nil {
-		return nil, fmt.Errorf("machine %s does not have node reference", machine.Name)
+		return nil, errors.NewNotFound(corev1.Resource("ObjectReference"), machine.Name)
 	}
 
 	node := &corev1.Node{}
@@ -192,9 +213,26 @@ func GetNodeByMachine(c client.Client, machine *mapiv1.Machine) (*corev1.Node, e
 		Namespace: machine.Status.NodeRef.Namespace,
 	}
 
-	err := c.Get(context.TODO(), key, node)
-	if err != nil {
+	if err := c.Get(context.TODO(), key, node); err != nil {
 		return nil, err
 	}
 	return node, nil
+}
+
+// deleteMachineNode deletes the node that mapped to specified machine
+func deleteMachineNode(c client.Client, machine *mapiv1.Machine) error {
+	if machine.Status.NodeRef == nil {
+		glog.Warningf("The machine %q does not have node reference", machine.Name)
+		return nil
+	}
+	node, err := getNodeByMachine(c, machine)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			glog.Warningf("The machine %q node does not exist", machine.Name)
+			return nil
+		}
+		return err
+	}
+
+	return c.Delete(context.TODO(), node)
 }

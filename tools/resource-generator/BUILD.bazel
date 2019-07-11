@@ -6,8 +6,8 @@ go_library(
     importpath = "github.com/openshift/machine-remediation-operator/tools/resource-generator",
     visibility = ["//visibility:private"],
     deps = [
-        "//vendor/github.com/cynepco3hahue/machine-health-check-operator/tools/components:go_default_library",
-        "//vendor/github.com/cynepco3hahue/machine-health-check-operator/tools/utils:go_default_library",
+        "//tools/components:go_default_library",
+        "//tools/utils:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
     ],
 )
