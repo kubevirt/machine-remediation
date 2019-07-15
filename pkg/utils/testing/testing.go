@@ -17,12 +17,92 @@ import (
 const (
 	// NamespaceTest contains the name of the testing namespace
 	NamespaceTest = "test"
+	// MachineAnnotationKey contains default machine node annotation
+	MachineAnnotationKey = "machine.openshift.io/machine"
 )
 
 var (
 	// KnownDate contains date that can be used under tests
 	KnownDate = metav1.Time{Time: time.Date(1985, 06, 03, 0, 0, 0, 0, time.Local)}
 )
+
+// FooBar returns foo:bar map that can be used as default label
+func FooBar() map[string]string {
+	return map[string]string{"foo": "bar"}
+}
+
+// NewSelector returns new LabelSelector
+func NewSelector(labels map[string]string) *metav1.LabelSelector {
+	return &metav1.LabelSelector{MatchLabels: labels}
+}
+
+// NewSelectorFooBar returns new foo:bar label selector
+func NewSelectorFooBar() *metav1.LabelSelector {
+	return NewSelector(FooBar())
+}
+
+// NewMinAvailableMachineDisruptionBudget returns new MachineDisruptionBudget with min available parameter
+func NewMinAvailableMachineDisruptionBudget(minAvailable int32) *mrv1.MachineDisruptionBudget {
+	return &mrv1.MachineDisruptionBudget{
+		TypeMeta: metav1.TypeMeta{Kind: "MachineDisruptionBudget"},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foobar",
+			Namespace: NamespaceTest,
+		},
+		Spec: mrv1.MachineDisruptionBudgetSpec{
+			MinAvailable: &minAvailable,
+			Selector:     NewSelectorFooBar(),
+		},
+	}
+}
+
+// NewMaxUnavailableMachineDisruptionBudget returns new MachineDisruptionBudget with max unavailable parameter
+func NewMaxUnavailableMachineDisruptionBudget(maxUnavailable int32) *mrv1.MachineDisruptionBudget {
+	return &mrv1.MachineDisruptionBudget{
+		TypeMeta: metav1.TypeMeta{Kind: "MachineDisruptionBudget"},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foobar",
+			Namespace: NamespaceTest,
+		},
+		Spec: mrv1.MachineDisruptionBudgetSpec{
+			MaxUnavailable: &maxUnavailable,
+			Selector:       NewSelectorFooBar(),
+		},
+	}
+}
+
+// NewMachineHealthCheck returns new MachineHealthCheck object that can be used for testing
+func NewMachineHealthCheck(name string) *mrv1.MachineHealthCheck {
+	return &mrv1.MachineHealthCheck{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: NamespaceTest,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind: "MachineHealthCheck",
+		},
+		Spec: mrv1.MachineHealthCheckSpec{
+			Selector: *NewSelectorFooBar(),
+		},
+		Status: mrv1.MachineHealthCheckStatus{},
+	}
+}
+
+// NewUnhealthyConditionsConfigMap returns new config map object with unhealthy conditions
+func NewUnhealthyConditionsConfigMap(name string, data string) *corev1.ConfigMap {
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: NamespaceTest,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind: "ConfigMap",
+		},
+		Data: map[string]string{
+			"conditions": data,
+		},
+	}
+}
 
 // NewBareMetalHost returns new bare metal host object that can be used for testing
 func NewBareMetalHost(name string, online bool, powerOn bool) *bmov1.BareMetalHost {

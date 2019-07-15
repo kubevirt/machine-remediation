@@ -4,6 +4,8 @@ go_library(
     name = "go_default_library",
     srcs = [
         "doc.go",
+        "fake_machinedisruptionbudget.go",
+        "fake_machinehealthcheck.go",
         "fake_machineremediation.go",
         "fake_machineremediation_client.go",
     ],
