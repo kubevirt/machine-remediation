@@ -15,6 +15,7 @@ bazel-tests:
 	hack/dockerized "bazel test \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
 		--workspace_status_command=./hack/print-workspace-status.sh \
+		--cache_test_results=no \
         --test_output=errors -- //pkg/... //tools/utils/..."
 
 .PHONY: deps-update

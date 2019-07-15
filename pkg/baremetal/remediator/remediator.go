@@ -9,6 +9,7 @@ import (
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"github.com/openshift/machine-remediation-operator/pkg/consts"
+	"github.com/openshift/machine-remediation-operator/pkg/utils/conditions"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -146,7 +147,7 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		}
 
 		// Node back to Ready under the cluster
-		if nodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
+		if conditions.NodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
 			glog.V(4).Infof("Remediation of machine %q succeeded", machine.Name)
 			newMachineRemediation.Status.State = mrv1.RemediationStateSucceeded
 			newMachineRemediation.Status.Reason = "Reboot succeeded"
@@ -156,16 +157,8 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		return nil
 
 	case mrv1.RemediationStateSucceeded:
-		// remove reboot annotation when the reboot succeeded
-		node, err := getNodeByMachine(bmr.client, machine)
-		if err != nil {
-			return err
-		}
-
-		if _, ok := node.Annotations[consts.AnnotationReboot]; ok {
-			delete(node.Annotations, consts.AnnotationReboot)
-			return bmr.client.Update(context.TODO(), node)
-		}
+		// remove machine remediation object
+		return bmr.client.Delete(context.TODO(), machineRemediation)
 	}
 	return nil
 }
@@ -191,16 +184,6 @@ func getBareMetalHostByMachine(c client.Client, machine *mapiv1.Machine) (*bmov1
 	return bmh, nil
 }
 
-// nodeHasCondition returns true when the node has condition of the specific type and status
-func nodeHasCondition(node *corev1.Node, conditionType corev1.NodeConditionType, contidionStatus corev1.ConditionStatus) bool {
-	for _, cond := range node.Status.Conditions {
-		if cond.Type == conditionType && cond.Status == contidionStatus {
-			return true
-		}
-	}
-	return false
-}
-
 // getNodeByMachine returns the node object referenced by machine
 func getNodeByMachine(c client.Client, machine *mapiv1.Machine) (*corev1.Node, error) {
 	if machine.Status.NodeRef == nil {
@@ -221,10 +204,6 @@ func getNodeByMachine(c client.Client, machine *mapiv1.Machine) (*corev1.Node, e
 
 // deleteMachineNode deletes the node that mapped to specified machine
 func deleteMachineNode(c client.Client, machine *mapiv1.Machine) error {
-	if machine.Status.NodeRef == nil {
-		glog.Warningf("The machine %q does not have node reference", machine.Name)
-		return nil
-	}
 	node, err := getNodeByMachine(c, machine)
 	if err != nil {
 		if errors.IsNotFound(err) {

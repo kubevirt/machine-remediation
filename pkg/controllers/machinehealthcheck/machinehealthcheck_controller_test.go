@@ -243,7 +243,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 
 		request := reconcile.Request{
 			NamespacedName: types.NamespacedName{
-				Namespace: mrotesting.NamespaceTest,
+				Namespace: metav1.NamespaceNone,
 				Name:      tc.node.Name,
 			},
 		}
