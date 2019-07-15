@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/glog"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	disruption "github.com/openshift/machine-remediation-operator/pkg/controllers/machinedisruptionbudget"
 	"github.com/openshift/machine-remediation-operator/pkg/utils/conditions"
 
 	corev1 "k8s.io/api/core/v1"
@@ -205,8 +206,8 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 				return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 			}
 
-			switch remediationStrategy {
-			case remediationStrategyReboot:
+			switch *remediationStrategy {
+			case mrv1.RemediationStrategyTypeReboot:
 				return r.remediationStrategyReboot(machine, node)
 			default:
 				if isMaster(*machine, r.client) {
@@ -254,18 +255,34 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 }
 
 func (r *ReconcileMachineHealthCheck) remediationStrategyReboot(machine *mapiv1.Machine, node *corev1.Node) (reconcile.Result, error) {
-	// we already have reboot annotation on the node, stop reconcile
-	if _, ok := node.Annotations[machineRebootAnnotationKey]; ok {
+	rebootInProgress, err := isRebootInProgress(r.client, machine.Name)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// reboot already in progress, stop reconcile
+	if rebootInProgress {
 		return reconcile.Result{}, nil
 	}
 
-	if node.Annotations == nil {
-		node.Annotations = map[string]string{}
+	mr := &mrv1.MachineRemediation{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: "remediation-",
+			Namespace:    machine.Namespace,
+		},
+		Spec: mrv1.MachineRemediationSpec{
+			MachineName: machine.Name,
+			Type:        mrv1.RemediationTypeReboot,
+		},
+		Status: mrv1.MachineRemediationStatus{
+			State:     mrv1.RemediationStateStarted,
+			Reason:    "Machine remediation started",
+			StartTime: &metav1.Time{Time: time.Now()},
+		},
 	}
 
-	glog.Infof("Machine %s has been unhealthy for too long, adding reboot annotation", machine.Name)
-	node.Annotations[machineRebootAnnotationKey] = ""
-	if err := r.client.Update(context.TODO(), node); err != nil {
+	glog.Infof("Machine %s has been unhealthy for too long, creating machine remediation", machine.Name)
+	if err = r.client.Create(context.TODO(), mr); err != nil {
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
@@ -307,7 +324,7 @@ func hasMachineSetOwner(machine mapiv1.Machine) bool {
 	return false
 }
 
-func hasMatchingLabels(machineHealthCheck *healthcheckingv1alpha1.MachineHealthCheck, machine *mapiv1.Machine) bool {
+func hasMatchingLabels(machineHealthCheck *mrv1.MachineHealthCheck, machine *mapiv1.Machine) bool {
 	selector, err := metav1.LabelSelectorAsSelector(&machineHealthCheck.Spec.Selector)
 	if err != nil {
 		glog.Warningf("unable to convert selector: %v", err)
@@ -342,4 +359,20 @@ func isMaster(machine mapiv1.Machine, client client.Client) bool {
 		}
 	}
 	return false
+}
+
+func isRebootInProgress(c client.Client, machineName string) (bool, error) {
+	machineRemediations := &mrv1.MachineRemediationList{}
+	if err := c.List(context.TODO(), machineRemediations); err != nil {
+		return false, err
+	}
+
+	for _, mr := range machineRemediations.Items {
+		if mr.Spec.MachineName == machineName {
+			if mr.Status.EndTime != nil {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }

@@ -133,6 +133,7 @@ func NewMachine(name string, nodeName string, bareMetalHostName string) *mapiv1.
 			Name:            name,
 			Namespace:       NamespaceTest,
 			OwnerReferences: []metav1.OwnerReference{{Kind: "MachineSet"}},
+			Labels:          FooBar(),
 		},
 		Spec: mapiv1.MachineSpec{},
 		Status: mapiv1.MachineStatus{

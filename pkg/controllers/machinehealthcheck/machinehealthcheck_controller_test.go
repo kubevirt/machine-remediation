@@ -280,7 +280,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				}
 			}
 			if !mrExist {
-				t.Errorf("Expected: machine remediation with machine name %s should exist, got: no machine remediations", tc.machine.Name)
+				t.Errorf("Expected: machine remediation with machine name %s should exist, got: %v", tc.machine.Name, machineRemediations.Items)
 			}
 		}
 	}
@@ -350,12 +350,6 @@ func TestApplyRemediationReboot(t *testing.T) {
 	nodeUnhealthyForTooLong := mrotesting.NewNode("nodeUnhealthyForTooLong", false, "machineUnhealthyForTooLong")
 	machineUnhealthyForTooLong := mrotesting.NewMachine("machineUnhealthyForTooLong", nodeUnhealthyForTooLong.Name, "")
 	machineHealthCheck := mrotesting.NewMachineHealthCheck("machineHealthCheck")
-	request := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Namespace: mrotesting.NamespaceTest,
-			Name:      nodeUnhealthyForTooLong.Name,
-		},
-	}
 	r := newFakeReconciler(nodeUnhealthyForTooLong, machineUnhealthyForTooLong, machineHealthCheck)
 	_, err := r.remediationStrategyReboot(machineUnhealthyForTooLong, nodeUnhealthyForTooLong)
 	if err != nil {

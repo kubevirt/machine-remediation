@@ -55,7 +55,7 @@ func newMachineSet(name string, size int32) *mapiv1.MachineSet {
 		TypeMeta: metav1.TypeMeta{Kind: "MachineSet"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: mrotesting.Namespace,
+			Namespace: mrotesting.NamespaceTest,
 			Labels:    mrotesting.FooBar(),
 			UID:       uuid.NewUUID(),
 		},
@@ -84,7 +84,7 @@ func newMachineDeployment(name string, size int32) *mapiv1.MachineDeployment {
 		TypeMeta: metav1.TypeMeta{Kind: "MachineDeployment"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: mrotesting.Namespace,
+			Namespace: mrotesting.NamespaceTest,
 			Labels:    mrotesting.FooBar(),
 			UID:       uuid.NewUUID(),
 		},
@@ -104,26 +104,26 @@ func TestGetTotalMachineCount(t *testing.T) {
 	mdbMinAvailable := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
 	mdbMaxUnavailable := mrotesting.NewMaxUnavailableMachineDisruptionBudget(1)
 
-	node := mrotesting.NewNode("node", true)
+	node := mrotesting.NewNode("node", true, "machine1")
 
 	// will check the expected result when the machine does not owned by controller
-	machine := mrotesting.NewMachine("machine1", node.Name)
+	machine := mrotesting.NewMachine("machine1", node.Name, "")
 
 	// will check the expected result when the machine owned by MachineSet controller
 	machineSet := newMachineSet("ms1", 3)
-	machineControlledByMachineSet := mrotesting.NewMachine("machine2", node.Name)
+	machineControlledByMachineSet := mrotesting.NewMachine("machine2", node.Name, "")
 	updateMachineOwnerToMachineSet(machineControlledByMachineSet, machineSet)
 
 	// will check the expected result when the machine owned by MachineDeployment controller
 	machineSetControlledByDeployment := newMachineSet("ms2", 4)
 	machineDeployment := newMachineDeployment("md1", 4)
 	updateMachineSetOwnerToMachineDeployment(machineSetControlledByDeployment, machineDeployment)
-	machineControlledByMachineDeployment := mrotesting.NewMachine("machine3", node.Name)
+	machineControlledByMachineDeployment := mrotesting.NewMachine("machine3", node.Name, "")
 	updateMachineOwnerToMachineSet(machineControlledByMachineDeployment, machineSetControlledByDeployment)
 
 	testsCases := []struct {
 		testName string
-		mdb      *healthcheckingv1alpha1.MachineDisruptionBudget
+		mdb      *mrv1.MachineDisruptionBudget
 		machines []mapiv1.Machine
 		expected *expectedMachineCount
 	}{
@@ -245,16 +245,16 @@ func TestGetMachinesForMachineDisruptionBudget(t *testing.T) {
 		MatchExpressions: []metav1.LabelSelectorRequirement{{Operator: "fake"}},
 	}
 
-	node := mrotesting.NewNode("node", true)
+	node := mrotesting.NewNode("node", true, "")
 
-	machineWithLabels1 := mrotesting.NewMachine("machineWithLabels1", node.Name)
-	machineWithLabels2 := mrotesting.NewMachine("machineWithLabels2", node.Name)
-	machineWithoutLabels := mrotesting.NewMachine("machineWithoutLabels", node.Name)
+	machineWithLabels1 := mrotesting.NewMachine("machineWithLabels1", node.Name, "")
+	machineWithLabels2 := mrotesting.NewMachine("machineWithLabels2", node.Name, "")
+	machineWithoutLabels := mrotesting.NewMachine("machineWithoutLabels", node.Name, "")
 	machineWithoutLabels.Labels = map[string]string{}
 
 	testsCases := []struct {
 		testName string
-		mdb      *healthcheckingv1alpha1.MachineDisruptionBudget
+		mdb      *mrv1.MachineDisruptionBudget
 		expected *expectedMachinesForMDB
 	}{
 		{
@@ -319,17 +319,17 @@ type expectedDisrupteMachines struct {
 }
 
 func TestBuildDisruptedMachineMap(t *testing.T) {
-	node := mrotesting.NewNode("node", true)
+	node := mrotesting.NewNode("node", true, "")
 
 	currentTime := metav1.NewTime(time.Now())
 	timeAfterTwoMinutes := currentTime.Add(2 * time.Minute)
 	timeBeforeThreeMinutes := metav1.NewTime(currentTime.Add(-3 * time.Minute))
 
-	machine := mrotesting.NewMachine("machine", node.Name)
-	deletedMachine := mrotesting.NewMachine("deletedMachine", node.Name)
+	machine := mrotesting.NewMachine("machine", node.Name, "")
+	deletedMachine := mrotesting.NewMachine("deletedMachine", node.Name, "")
 	deletedMachine.DeletionTimestamp = &currentTime
-	disruptedMachineBeforeTimeout := mrotesting.NewMachine("disruptedMachineBeforeTimeout", node.Name)
-	disruptedMachineAfterTimeout := mrotesting.NewMachine("disruptedMachineAfterTimeout", node.Name)
+	disruptedMachineBeforeTimeout := mrotesting.NewMachine("disruptedMachineBeforeTimeout", node.Name, "")
+	disruptedMachineAfterTimeout := mrotesting.NewMachine("disruptedMachineAfterTimeout", node.Name, "")
 
 	mdbWithDisruptedMachines := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
 	mdbWithDisruptedMachines.Status.DisruptedMachines = map[string]metav1.Time{
@@ -340,7 +340,7 @@ func TestBuildDisruptedMachineMap(t *testing.T) {
 
 	testsCases := []struct {
 		testName string
-		mdb      *healthcheckingv1alpha1.MachineDisruptionBudget
+		mdb      *mrv1.MachineDisruptionBudget
 		machines []mapiv1.Machine
 		expected *expectedDisrupteMachines
 	}{
@@ -395,19 +395,19 @@ func TestBuildDisruptedMachineMap(t *testing.T) {
 }
 
 func TestCountHealthyMachines(t *testing.T) {
-	healthyNode := mrotesting.NewNode("healthyNode", true)
-	unhealthyNode := mrotesting.NewNode("unhealthyNode", false)
+	healthyNode := mrotesting.NewNode("healthyNode", true, "")
+	unhealthyNode := mrotesting.NewNode("unhealthyNode", false, "")
 
 	currentTime := metav1.NewTime(time.Now())
 	timeAfterThreeMinutes := metav1.NewTime(currentTime.Add(3 * time.Minute))
 	timeBeforeThreeMinutes := metav1.NewTime(currentTime.Add(-3 * time.Minute))
 
-	healthyMachine := mrotesting.NewMachine("healthyMachine", healthyNode.Name)
-	unhealthyMachine := mrotesting.NewMachine("unhealthyMachine", unhealthyNode.Name)
-	deletedMachine := mrotesting.NewMachine("deletedMachine", healthyNode.Name)
+	healthyMachine := mrotesting.NewMachine("healthyMachine", healthyNode.Name, "")
+	unhealthyMachine := mrotesting.NewMachine("unhealthyMachine", unhealthyNode.Name, "")
+	deletedMachine := mrotesting.NewMachine("deletedMachine", healthyNode.Name, "")
 	deletedMachine.DeletionTimestamp = &currentTime
-	disruptedMachineBeforeTimeout := mrotesting.NewMachine("disruptedMachineBeforeTimeout", healthyNode.Name)
-	disruptedMachineAfterTimeout := mrotesting.NewMachine("disruptedMachineAfterTimeout", healthyNode.Name)
+	disruptedMachineBeforeTimeout := mrotesting.NewMachine("disruptedMachineBeforeTimeout", healthyNode.Name, "")
+	disruptedMachineAfterTimeout := mrotesting.NewMachine("disruptedMachineAfterTimeout", healthyNode.Name, "")
 
 	r := newFakeReconciler(nil, healthyNode, unhealthyNode)
 	healthyMachinesCount, err := r.countHealthyMachines(
@@ -435,13 +435,13 @@ func TestCountHealthyMachines(t *testing.T) {
 }
 
 func TestGetMachineDisruptionBudgetForMachine(t *testing.T) {
-	node := mrotesting.NewNode("node", true)
+	node := mrotesting.NewNode("node", true, "")
 
-	machineWithoutLabels := mrotesting.NewMachine("machineWithoutLabels", node.Name)
+	machineWithoutLabels := mrotesting.NewMachine("machineWithoutLabels", node.Name, "")
 	machineWithoutLabels.Labels = map[string]string{}
-	machineWithWrongLabel := mrotesting.NewMachine("machineWithoutLabels", node.Name)
+	machineWithWrongLabel := mrotesting.NewMachine("machineWithoutLabels", node.Name, "")
 	machineWithWrongLabel.Labels = map[string]string{"wrongLabel": ""}
-	machineWithRightLabel := mrotesting.NewMachine("machineWithRightLabel", node.Name)
+	machineWithRightLabel := mrotesting.NewMachine("machineWithRightLabel", node.Name, "")
 
 	mdbWithRightLabel1 := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
 	mdbWithRightLabel1.Name = "mdbWithRightLabel1"
@@ -453,37 +453,37 @@ func TestGetMachineDisruptionBudgetForMachine(t *testing.T) {
 
 	testsCases := []struct {
 		testName string
-		mdbs     []*healthcheckingv1alpha1.MachineDisruptionBudget
+		mdbs     []*mrv1.MachineDisruptionBudget
 		machine  *mapiv1.Machine
-		expected *healthcheckingv1alpha1.MachineDisruptionBudget
+		expected *mrv1.MachineDisruptionBudget
 	}{
 		{
 			testName: "machine without labels",
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbWithRightLabel1},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithRightLabel1},
 			machine:  machineWithoutLabels,
 			expected: nil,
 		},
 		{
 			testName: "machine with wrong label",
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbWithRightLabel1},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithRightLabel1},
 			machine:  machineWithWrongLabel,
 			expected: nil,
 		},
 		{
 			testName: "MDB with wrong selector",
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbWithWrongSelector},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithWrongSelector},
 			machine:  machineWithRightLabel,
 			expected: nil,
 		},
 		{
 			testName: "MDB with right selector",
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbWithRightLabel1},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithRightLabel1},
 			machine:  machineWithRightLabel,
 			expected: mdbWithRightLabel1,
 		},
 		{
 			testName: "two MDB's with right selector",
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbWithRightLabel1, mdbWithRightLabel2},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithRightLabel1, mdbWithRightLabel2},
 			machine:  machineWithRightLabel,
 			expected: mdbWithRightLabel1,
 		},
@@ -515,17 +515,17 @@ type expectedReconcile struct {
 }
 
 func TestReconcile(t *testing.T) {
-	node := mrotesting.NewNode("node", true)
+	node := mrotesting.NewNode("node", true, "")
 
 	currentTime := metav1.NewTime(time.Now())
 	timeAfterTwoMinutes := currentTime.Add(2 * time.Minute)
 	timeBeforeThreeMinutes := metav1.NewTime(currentTime.Add(-3 * time.Minute))
 
-	machineWithWrongLabel := mrotesting.NewMachine("machineWithWrongLabel", node.Name)
+	machineWithWrongLabel := mrotesting.NewMachine("machineWithWrongLabel", node.Name, "")
 	machineWithWrongLabel.Labels = map[string]string{"wrongLabel": ""}
-	machineWithRightLabel := mrotesting.NewMachine("machineWithRightLabel", node.Name)
-	disruptedMachineBeforeTimeout := mrotesting.NewMachine("disruptedMachineBeforeTimeout", node.Name)
-	disruptedMachineAfterTimeout := mrotesting.NewMachine("disruptedMachineAfterTimeout", node.Name)
+	machineWithRightLabel := mrotesting.NewMachine("machineWithRightLabel", node.Name, "")
+	disruptedMachineBeforeTimeout := mrotesting.NewMachine("disruptedMachineBeforeTimeout", node.Name, "")
+	disruptedMachineAfterTimeout := mrotesting.NewMachine("disruptedMachineAfterTimeout", node.Name, "")
 
 	mdbWithRightLabel := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
 	mdbWithWrongSelector := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
@@ -543,7 +543,7 @@ func TestReconcile(t *testing.T) {
 
 	testsCases := []struct {
 		testName string
-		mdb      *healthcheckingv1alpha1.MachineDisruptionBudget
+		mdb      *mrv1.MachineDisruptionBudget
 		machines []*mapiv1.Machine
 		expected *expectedReconcile
 	}{
@@ -606,7 +606,7 @@ func TestReconcile(t *testing.T) {
 		recorder := record.NewFakeRecorder(10)
 		key := types.NamespacedName{
 			Name:      "foobar",
-			Namespace: mrotesting.Namespace,
+			Namespace: mrotesting.NamespaceTest,
 		}
 
 		objects := []runtime.Object{}
@@ -650,9 +650,9 @@ func TestReconcile(t *testing.T) {
 }
 
 func TestRepeatCheckAndDecrement(t *testing.T) {
-	node := mrotesting.NewNode("node", true)
-	machine := mrotesting.NewMachine("machine", node.Name)
-	machineWithoutLabels := mrotesting.NewMachine("machineWithoutLabels", node.Name)
+	node := mrotesting.NewNode("node", true, "")
+	machine := mrotesting.NewMachine("machine", node.Name, "")
+	machineWithoutLabels := mrotesting.NewMachine("machineWithoutLabels", node.Name, "")
 	machineWithoutLabels.Labels = map[string]string{}
 
 	mdbObserverGeneration := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
@@ -676,49 +676,49 @@ func TestRepeatCheckAndDecrement(t *testing.T) {
 	testsCases := []struct {
 		testName string
 		machine  *mapiv1.Machine
-		mdbs     []*healthcheckingv1alpha1.MachineDisruptionBudget
+		mdbs     []*mrv1.MachineDisruptionBudget
 		error    bool
 	}{
 		{
 			testName: "With the machine without labels",
 			machine:  machineWithoutLabels,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdb1},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdb1},
 			error:    true,
 		},
 		{
 			testName: "Without MDB",
 			machine:  machine,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{},
+			mdbs:     []*mrv1.MachineDisruptionBudget{},
 			error:    false,
 		},
 		{
 			testName: "With two MDB's",
 			machine:  machine,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdb1, mdb2},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdb1, mdb2},
 			error:    true,
 		},
 		{
 			testName: "With the MDB that has wrong observedGeneration",
 			machine:  machine,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbObserverGeneration},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbObserverGeneration},
 			error:    true,
 		},
 		{
 			testName: "With the MDB with zero DisruptionAllowed",
 			machine:  machine,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbDisruptionAllowedZero},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbDisruptionAllowedZero},
 			error:    true,
 		},
 		{
 			testName: "With the MDB with less than zero DisruptionAllowed",
 			machine:  machine,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdbDisruptionAllowedLessThanZero},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdbDisruptionAllowedLessThanZero},
 			error:    true,
 		},
 		{
 			testName: "With the correct MDB",
 			machine:  machine,
-			mdbs:     []*healthcheckingv1alpha1.MachineDisruptionBudget{mdb1},
+			mdbs:     []*mrv1.MachineDisruptionBudget{mdb1},
 			error:    false,
 		},
 	}
