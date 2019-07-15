@@ -5,11 +5,9 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
-	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"github.com/openshift/machine-remediation-operator/pkg/baremetal/remediator"
 	"github.com/openshift/machine-remediation-operator/pkg/controllers"
-	"github.com/openshift/machine-remediation-operator/pkg/controllers/machineremediation"
+	disruption "github.com/openshift/machine-remediation-operator/pkg/controllers/machinedisruptionbudget"
 	"github.com/openshift/machine-remediation-operator/pkg/version"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -38,16 +36,15 @@ func main() {
 
 	opts := manager.Options{
 		LeaderElection:   true,
-		LeaderElectionID: "machine-remediation",
+		LeaderElectionID: "machine-disruption-budget",
 	}
 	if *namespace != "" {
 		opts.LeaderElectionNamespace = *namespace
 		opts.Namespace = *namespace
-		glog.Infof("Watching machine remediations objects only in namespace %q for reconciliation.", opts.Namespace)
+		glog.Infof("Watching MDB objects only in namespace %q for reconciliation.", opts.Namespace)
 	}
-
 	// Create a new Cmd to provide shared dependencies and start components
-	mgr, err := manager.New(cfg, manager.Options{})
+	mgr, err := manager.New(cfg, opts)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -61,17 +58,9 @@ func main() {
 	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
-	if err := bmov1.SchemeBuilder.AddToScheme(mgr.GetScheme()); err != nil {
-		glog.Fatal(err)
-	}
-
-	bareMetalRemediator := remediator.NewBareMetalRemediator(mgr)
-	addController := func(m manager.Manager, opts manager.Options) error {
-		return machineremediation.AddWithRemediator(m, bareMetalRemediator, opts)
-	}
 
 	// Setup all Controllers
-	if err := controllers.AddToManager(mgr, opts, addController); err != nil {
+	if err := controllers.AddToManager(mgr, opts, disruption.Add); err != nil {
 		glog.Fatal(err)
 	}
 

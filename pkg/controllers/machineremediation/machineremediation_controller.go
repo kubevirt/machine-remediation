@@ -6,7 +6,6 @@ import (
 
 	"github.com/golang/glog"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	mrutils "github.com/openshift/machine-remediation-operator/pkg/utils"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 
@@ -31,24 +30,19 @@ type ReconcileMachineRemediation struct {
 
 // AddWithRemediator creates a new MachineRemediation Controller with remediator and adds it to the Manager.
 // The Manager will set fields on the Controller and start it when the Manager is started.
-func AddWithRemediator(mgr manager.Manager, remediator Remediator) error {
-	r, err := newReconciler(mgr, remediator)
+func AddWithRemediator(mgr manager.Manager, remediator Remediator, opts manager.Options) error {
+	r, err := newReconciler(mgr, remediator, opts)
 	if err != nil {
 		return err
 	}
 	return add(mgr, r)
 }
 
-func newReconciler(mgr manager.Manager, remediator Remediator) (reconcile.Reconciler, error) {
-	namespace, err := mrutils.GetNamespace(mrutils.ServiceAccountNamespaceFile)
-	if err != nil {
-		return nil, err
-	}
-
+func newReconciler(mgr manager.Manager, remediator Remediator, opts manager.Options) (reconcile.Reconciler, error) {
 	return &ReconcileMachineRemediation{
 		client:     mgr.GetClient(),
 		remediator: remediator,
-		namespace:  namespace,
+		namespace:  opts.Namespace,
 	}, nil
 }
 
