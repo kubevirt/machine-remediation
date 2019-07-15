@@ -27,12 +27,22 @@ import (
 
 type MachineremediationV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	MachineDisruptionBudgetsGetter
+	MachineHealthChecksGetter
 	MachineRemediationsGetter
 }
 
 // MachineremediationV1alpha1Client is used to interact with features provided by the machineremediation.openshift.io group.
 type MachineremediationV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *MachineremediationV1alpha1Client) MachineDisruptionBudgets(namespace string) MachineDisruptionBudgetInterface {
+	return newMachineDisruptionBudgets(c, namespace)
+}
+
+func (c *MachineremediationV1alpha1Client) MachineHealthChecks(namespace string) MachineHealthCheckInterface {
+	return newMachineHealthChecks(c, namespace)
 }
 
 func (c *MachineremediationV1alpha1Client) MachineRemediations(namespace string) MachineRemediationInterface {

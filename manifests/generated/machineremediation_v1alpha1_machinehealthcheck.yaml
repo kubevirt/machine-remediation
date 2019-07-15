@@ -4,15 +4,15 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: machineremediations.machineremediation.openshift.io
+  name: machinehealthchecks.machineremediation.openshift.io
 spec:
   group: machineremediation.openshift.io
   names:
-    kind: MachineRemediation
-    plural: machineremediations
+    kind: MachineHealthCheck
+    plural: machinehealthchecks
     shortNames:
-    - mr
-    - mrs
+    - mhc
+    - mhcs
   scope: Namespaced
   subresources:
     status: {}
@@ -32,29 +32,20 @@ spec:
         metadata:
           type: object
         spec:
-          description: Specification of MachineRemediation
+          description: Specification of machine health check policy
           properties:
-            machineName:
-              description: MachineName contains the name of machine that should be
-                remediate
+            remediationStrategy:
+              description: RemediationStrategy to use in case of problem detection
+                default is machine deletion
               type: string
-            type:
-              description: Type contains the type of the remediation
-              type: string
+            selector:
+              description: Label selector to match machines whose health will be exercised
+              type: object
+          required:
+          - selector
           type: object
         status:
-          description: Most recently observed status of MachineRemediation resource
-          properties:
-            endTime:
-              format: date-time
-              type: string
-            reason:
-              type: string
-            startTime:
-              format: date-time
-              type: string
-            state:
-              type: string
+          description: Most recently observed status of MachineHealthCheck resource
           type: object
   version: v1alpha1
 status:

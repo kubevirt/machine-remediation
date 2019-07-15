@@ -18,4 +18,8 @@
 
 package v1alpha1
 
+type MachineDisruptionBudgetExpansion interface{}
+
+type MachineHealthCheckExpansion interface{}
+
 type MachineRemediationExpansion interface{}

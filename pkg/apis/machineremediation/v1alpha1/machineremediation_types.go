@@ -34,7 +34,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // MachineRemediation is the schema for the MachineRemediation API
-// kubebuilder:subresource:status
+// +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=mr;mrs
 // +k8s:openapi-gen=true
 type MachineRemediation struct {
