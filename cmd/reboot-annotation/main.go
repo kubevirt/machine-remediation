@@ -5,8 +5,8 @@ import (
 
 	"github.com/golang/glog"
 	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"github.com/openshift/machine-remediation-operator/pkg/controller"
-	"github.com/openshift/machine-remediation-operator/pkg/controller/rebootannotation"
+	"github.com/openshift/machine-remediation-operator/pkg/controllers"
+	"github.com/openshift/machine-remediation-operator/pkg/controllers/rebootannotation"
 	"github.com/openshift/machine-remediation-operator/pkg/version"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -49,7 +49,7 @@ func main() {
 	addControllers := []func(manager.Manager) error{rebootannotation.Add}
 
 	// Setup all Controllers
-	if err := controller.AddToManager(mgr, addControllers); err != nil {
+	if err := controllers.AddToManager(mgr, addControllers); err != nil {
 		glog.Fatal(err)
 	}
 

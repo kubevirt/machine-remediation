@@ -7,8 +7,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/controller/rebootannotation:go_default_library",
+        "//pkg/controllers:go_default_library",
+        "//pkg/controllers/rebootannotation:go_default_library",
         "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",

@@ -2,21 +2,26 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "machineremediation_controller.go",
-        "remediator.go",
-    ],
-    importpath = "github.com/openshift/machine-remediation-operator/pkg/controller/machineremediation",
+    srcs = ["rebootannotation_controller.go"],
+    importpath = "github.com/openshift/machine-remediation-operator/pkg/controllers/rebootannotation",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//pkg/consts:go_default_library",
         "//pkg/utils:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/client:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/controller:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/event:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/handler:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/manager:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/predicate:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/reconcile:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/source:go_default_library",
     ],
@@ -24,6 +29,6 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["machineremediation_controller_test.go"],
+    srcs = ["rebootannotation_controller_test.go"],
     embed = [":go_default_library"],
 )
