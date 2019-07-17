@@ -19,9 +19,9 @@
 package fake
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
+	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
 )
 
 type FakeMachineremediationV1alpha1 struct {
@@ -38,6 +38,10 @@ func (c *FakeMachineremediationV1alpha1) MachineHealthChecks(namespace string) v
 
 func (c *FakeMachineremediationV1alpha1) MachineRemediations(namespace string) v1alpha1.MachineRemediationInterface {
 	return &FakeMachineRemediations{c, namespace}
+}
+
+func (c *FakeMachineremediationV1alpha1) MachineRemediationOperators(namespace string) v1alpha1.MachineRemediationOperatorInterface {
+	return &FakeMachineRemediationOperators{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

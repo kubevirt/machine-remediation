@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	disruption "github.com/openshift/machine-remediation-operator/pkg/controllers/machinedisruptionbudget"
-	"github.com/openshift/machine-remediation-operator/pkg/utils/conditions"
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	disruption "kubevirt.io/machine-remediation-operator/pkg/controllers/machinedisruptionbudget"
+	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -79,7 +79,6 @@ func (r *ReconcileMachineHealthCheck) Reconcile(request reconcile.Request) (reco
 	// Get node from request
 	node := &corev1.Node{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, node)
-	glog.V(4).Infof("Reconciling, getting node %v", node.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -206,21 +205,20 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 				return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 			}
 
-			switch *remediationStrategy {
-			case mrv1.RemediationStrategyTypeReboot:
+			if remediationStrategy != nil && *remediationStrategy == mrv1.RemediationStrategyTypeReboot {
 				return r.remediationStrategyReboot(machine, node)
-			default:
-				if isMaster(*machine, r.client) {
-					glog.Infof("The machine %s is a master node, skipping remediation", machine.Name)
-					return reconcile.Result{}, nil
-				}
-				glog.Infof("Machine %s has been unhealthy for too long, deleting", machine.Name)
-				if err := r.client.Delete(context.TODO(), machine); err != nil {
-					glog.Errorf("Failed to delete machine %s, requeuing referenced node", machine.Name)
-					return reconcile.Result{}, err
-				}
+			}
+
+			if isMaster(*machine, r.client) {
+				glog.Infof("The machine %s is a master node, skipping remediation", machine.Name)
 				return reconcile.Result{}, nil
 			}
+			glog.Infof("Machine %s has been unhealthy for too long, deleting", machine.Name)
+			if err := r.client.Delete(context.TODO(), machine); err != nil {
+				glog.Errorf("Failed to delete machine %s, requeuing referenced node", machine.Name)
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{}, nil
 		}
 
 		now := time.Now()

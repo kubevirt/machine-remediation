@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 
@@ -68,7 +68,6 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 	// Get MachineRemediation from request
 	mr := &mrv1.MachineRemediation{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, mr)
-	glog.V(4).Infof("Reconciling, getting MachineRemediation %v", mr)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.

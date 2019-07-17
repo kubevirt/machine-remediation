@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "predicate.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/predicate",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/predicate",
     importpath = "sigs.k8s.io/controller-runtime/pkg/predicate",
     visibility = ["//visibility:public"],
     deps = [

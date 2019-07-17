@@ -10,7 +10,7 @@ go_library(
         "watch.go",
         "zz_generated.deepcopy.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/watch",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/watch",
     importpath = "k8s.io/apimachinery/pkg/watch",
     visibility = ["//visibility:public"],
     deps = [

@@ -15,7 +15,7 @@ go_library(
         "net.go",
         "transaction.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/google.golang.org/appengine/internal",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/google.golang.org/appengine/internal",
     importpath = "google.golang.org/appengine/internal",
     visibility = ["//visibility:public"],
     deps = [

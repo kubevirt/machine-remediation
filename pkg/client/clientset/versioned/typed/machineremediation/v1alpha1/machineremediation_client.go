@@ -19,10 +19,10 @@
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
+	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
 )
 
 type MachineremediationV1alpha1Interface interface {
@@ -30,9 +30,10 @@ type MachineremediationV1alpha1Interface interface {
 	MachineDisruptionBudgetsGetter
 	MachineHealthChecksGetter
 	MachineRemediationsGetter
+	MachineRemediationOperatorsGetter
 }
 
-// MachineremediationV1alpha1Client is used to interact with features provided by the machineremediation.openshift.io group.
+// MachineremediationV1alpha1Client is used to interact with features provided by the machineremediation.kubevirt.io group.
 type MachineremediationV1alpha1Client struct {
 	restClient rest.Interface
 }
@@ -47,6 +48,10 @@ func (c *MachineremediationV1alpha1Client) MachineHealthChecks(namespace string)
 
 func (c *MachineremediationV1alpha1Client) MachineRemediations(namespace string) MachineRemediationInterface {
 	return newMachineRemediations(c, namespace)
+}
+
+func (c *MachineremediationV1alpha1Client) MachineRemediationOperators(namespace string) MachineRemediationOperatorInterface {
+	return newMachineRemediationOperators(c, namespace)
 }
 
 // NewForConfig creates a new MachineremediationV1alpha1Client for the given config.

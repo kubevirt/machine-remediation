@@ -6,11 +6,11 @@ import (
 
 	"github.com/golang/glog"
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
-	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"github.com/openshift/machine-remediation-operator/pkg/baremetal/remediator"
-	"github.com/openshift/machine-remediation-operator/pkg/controllers"
-	"github.com/openshift/machine-remediation-operator/pkg/controllers/machineremediation"
-	"github.com/openshift/machine-remediation-operator/pkg/version"
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/baremetal/remediator"
+	"kubevirt.io/machine-remediation-operator/pkg/controllers"
+	"kubevirt.io/machine-remediation-operator/pkg/controllers/machineremediation"
+	"kubevirt.io/machine-remediation-operator/pkg/version"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"

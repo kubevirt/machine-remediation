@@ -19,14 +19,14 @@
 package fake
 
 import (
-	clientset "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned"
-	machineremediationv1alpha1 "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
-	fakemachineremediationv1alpha1 "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/testing"
+	clientset "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned"
+	machineremediationv1alpha1 "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
+	fakemachineremediationv1alpha1 "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1/fake"
 )
 
 // NewSimpleClientset returns a clientset that will respond with the provided objects.

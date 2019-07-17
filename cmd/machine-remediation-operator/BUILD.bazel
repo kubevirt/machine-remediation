@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "kubevirt.io/machine-remediation-operator/cmd/machine-remediation-operator",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//pkg/controllers:go_default_library",
+        "//pkg/controllers/machinehealthcheck:go_default_library",
+        "//pkg/version:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/client/config:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/manager:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/runtime/signals:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "machine-remediation-operator",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

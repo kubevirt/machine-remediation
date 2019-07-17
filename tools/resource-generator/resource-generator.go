@@ -26,8 +26,8 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/openshift/machine-remediation-operator/tools/components"
-	"github.com/openshift/machine-remediation-operator/tools/utils"
+	"kubevirt.io/machine-remediation-operator/tools/components"
+	"kubevirt.io/machine-remediation-operator/tools/utils"
 )
 
 func main() {

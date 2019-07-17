@@ -7,7 +7,7 @@ go_library(
         "document.go",
         "openapi.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/k8s.io/kube-openapi/pkg/util/proto",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/kube-openapi/pkg/util/proto",
     importpath = "k8s.io/kube-openapi/pkg/util/proto",
     visibility = ["//visibility:public"],
     deps = [

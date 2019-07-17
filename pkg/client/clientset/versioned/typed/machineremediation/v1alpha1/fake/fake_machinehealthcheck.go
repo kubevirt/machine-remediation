@@ -19,13 +19,13 @@
 package fake
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
+	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 )
 
 // FakeMachineHealthChecks implements MachineHealthCheckInterface
@@ -34,9 +34,9 @@ type FakeMachineHealthChecks struct {
 	ns   string
 }
 
-var machinehealthchecksResource = schema.GroupVersionResource{Group: "machineremediation.openshift.io", Version: "v1alpha1", Resource: "machinehealthchecks"}
+var machinehealthchecksResource = schema.GroupVersionResource{Group: "machineremediation.kubevirt.io", Version: "v1alpha1", Resource: "machinehealthchecks"}
 
-var machinehealthchecksKind = schema.GroupVersionKind{Group: "machineremediation.openshift.io", Version: "v1alpha1", Kind: "MachineHealthCheck"}
+var machinehealthchecksKind = schema.GroupVersionKind{Group: "machineremediation.kubevirt.io", Version: "v1alpha1", Kind: "MachineHealthCheck"}
 
 // Get takes name of the machineHealthCheck, and returns the corresponding machineHealthCheck object, and an error if there is any.
 func (c *FakeMachineHealthChecks) Get(name string, options v1.GetOptions) (result *v1alpha1.MachineHealthCheck, err error) {

@@ -4,7 +4,7 @@ goimports(
     name = "goimports",
     display_diffs = True,
     local = ["github.com"],
-    prefix = "github.com/openshift/machine-remediation-operator",
+    prefix = "kubevirt.io/machine-remediation-operator",
     write = True,
 )
 
@@ -45,7 +45,7 @@ nogo(
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix github.com/openshift/machine-remediation-operator
+# gazelle:prefix kubevirt.io/machine-remediation-operator
 gazelle(name = "gazelle")
 
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")

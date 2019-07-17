@@ -5,4 +5,12 @@ const (
 	AnnotationBareMetalHost = "metal3.io/BareMetalHost"
 	// AnnotationMachine contains the annotation key for machine
 	AnnotationMachine = "machine.openshift.io/machine"
+	// ControllerMachineDisruptionBudget contains the name of MachineDisruptionBudget controller
+	ControllerMachineDisruptionBudget = "machine-disruption-budget"
+	// ControllerMachineHealthCheck contains the name of MachineHealthCheck controller
+	ControllerMachineHealthCheck = "machine-health-check"
+	// ControllerMachineRemediation contains the name of achineRemediation controller
+	ControllerMachineRemediation = "machine-remediation"
+	// LabelKubeVirt contains the label key for kubevirt components
+	LabelKubeVirt = "kubevirt.io"
 )

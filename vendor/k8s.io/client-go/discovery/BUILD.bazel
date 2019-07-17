@@ -7,7 +7,7 @@ go_library(
         "doc.go",
         "helper.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/k8s.io/client-go/discovery",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/client-go/discovery",
     importpath = "k8s.io/client-go/discovery",
     visibility = ["//visibility:public"],
     deps = [

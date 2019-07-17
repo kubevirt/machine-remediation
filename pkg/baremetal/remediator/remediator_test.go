@@ -6,8 +6,8 @@ import (
 	"time"
 
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
-	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	mrotesting "github.com/openshift/machine-remediation-operator/pkg/utils/testing"
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

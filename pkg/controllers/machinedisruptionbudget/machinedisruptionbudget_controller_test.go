@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	mrotesting "github.com/openshift/machine-remediation-operator/pkg/utils/testing"
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

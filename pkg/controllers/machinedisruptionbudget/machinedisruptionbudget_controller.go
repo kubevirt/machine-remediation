@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	mrv1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	machineutil "github.com/openshift/machine-remediation-operator/pkg/utils/machines"
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	machineutil "kubevirt.io/machine-remediation-operator/pkg/utils/machines"
 
 	v1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
@@ -107,7 +107,6 @@ func (r *ReconcileMachineDisruption) Reconcile(request reconcile.Request) (recon
 	// Get machine from request
 	mdb := &mrv1.MachineDisruptionBudget{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, mdb)
-	glog.V(4).Infof("Reconciling, getting MachineDisruptionBudget %v", mdb)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.

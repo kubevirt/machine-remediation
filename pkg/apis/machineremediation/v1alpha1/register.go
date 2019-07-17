@@ -2,7 +2,7 @@
 
 // Package v1alpha1 contains API Schema definitions for the healthchecking v1alpha1 API group
 // +k8s:deepcopy-gen=package,register
-// +groupName=machineremediation.openshift.io
+// +groupName=machineremediation.kubevirt.io
 package v1alpha1
 
 import (
@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation"
+	"kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation"
 )
 
 // SchemeGroupVersion is group version used to register these objects

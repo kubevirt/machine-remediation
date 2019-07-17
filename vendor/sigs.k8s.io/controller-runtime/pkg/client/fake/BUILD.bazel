@@ -6,7 +6,7 @@ go_library(
         "client.go",
         "doc.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/client/fake",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/client/fake",
     importpath = "sigs.k8s.io/controller-runtime/pkg/client/fake",
     visibility = ["//visibility:public"],
     deps = [

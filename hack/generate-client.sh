@@ -4,8 +4,8 @@ set -e
 
 source $(dirname "$0")/common.sh
 
-OUTPUT_PKG="github.com/openshift/machine-remediation-operator/pkg/client"
-APIS_PKG="github.com/openshift/machine-remediation-operator/pkg/apis"
+OUTPUT_PKG="kubevirt.io/machine-remediation-operator/pkg/client"
+APIS_PKG="kubevirt.io/machine-remediation-operator/pkg/apis"
 APIS_VERSIONS="${APIS_PKG}/machineremediation/v1alpha1"
 CODE_GENERATORS_CMD_DIR=${VENDOR_DIR}/k8s.io/code-generator/cmd
 

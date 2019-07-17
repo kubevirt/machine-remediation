@@ -10,7 +10,7 @@ go_library(
         "main.go",
         "reader.go",
     ],
-    importmap = "github.com/openshift/machine-remediation-operator/vendor/github.com/googleapis/gnostic/compiler",
+    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/googleapis/gnostic/compiler",
     importpath = "github.com/googleapis/gnostic/compiler",
     visibility = ["//visibility:public"],
     deps = [

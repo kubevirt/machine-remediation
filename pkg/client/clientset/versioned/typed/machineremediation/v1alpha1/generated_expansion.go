@@ -23,3 +23,5 @@ type MachineDisruptionBudgetExpansion interface{}
 type MachineHealthCheckExpansion interface{}
 
 type MachineRemediationExpansion interface{}
+
+type MachineRemediationOperatorExpansion interface{}

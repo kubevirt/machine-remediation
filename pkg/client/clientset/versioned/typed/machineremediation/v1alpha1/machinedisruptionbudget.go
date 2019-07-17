@@ -21,12 +21,12 @@ package v1alpha1
 import (
 	"time"
 
-	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	scheme "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
+	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	scheme "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
 )
 
 // MachineDisruptionBudgetsGetter has a method to return a MachineDisruptionBudgetInterface.

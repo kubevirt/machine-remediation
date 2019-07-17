@@ -9,8 +9,9 @@ go_library(
         "machinehealthcheck.go",
         "machineremediation.go",
         "machineremediation_client.go",
+        "machineremediationoperator.go",
     ],
-    importpath = "github.com/openshift/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1",
+    importpath = "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

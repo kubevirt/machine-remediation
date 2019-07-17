@@ -19,13 +19,13 @@
 package fake
 
 import (
-	v1alpha1 "github.com/openshift/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
+	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 )
 
 // FakeMachineDisruptionBudgets implements MachineDisruptionBudgetInterface
@@ -34,9 +34,9 @@ type FakeMachineDisruptionBudgets struct {
 	ns   string
 }
 
-var machinedisruptionbudgetsResource = schema.GroupVersionResource{Group: "machineremediation.openshift.io", Version: "v1alpha1", Resource: "machinedisruptionbudgets"}
+var machinedisruptionbudgetsResource = schema.GroupVersionResource{Group: "machineremediation.kubevirt.io", Version: "v1alpha1", Resource: "machinedisruptionbudgets"}
 
-var machinedisruptionbudgetsKind = schema.GroupVersionKind{Group: "machineremediation.openshift.io", Version: "v1alpha1", Kind: "MachineDisruptionBudget"}
+var machinedisruptionbudgetsKind = schema.GroupVersionKind{Group: "machineremediation.kubevirt.io", Version: "v1alpha1", Kind: "MachineDisruptionBudget"}
 
 // Get takes name of the machineDisruptionBudget, and returns the corresponding machineDisruptionBudget object, and an error if there is any.
 func (c *FakeMachineDisruptionBudgets) Get(name string, options v1.GetOptions) (result *v1alpha1.MachineDisruptionBudget, err error) {
