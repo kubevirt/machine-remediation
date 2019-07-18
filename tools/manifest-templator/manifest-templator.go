@@ -67,7 +67,7 @@ func main() {
 		data.ContainerTag = *containerTag
 		data.ContainerPrefix = *containerPrefix
 		data.ImagePullPolicy = *imagePullPolicy
-		data.Verbosity = fmt.Sprintf("\"%s\"", *verbosity)
+		data.Verbosity = fmt.Sprintf("%s", *verbosity)
 	} else {
 		data.Namespace = "{{.Namespace}}"
 		data.ContainerTag = "{{.ContainerTag}}"

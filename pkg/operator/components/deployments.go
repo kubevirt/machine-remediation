@@ -17,12 +17,16 @@ func getImage(name string, imageRepository string, imageTag string) string {
 }
 
 // NewDeployment returns new deployment object
-func NewDeployment(name string, namespace string, imageRepository string, imageTag string) *appsv1.Deployment {
-	template := newPodTemplateSpec(name, namespace, imageRepository, imageTag)
+func NewDeployment(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy, verbosity string) *appsv1.Deployment {
+	template := newPodTemplateSpec(name, namespace, imageRepository, imageTag, pullPolicy, verbosity)
 
 	return &appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps/v1",
+			Kind:       "Deployment",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-controller", name),
+			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
 				consts.LabelKubeVirt: name,
@@ -40,8 +44,8 @@ func NewDeployment(name string, namespace string, imageRepository string, imageT
 	}
 }
 
-func newPodTemplateSpec(name string, namespace string, imageRepository string, imageTag string) *corev1.PodTemplateSpec {
-	containers := newContainers(name, namespace, imageRepository, imageTag)
+func newPodTemplateSpec(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy, verbosity string) *corev1.PodTemplateSpec {
+	containers := newContainers(name, namespace, imageRepository, imageTag, pullPolicy, verbosity)
 	tolerations := []corev1.Toleration{
 		{
 			Key:    "node-role.kubernetes.io/master",
@@ -72,12 +76,10 @@ func newPodTemplateSpec(name string, namespace string, imageRepository string, i
 			},
 		},
 		Spec: corev1.PodSpec{
-			Containers:        containers,
-			PriorityClassName: "system-node-critical",
-			NodeSelector:      map[string]string{"node-role.kubernetes.io/master": ""},
+			Containers:   containers,
+			NodeSelector: map[string]string{"node-role.kubernetes.io/master": ""},
 			SecurityContext: &corev1.PodSecurityContext{
 				RunAsNonRoot: pointer.BoolPtr(true),
-				RunAsUser:    pointer.Int64Ptr(65534),
 			},
 			ServiceAccountName: name,
 			Tolerations:        tolerations,
@@ -85,7 +87,7 @@ func newPodTemplateSpec(name string, namespace string, imageRepository string, i
 	}
 }
 
-func newContainers(name string, namespace string, imageRepository string, imageTag string) []corev1.Container {
+func newContainers(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy, verbosity string) []corev1.Container {
 	resources := corev1.ResourceRequirements{
 		Requests: map[corev1.ResourceName]resource.Quantity{
 			corev1.ResourceMemory: resource.MustParse("20Mi"),
@@ -94,17 +96,18 @@ func newContainers(name string, namespace string, imageRepository string, imageT
 	}
 	args := []string{
 		"--logtostderr=true",
-		"--v=3",
+		fmt.Sprintf("--v=%s", verbosity),
 		fmt.Sprintf("--namespace=%s", namespace),
 	}
 
 	containers := []corev1.Container{
 		{
-			Name:      fmt.Sprintf("%s-controller", name),
-			Image:     getImage(name, imageRepository, imageTag),
-			Command:   []string{fmt.Sprintf("/usr/bin/%s", name)},
-			Args:      args,
-			Resources: resources,
+			Name:            name,
+			Image:           getImage(name, imageRepository, imageTag),
+			Command:         []string{fmt.Sprintf("/usr/bin/%s", name)},
+			Args:            args,
+			Resources:       resources,
+			ImagePullPolicy: pullPolicy,
 		},
 	}
 	return containers

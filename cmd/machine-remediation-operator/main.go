@@ -7,10 +7,9 @@ import (
 	"github.com/golang/glog"
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/controllers"
-	"kubevirt.io/machine-remediation-operator/pkg/controllers/machinehealthcheck"
+	"kubevirt.io/machine-remediation-operator/pkg/operator"
 	"kubevirt.io/machine-remediation-operator/pkg/version"
 
-	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
@@ -23,7 +22,7 @@ func printVersion() {
 }
 
 func main() {
-	namespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile objects. If unspecified, the controller watches for machine-api objects across all namespaces.")
+	namespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile objects. If unspecified, the controller watches for machine-remediation-operator objects across all namespaces.")
 	flag.Parse()
 
 	printVersion()
@@ -34,14 +33,10 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	opts := manager.Options{
-		LeaderElection:   true,
-		LeaderElectionID: "machine-health-check",
-	}
+	opts := manager.Options{}
 	if *namespace != "" {
-		opts.LeaderElectionNamespace = *namespace
 		opts.Namespace = *namespace
-		glog.Infof("Watching MHC objects only in namespace %q for reconciliation.", opts.Namespace)
+		glog.Infof("Watching MRO objects only in namespace %q for reconciliation.", opts.Namespace)
 	}
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, opts)
@@ -55,12 +50,9 @@ func main() {
 	if err := mrv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
-	if err := mapiv1.AddToScheme(mgr.GetScheme()); err != nil {
-		glog.Fatal(err)
-	}
 
 	// Setup all Controllers
-	if err := controllers.AddToManager(mgr, opts, machinehealthcheck.Add); err != nil {
+	if err := controllers.AddToManager(mgr, opts, operator.Add); err != nil {
 		glog.Fatal(err)
 	}
 

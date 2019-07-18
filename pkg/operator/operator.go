@@ -2,6 +2,8 @@ package operator
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/golang/glog"
 
@@ -23,6 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
+const machineRemediationOperatorFinalizer string = "foregroundDeleteMachineRemediationOperator"
+
 var _ reconcile.Reconciler = &ReconcileMachineRemediationOperator{}
 
 // ReconcileMachineRemediationOperator reconciles a MachineRemediationOperator object
@@ -33,9 +37,9 @@ type ReconcileMachineRemediationOperator struct {
 	namespace string
 }
 
-// AddWithRemediator creates a new MachineRemediationOperator Controller and adds it to the Manager.
+// Add creates a new MachineRemediationOperator Controller and adds it to the Manager.
 // The Manager will set fields on the Controller and start it when the Manager is started.
-func AddWithRemediator(mgr manager.Manager, opts manager.Options) error {
+func Add(mgr manager.Manager, opts manager.Options) error {
 	r, err := newReconciler(mgr, opts)
 	if err != nil {
 		return err
@@ -82,22 +86,66 @@ func (r *ReconcileMachineRemediationOperator) Reconcile(request reconcile.Reques
 		return reconcile.Result{}, err
 	}
 
-	// we do not want to do anything on delete objects
+	// if MachineRemediationObject was deleted, remove all relevant componenets and remove finalizer
 	if mro.DeletionTimestamp != nil {
 		if err := r.deleteComponents(); err != nil {
-
+			return reconcile.Result{}, err
 		}
+
+		mro.Finalizers = nil
+		if err := r.client.Update(context.TODO(), mro); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		return reconcile.Result{}, nil
+	}
+
+	// add finalizer to prevent deletion of MachineRemediationOperator objet
+	if !hasFinalizer(mro) {
+		addFinalizer(mro)
+		if err := r.client.Update(context.TODO(), mro); err != nil {
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
 	}
 
 	if err := r.createOrUpdateComponents(mro); err != nil {
-
+		glog.Errorf("Failed to create components: %v", err)
+		if err := r.statusDegraded(mro, err.Error(), "Failed to create all components"); err != nil {
+			glog.Errorf("Failed to update operator status: %v", err)
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, err
 	}
 
+	for _, component := range components.Components {
+		ready, err := r.isDeploymentReady(component, r.namespace)
+		if err != nil {
+			if err := r.statusProgressing(mro, err.Error(), fmt.Sprintf("Failed to get deployment %q", component)); err != nil {
+				glog.Errorf("Failed to update operator status: %v", err)
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+		}
+
+		if !ready {
+			if err := r.statusProgressing(mro, "Deployment is not ready", fmt.Sprintf("Deployment %q is not ready", component)); err != nil {
+				glog.Errorf("Failed to update operator status: %v", err)
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+		}
+	}
+
+	if err := r.statusAvailable(mro); err != nil {
+		return reconcile.Result{}, err
+	}
 	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1.MachineRemediationOperator) error {
 	for _, component := range components.Components {
+		glog.Infof("Creating objets for component %q", component)
 		if err := r.createOrUpdateServiceAccount(component, r.namespace); err != nil {
 			return err
 		}
@@ -110,7 +158,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 			return err
 		}
 
-		if err := r.createOrUpdateDeployment(component, r.namespace, mro.Spec.ImageRegistry, mro.Spec.ImageTag); err != nil {
+		if err := r.createOrUpdateDeployment(component, r.namespace, mro.Spec.ImageRegistry, mro.Spec.ImageTag, mro.Spec.ImagePullPolicy); err != nil {
 			return err
 		}
 	}
@@ -150,8 +198,8 @@ func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespa
 	return deploy, nil
 }
 
-func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(name string, namespace string, imageRepository string, imageTag string) error {
-	newDeploy := components.NewDeployment(name, namespace, imageRepository, imageTag)
+func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy) error {
+	newDeploy := components.NewDeployment(name, namespace, imageRepository, imageTag, pullPolicy, "4")
 
 	_, err := r.getDeployment(name, namespace)
 	if errors.IsNotFound(err) {
@@ -176,6 +224,20 @@ func (r *ReconcileMachineRemediationOperator) deleteDeployment(name string, name
 		return err
 	}
 	return r.client.Delete(context.TODO(), deploy)
+}
+
+func (r *ReconcileMachineRemediationOperator) isDeploymentReady(name string, namespace string) (bool, error) {
+	d, err := r.getDeployment(name, namespace)
+	if err != nil {
+		return false, err
+	}
+
+	if d.Generation <= d.Status.ObservedGeneration &&
+		d.Status.UpdatedReplicas == d.Status.Replicas &&
+		d.Status.UnavailableReplicas == 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (r *ReconcileMachineRemediationOperator) getServiceAccount(name string, namespace string) (*corev1.ServiceAccount, error) {
@@ -296,4 +358,89 @@ func (r *ReconcileMachineRemediationOperator) deleteClusterRoleBinding(name stri
 		return err
 	}
 	return r.client.Delete(context.TODO(), crb)
+}
+
+func (r *ReconcileMachineRemediationOperator) statusAvailable(mro *mrv1.MachineRemediationOperator) error {
+	now := time.Now()
+	mro.Status.Conditions = []mrv1.MachineRemediationOperatorStatusCondition{
+		{
+			Type:               mrv1.OperatorAvailable,
+			Status:             mrv1.ConditionTrue,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+		{
+			Type:               mrv1.OperatorProgressing,
+			Status:             mrv1.ConditionFalse,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+		{
+			Type:               mrv1.OperatorDegraded,
+			Status:             mrv1.ConditionTrue,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+	}
+	return r.client.Status().Update(context.TODO(), mro)
+}
+
+func (r *ReconcileMachineRemediationOperator) statusDegraded(mro *mrv1.MachineRemediationOperator, reason string, message string) error {
+	now := time.Now()
+	mro.Status.Conditions = []mrv1.MachineRemediationOperatorStatusCondition{
+		{
+			Type:               mrv1.OperatorAvailable,
+			Status:             mrv1.ConditionFalse,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+		{
+			Type:               mrv1.OperatorProgressing,
+			Status:             mrv1.ConditionFalse,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+		{
+			Type:               mrv1.OperatorDegraded,
+			Status:             mrv1.ConditionTrue,
+			LastTransitionTime: metav1.Time{Time: now},
+			Reason:             reason,
+			Message:            message,
+		},
+	}
+	return r.client.Status().Update(context.TODO(), mro)
+}
+
+func (r *ReconcileMachineRemediationOperator) statusProgressing(mro *mrv1.MachineRemediationOperator, reason string, message string) error {
+	now := time.Now()
+	mro.Status.Conditions = []mrv1.MachineRemediationOperatorStatusCondition{
+		{
+			Type:               mrv1.OperatorAvailable,
+			Status:             mrv1.ConditionFalse,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+		{
+			Type:               mrv1.OperatorProgressing,
+			Status:             mrv1.ConditionTrue,
+			LastTransitionTime: metav1.Time{Time: now},
+			Reason:             reason,
+			Message:            message,
+		},
+		{
+			Type:               mrv1.OperatorDegraded,
+			Status:             mrv1.ConditionFalse,
+			LastTransitionTime: metav1.Time{Time: now},
+		},
+	}
+	return r.client.Status().Update(context.TODO(), mro)
+}
+
+func addFinalizer(mro *mrv1.MachineRemediationOperator) {
+	if !hasFinalizer(mro) {
+		mro.Finalizers = append(mro.Finalizers, machineRemediationOperatorFinalizer)
+	}
+}
+
+func hasFinalizer(mro *mrv1.MachineRemediationOperator) bool {
+	for _, f := range mro.GetFinalizers() {
+		if f == machineRemediationOperatorFinalizer {
+			return true
+		}
+	}
+	return false
 }

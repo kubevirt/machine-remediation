@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: machinedisruptionbudgets.machineremediation.openshift.io
+  name: machinedisruptionbudgets.machineremediation.kubevirt.io
 spec:
   additionalPrinterColumns:
   - JSONPath: .status.currentHealthy
@@ -19,7 +19,7 @@ spec:
     description: The desired number of healthy machines
     name: Desired
     type: integer
-  group: machineremediation.openshift.io
+  group: machineremediation.kubevirt.io
   names:
     kind: MachineDisruptionBudget
     plural: machinedisruptionbudgets

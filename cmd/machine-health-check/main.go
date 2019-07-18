@@ -23,7 +23,7 @@ func printVersion() {
 }
 
 func main() {
-	namespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile objects. If unspecified, the controller watches for machine-api objects across all namespaces.")
+	namespace := flag.String("namespace", "", "Namespace that the controller watches to reconcile objects. If unspecified, the controller watches for machine-health-check objects across all namespaces.")
 	flag.Parse()
 
 	printVersion()

@@ -1,8 +1,6 @@
 package components
 
 import (
-	"fmt"
-
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
 
 	corev1 "k8s.io/api/core/v1"
@@ -33,11 +31,12 @@ var (
 				},
 				Resources: []string{
 					"machinedisruptionbudgets",
+					"machinedisruptionbudgets/status",
 				},
 				Verbs: []string{
 					"get",
 					"list",
-					"update/status",
+					"update",
 					"watch",
 				},
 			},
@@ -46,11 +45,21 @@ var (
 					"",
 				},
 				Resources: []string{
-					"configmaps",
 					"nodes",
 				},
 				Verbs: []string{
 					"get",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"configmaps",
+				},
+				Verbs: []string{
+					rbacv1.VerbAll,
 				},
 			},
 			{
@@ -89,12 +98,13 @@ var (
 				},
 				Resources: []string{
 					"machinedisruptionbudgets",
+					"machinedisruptionbudgets/status",
 					"machinehealthcheck",
 				},
 				Verbs: []string{
 					"get",
 					"list",
-					"update/status",
+					"update",
 					"watch",
 				},
 			},
@@ -120,7 +130,7 @@ var (
 					"configmaps",
 				},
 				Verbs: []string{
-					"get",
+					rbacv1.VerbAll,
 				},
 			},
 			{
@@ -191,6 +201,68 @@ var (
 					"update",
 				},
 			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"configmaps",
+				},
+				Verbs: []string{
+					rbacv1.VerbAll,
+				},
+			},
+		},
+		ComponentMachineRemediationOperator: {
+			{
+				APIGroups: []string{
+					"machineremediation.kubevirt.io",
+				},
+				Resources: []string{
+					"machineremediationoperators",
+					"machineremediationoperators/status",
+				},
+				Verbs: []string{
+					"get",
+					"list",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"serviceaccounts",
+				},
+				Verbs: []string{
+					rbacv1.VerbAll,
+				},
+			},
+			{
+				APIGroups: []string{
+					"apps",
+				},
+				Resources: []string{
+					"deployments",
+				},
+				Verbs: []string{
+					rbacv1.VerbAll,
+				},
+			},
+			{
+				APIGroups: []string{
+					"rbac.authorization.k8s.io",
+				},
+				Resources: []string{
+					"clusterroles",
+					"clusterrolebindings",
+				},
+				Verbs: []string{
+					rbacv1.VerbAll,
+				},
+			},
 		},
 	}
 )
@@ -204,7 +276,7 @@ func NewServiceAccount(name string, namespace string) *corev1.ServiceAccount {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      fmt.Sprintf("%s-service-account", name),
+			Name:      name,
 			Labels: map[string]string{
 				consts.LabelKubeVirt: "",
 			},
@@ -220,7 +292,7 @@ func NewClusterRole(name string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole 
 			Kind:       "ClusterRole",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s-cluster-role", name),
+			Name: name,
 			Labels: map[string]string{
 				consts.LabelKubeVirt: "",
 			},
@@ -237,7 +309,7 @@ func NewClusterRoleBinding(name string, namespace string) *rbacv1.ClusterRoleBin
 			Kind:       "ClusterRoleBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s-cluster-role-binding", name),
+			Name: name,
 			Labels: map[string]string{
 				consts.LabelKubeVirt: "",
 			},
@@ -245,13 +317,13 @@ func NewClusterRoleBinding(name string, namespace string) *rbacv1.ClusterRoleBin
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     fmt.Sprintf("%s-cluster-role", name),
+			Name:     name,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
 				Namespace: namespace,
-				Name:      fmt.Sprintf("%s-service-account", name),
+				Name:      name,
 			},
 		},
 	}

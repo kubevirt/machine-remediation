@@ -7,6 +7,8 @@ const (
 	ComponentMachineHealthCheck = "machine-health-check"
 	// ComponentMachineRemediation contains name for MachineRemediation component
 	ComponentMachineRemediation = "machine-remediation"
+	// ComponentMachineRemediationOperator contains name for MachineRemediationOperator component
+	ComponentMachineRemediationOperator = "machine-remediation-operator"
 )
 
 var (

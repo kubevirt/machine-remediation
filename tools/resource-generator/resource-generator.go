@@ -24,14 +24,14 @@ import (
 	"fmt"
 	"os"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 
-	"kubevirt.io/machine-remediation-operator/tools/components"
+	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
 	"kubevirt.io/machine-remediation-operator/tools/utils"
 )
 
 func main() {
-	resourceType := flag.String("type", "", "Type of resource to generate. vmi | vmipreset | vmirs | vm | vmim | kv | rbac")
+	resourceType := flag.String("type", "", "Type of resource to generate.")
 	namespace := flag.String("namespace", "kube-system", "Namespace to use.")
 	repository := flag.String("repository", "kubevirt", "Image Repository to use.")
 	version := flag.String("version", "latest", "version to use.")
@@ -40,15 +40,23 @@ func main() {
 
 	flag.Parse()
 
-	imagePullPolicy := v1.PullPolicy(*pullPolicy)
+	imagePullPolicy := corev1.PullPolicy(*pullPolicy)
 
 	switch *resourceType {
 	case "machine-remediation-operator":
-		operator, err := components.NewOperatorDeployment(*namespace, *repository, *version, imagePullPolicy, *verbosity)
-		if err != nil {
-			panic(fmt.Errorf("error generating machine-health-check-operator deployment %v", err))
+		// create service account for the machine-remediation-operator
+		sa := components.NewServiceAccount(*resourceType, *namespace)
+		utils.MarshallObject(sa, os.Stdout)
 
-		}
+		// create cluster role for the machine-remediation-operator
+		cr := components.NewClusterRole(*resourceType, components.Rules[*resourceType])
+		utils.MarshallObject(cr, os.Stdout)
+
+		// create cluster role binding for the machine-remediation-operator
+		crb := components.NewClusterRoleBinding(*resourceType, *namespace)
+		utils.MarshallObject(crb, os.Stdout)
+
+		operator := components.NewDeployment(*resourceType, *namespace, *repository, *version, imagePullPolicy, *verbosity)
 		utils.MarshallObject(operator, os.Stdout)
 	default:
 		panic(fmt.Errorf("unknown resource type %s", *resourceType))

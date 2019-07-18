@@ -4,9 +4,9 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: machineremediationoperators.machineremediation.openshift.io
+  name: machineremediationoperators.machineremediation.kubevirt.io
 spec:
-  group: machineremediation.openshift.io
+  group: machineremediation.kubevirt.io
   names:
     kind: MachineRemediationOperator
     plural: machineremediationoperators

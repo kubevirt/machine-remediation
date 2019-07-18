@@ -8,10 +8,9 @@ go_library(
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",
         "//pkg/controllers:go_default_library",
-        "//pkg/controllers/machinehealthcheck:go_default_library",
+        "//pkg/operator:go_default_library",
         "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/client/config:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/manager:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/runtime/signals:go_default_library",
@@ -21,5 +20,20 @@ go_library(
 go_binary(
     name = "machine-remediation-operator",
     embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+)
+
+container_image(
+    name = "machine-remediation-operator-image",
+    base = "//:passwd-image",
+    directory = "/usr/bin/",
+    entrypoint = ["/usr/bin/machine-remediation-operator"],
+    files = [":machine-remediation-operator"],
+    user = "65534",
     visibility = ["//visibility:public"],
 )

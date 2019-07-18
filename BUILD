@@ -119,6 +119,7 @@ container_bundle(
         "$(container_prefix)/machine-disruption-budget:$(container_tag)": "//cmd/machine-disruption-budget:machine-disruption-budget-image",
         "$(container_prefix)/machine-health-check:$(container_tag)": "//cmd/machine-health-check:machine-health-check-image",
         "$(container_prefix)/machine-remediation:$(container_tag)": "//cmd/machine-remediation:machine-remediation-image",
+        "$(container_prefix)/machine-remediation-operator:$(container_tag)": "//cmd/machine-remediation-operator:machine-remediation-operator-image",
     },
 )
 

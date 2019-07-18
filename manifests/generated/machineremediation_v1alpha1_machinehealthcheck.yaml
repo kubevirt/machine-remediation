@@ -4,9 +4,9 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: machinehealthchecks.machineremediation.openshift.io
+  name: machinehealthchecks.machineremediation.kubevirt.io
 spec:
-  group: machineremediation.openshift.io
+  group: machineremediation.kubevirt.io
   names:
     kind: MachineHealthCheck
     plural: machinehealthchecks

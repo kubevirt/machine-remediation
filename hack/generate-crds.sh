@@ -14,4 +14,4 @@ CRDS_GENERATORS_CMD_DIR=${VENDOR_DIR}/sigs.k8s.io/controller-tools/cmd
 )
 
 echo "Generating CRD's"
-controller-gen crd --domain openshift.io --output-dir=manifests/generated/
+controller-gen crd --domain kubevirt.io --output-dir=manifests/generated/
