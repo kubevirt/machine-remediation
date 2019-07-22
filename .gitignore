@@ -18,6 +18,9 @@ bazel-machine-remediation-operator/
 bazel-out/
 bazel-testlogs/
 
+# Ignore some bazel files
+.bazelrc
+
 # Ignore tools binaries
 tools/resource-generator/resource-generator
 tools/manifest-templator/manifest-templator
