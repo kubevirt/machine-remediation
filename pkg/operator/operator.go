@@ -375,7 +375,7 @@ func (r *ReconcileMachineRemediationOperator) statusAvailable(mro *mrv1.MachineR
 		},
 		{
 			Type:               mrv1.OperatorDegraded,
-			Status:             mrv1.ConditionTrue,
+			Status:             mrv1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 	}

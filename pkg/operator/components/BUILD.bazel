@@ -5,11 +5,13 @@ go_library(
     srcs = [
         "components.go",
         "deployments.go",
+        "mro.go",
         "rbac.go",
     ],
     importpath = "kubevirt.io/machine-remediation-operator/pkg/operator/components",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
         "//pkg/consts:go_default_library",
         "//vendor/k8s.io/api/apps/v1:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",

@@ -12,6 +12,8 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+const namespaceOpenshiftMachineAPI = "openshift-machine-api"
+
 func getImage(name string, imageRepository string, imageTag string) string {
 	return fmt.Sprintf("%s/%s:%s", imageRepository, name, imageTag)
 }

@@ -455,9 +455,7 @@ func (r *ReconcileMachineDisruption) machineToMachineDisruptionBudget(o handler.
 	machine := &mapiv1.Machine{}
 	key := client.ObjectKey{Namespace: o.Meta.GetNamespace(), Name: o.Meta.GetName()}
 	if err := r.client.Get(context.TODO(), key, machine); err != nil {
-		glog.Errorf("Unable to retrieve Machine %v from store: %v", key, err)
-	} else {
-		glog.Infof("Probably machine %s was deleted, uses a dummy machine to get MDB object", o.Meta.GetName())
+		glog.V(4).Infof("Unable to retrieve Machine %v from store, uses a dummy machine to get MDB object: %v", key, err)
 		machine.Name = o.Meta.GetName()
 		machine.Namespace = o.Meta.GetNamespace()
 		machine.Labels = o.Meta.GetLabels()

@@ -83,7 +83,7 @@ var (
 					"machine.openshift.io",
 				},
 				Resources: []string{
-					"machine",
+					"machines",
 				},
 				Verbs: []string{
 					"delete",
@@ -99,7 +99,7 @@ var (
 				Resources: []string{
 					"machinedisruptionbudgets",
 					"machinedisruptionbudgets/status",
-					"machinehealthcheck",
+					"machinehealthchecks",
 				},
 				Verbs: []string{
 					"get",
@@ -113,7 +113,7 @@ var (
 					"machineremediation.kubevirt.io",
 				},
 				Resources: []string{
-					"machineremediation",
+					"machineremediations",
 				},
 				Verbs: []string{
 					"create",
@@ -153,7 +153,7 @@ var (
 					"machine.openshift.io",
 				},
 				Resources: []string{
-					"machine",
+					"machines",
 				},
 				Verbs: []string{
 					"get",

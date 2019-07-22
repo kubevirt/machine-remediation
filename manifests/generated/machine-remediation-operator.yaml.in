@@ -109,3 +109,15 @@ spec:
         key: node.kubernetes.io/unreachable
         operator: Exists
         tolerationSeconds: 120
+---
+apiVersion: machineremediation.kubevirt.io/v1alpha1
+kind: MachineRemediationOperator
+metadata:
+  labels:
+    kubevirt.io: machine-remediation-operator
+  name: machine-remediation-operator
+  namespace: {{.Namespace}}
+spec:
+  imagePullPolicy: {{.ImagePullPolicy}}
+  imageRegistry: {{.ContainerPrefix}}
+  imageTag: {{.ContainerTag}}

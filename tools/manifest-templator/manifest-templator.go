@@ -49,6 +49,7 @@ func main() {
 	inputFile := flag.String("input-file", "", "")
 	processFiles := flag.Bool("process-files", false, "")
 	processVars := flag.Bool("process-vars", false, "")
+	
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.CommandLine.ParseErrorsWhitelist.UnknownFlags = true

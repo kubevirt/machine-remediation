@@ -56,8 +56,13 @@ func main() {
 		crb := components.NewClusterRoleBinding(*resourceType, *namespace)
 		utils.MarshallObject(crb, os.Stdout)
 
+		// create operator deployment
 		operator := components.NewDeployment(*resourceType, *namespace, *repository, *version, imagePullPolicy, *verbosity)
 		utils.MarshallObject(operator, os.Stdout)
+
+		// create operator CR
+		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, *version, imagePullPolicy)
+		utils.MarshallObject(mro, os.Stdout)
 	default:
 		panic(fmt.Errorf("unknown resource type %s", *resourceType))
 	}
