@@ -14,13 +14,13 @@ script:
 - make bazel-tests
 deploy:
 - provider: script
-  script: hack/dockerized "docker login -u=${DOCKER_USER} -p=${DOCKER_PASSWORD}" &&
+  script: docker login -u=${DOCKER_USER} -p=${DOCKER_PASSWORD} &&
     CONTAINER_PREFIX=index.docker.io/kubevirt CONTAINER_TAG=latest make bazel-push-images
   skip_cleanup: true
   on:
     branch: master
 - provider: script
-  script: hack/dockerized "docker login -u=${DOCKER_USER} -p=${DOCKER_PASSWORD}" &&
+  script: docker login -u=${DOCKER_USER} -p=${DOCKER_PASSWORD} &&
     CONTAINER_PREFIX=index.docker.io/kubevirt CONTAINER_TAG=$TRAVIS_TAG make bazel-push-images
   skip_cleanup: true
   file: 
