@@ -15,3 +15,14 @@ MANIFESTS_OUT_DIR=$OUT_DIR/manifests
 
 BUILDER_REPO_DIR=/root/go/src/kubevirt.io/machine-remediation-operator
 BUILDER_OUT_DIR=$BUILDER_REPO_DIR/_out
+
+function version() {
+    if [ -n "${REPO_VERSION}" ]; then
+        echo ${REPO_VERSION}
+    elif [ -d ${REPO_DIR}/.git ]; then
+        echo "$(git describe --always --tags)"
+    else
+        echo "undefined"
+    fi
+}
+REPO_VERSION="$(version)"
