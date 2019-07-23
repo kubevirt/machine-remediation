@@ -4,7 +4,7 @@ FROM fedora@sha256:9c78c69f748953ba8fdb6eb9982e1abefe281d9b931a13f251eb8aec98835
 RUN dnf install -y dnf-plugins-core && \
 dnf copr enable -y vbatts/bazel && \
 dnf -y install \
-bazel-0.26.0-2.fc30 \
+bazel \
 cpio \
 patch \
 make \
