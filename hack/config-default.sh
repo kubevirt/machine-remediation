@@ -1,4 +1,4 @@
-container_prefix=${CONTAINER_PREFIX:-index.docker.io/alukiano}
+container_prefix=${CONTAINER_PREFIX:-index.docker.io/kubevirt}
 container_tag=${CONTAINER_TAG:-latest}
 namespace=openshift-machine-api
 image_pull_policy=${IMAGE_PULL_POLICY:-IfNotPresent}
