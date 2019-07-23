@@ -18,6 +18,9 @@ common --noshow_progress --noshow_loading_progress
 EOF
 fi
 
+# Pull cache container
+docker pull ${BUILDER_IMAGE}
+
 # Build the build container
 (cd ${BUILDER_DIR} && docker build . --cache-from ${BUILDER_IMAGE} -t ${BUILDER})
 
