@@ -25,4 +25,13 @@ go_test(
     name = "go_default_test",
     srcs = ["machineremediation_controller_test.go"],
     embed = [":go_default_library"],
+    deps = [
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//pkg/utils/testing:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/client/fake:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/reconcile:go_default_library",
+    ],
 )
