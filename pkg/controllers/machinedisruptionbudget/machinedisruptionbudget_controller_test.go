@@ -1,13 +1,13 @@
 package disruption
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	"github.com/stretchr/testify/assert"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,6 +15,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -741,4 +744,28 @@ func TestRepeatCheckAndDecrement(t *testing.T) {
 			t.Errorf("Test case: %s. Expected: %s error, got: %v", tc.testName, errorExpectation, err)
 		}
 	}
+}
+
+func TestRetryDecrementMachineDisruptionsAllowedOverTheSameMachine(t *testing.T) {
+	node := mrotesting.NewNode("node", true, "")
+	machine := mrotesting.NewMachine("machine", node.Name, "")
+
+	mdb := mrotesting.NewMinAvailableMachineDisruptionBudget(1)
+	mdb.Status.MachineDisruptionsAllowed = 2
+
+	fakeClient := fake.NewFakeClient(mdb)
+
+	newMdb := &mrv1.MachineDisruptionBudget{}
+
+	// disruption is allowed
+	assert.NoError(t, RetryDecrementMachineDisruptionsAllowed(fakeClient, machine))
+	assert.NoError(t, fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: mdb.Namespace, Name: mdb.Name}, newMdb))
+	assert.Equal(t, int32(1), newMdb.Status.MachineDisruptionsAllowed)
+	assert.Contains(t, newMdb.Status.DisruptedMachines, machine.Name)
+
+	// MachineDisruptionsAllowed is not decrement twice for the same machine
+	assert.NoError(t, RetryDecrementMachineDisruptionsAllowed(fakeClient, machine))
+	assert.NoError(t, fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: mdb.Namespace, Name: mdb.Name}, newMdb))
+	assert.Equal(t, int32(1), newMdb.Status.MachineDisruptionsAllowed)
+	assert.Contains(t, newMdb.Status.DisruptedMachines, machine.Name)
 }

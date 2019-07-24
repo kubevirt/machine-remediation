@@ -9,15 +9,14 @@ require (
 	github.com/metal3-io/baremetal-operator v0.0.0-20190705194231-6d5a9e11b6d0
 	github.com/openshift/cluster-api v0.0.0-20190503193905-cad0f8326cd2 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
-	github.com/spf13/afero v1.2.2
 	github.com/spf13/pflag v1.0.3
+	github.com/stretchr/testify v1.3.0
 	go.uber.org/zap v1.10.0 // indirect
 	k8s.io/api v0.0.0-20190627205229-acea843d18eb
-	k8s.io/apiextensions-apiserver v0.0.0-20190629010545-2d36bfd0ff86
+	k8s.io/apiextensions-apiserver v0.0.0-20190629010545-2d36bfd0ff86 // indirect
 	k8s.io/apimachinery v0.0.0-20190629125103-05b5762916b3
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/code-generator v0.0.0-20190627204931-86aa6a6a5cf3
-	k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6
 	k8s.io/klog v0.3.3 // indirect
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a
 	sigs.k8s.io/cluster-api v0.1.4

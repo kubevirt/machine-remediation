@@ -62,6 +62,8 @@ github.com/openshift/cluster-api/pkg/apis/machine/common
 github.com/pborman/uuid
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/prometheus/client_golang v1.0.0
 github.com/prometheus/client_golang/prometheus/promhttp
 github.com/prometheus/client_golang/prometheus
@@ -82,6 +84,8 @@ github.com/spf13/afero/mem
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
+# github.com/stretchr/testify v1.3.0
+github.com/stretchr/testify/assert
 # golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
@@ -98,10 +102,10 @@ golang.org/x/oauth2/internal
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.0
-golang.org/x/text/transform
-golang.org/x/text/unicode/norm
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+golang.org/x/text/transform
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
 # golang.org/x/tools v0.0.0-20181011042414-1f849cf54d09
@@ -296,10 +300,10 @@ k8s.io/code-generator/cmd/client-gen/path
 k8s.io/code-generator/pkg/namer
 # k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6
 k8s.io/gengo/args
-k8s.io/gengo/types
 k8s.io/gengo/examples/deepcopy-gen/generators
 k8s.io/gengo/generator
 k8s.io/gengo/namer
+k8s.io/gengo/types
 k8s.io/gengo/parser
 k8s.io/gengo/examples/set-gen/sets
 # k8s.io/klog v0.3.3
@@ -349,13 +353,13 @@ sigs.k8s.io/controller-runtime/pkg/internal/objectutil
 sigs.k8s.io/controller-runtime/pkg/internal/controller/metrics
 # sigs.k8s.io/controller-tools v0.1.11
 sigs.k8s.io/controller-tools/cmd/controller-gen
+sigs.k8s.io/controller-tools/pkg/crd/generator
+sigs.k8s.io/controller-tools/pkg/rbac
+sigs.k8s.io/controller-tools/pkg/webhook
 sigs.k8s.io/controller-tools/pkg/crd/util
 sigs.k8s.io/controller-tools/pkg/internal/codegen
 sigs.k8s.io/controller-tools/pkg/internal/codegen/parse
 sigs.k8s.io/controller-tools/pkg/util
-sigs.k8s.io/controller-tools/pkg/crd/generator
-sigs.k8s.io/controller-tools/pkg/rbac
-sigs.k8s.io/controller-tools/pkg/webhook
 sigs.k8s.io/controller-tools/pkg/internal/general
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
