@@ -201,17 +201,25 @@ func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespa
 func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy) error {
 	newDeploy := components.NewDeployment(name, namespace, imageRepository, imageTag, pullPolicy, "4")
 
-	_, err := r.getDeployment(name, namespace)
+	oldDeploy, err := r.getDeployment(name, namespace)
 	if errors.IsNotFound(err) {
 		if err := r.client.Create(context.TODO(), newDeploy); err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if err != nil {
 		return err
 	}
 
+	// do not override some user specific configuration
+	newDeploy.Annotations = oldDeploy.Annotations
+	newDeploy.Labels = oldDeploy.Labels
+	newDeploy.Spec.Replicas = oldDeploy.Spec.Replicas
+
+	// do not update the status, deployment controller one who responsible to update it
+	newDeploy.Status = oldDeploy.Status
 	return r.client.Update(context.TODO(), newDeploy)
 }
 
@@ -231,8 +239,8 @@ func (r *ReconcileMachineRemediationOperator) isDeploymentReady(name string, nam
 	if err != nil {
 		return false, err
 	}
-
 	if d.Generation <= d.Status.ObservedGeneration &&
+		d.Status.Replicas == *d.Spec.Replicas &&
 		d.Status.UpdatedReplicas == d.Status.Replicas &&
 		d.Status.UnavailableReplicas == 0 {
 		return true, nil
@@ -260,6 +268,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateServiceAccount(name 
 		if err := r.client.Create(context.TODO(), newServiceAccount); err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if err != nil {
@@ -300,6 +309,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateClusterRole(name str
 		if err := r.client.Create(context.TODO(), newClusterRole); err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if err != nil {
@@ -340,6 +350,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateClusterRoleBinding(n
 		if err := r.client.Create(context.TODO(), newClusterRoleBinding); err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if err != nil {
@@ -437,7 +448,7 @@ func addFinalizer(mro *mrv1.MachineRemediationOperator) {
 }
 
 func hasFinalizer(mro *mrv1.MachineRemediationOperator) bool {
-	for _, f := range mro.GetFinalizers() {
+	for _, f := range mro.Finalizers {
 		if f == machineRemediationOperatorFinalizer {
 			return true
 		}
