@@ -6,7 +6,7 @@ source $(dirname "$0")/common.sh
 
 BUILDER_DIR=${REPO_DIR}/hack/builder
 BUILDER=${JOB_NAME:-mro-builder}${EXECUTOR_NUMBER}
-BUILDER_IMAGE="docker.io/alukiano/mro-builder@sha256:fddb208509e63067924f89ece8514cd0538eeb24d5a359af503648ec8471c7c8"
+BUILDER_IMAGE="docker.io/alukiano/mro-builder@sha256:8f55a1034d7595a4c5582d235a702e7e658e2c80ce57dd727c8c1a9a5c92a1a0"
 
 SYNC_OUT=${SYNC_OUT:-true}
 SYNC_VENDOR=${SYNC_VENDOR:-false}

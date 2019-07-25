@@ -36,20 +36,20 @@ generate: generate-clean generate-crds generate-client generate-templates genera
 
 .PHONY: generate-clean
 generate-clean:
-	./hack/dockerized "./hack/generate-clean.sh"
+	./hack/dockerized "./hack/generate/clean.sh"
 
 .PHONY: generate-crds
 generate-crds:
-	./hack/dockerized "./hack/generate-crds.sh"
+	./hack/dockerized "./hack/generate/crds.sh"
 
 .PHONY: generate-client
 generate-client:
-	./hack/dockerized "./hack/generate-client.sh"
+	./hack/dockerized "./hack/generate/client.sh"
 
 .PHONY: generate-manifests
 generate-manifests: generate-templates
-	./hack/dockerized "./hack/generate-manifests.sh"
+	./hack/dockerized "./hack/generate/manifests.sh"
 
 .PHONY: generate-templates
 generate-templates:
-	./hack/dockerized "./hack/generate-templates.sh"
+	./hack/dockerized "./hack/generate/templates.sh"

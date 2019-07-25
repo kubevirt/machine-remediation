@@ -4,7 +4,7 @@ FROM fedora@sha256:9c78c69f748953ba8fdb6eb9982e1abefe281d9b931a13f251eb8aec98835
 RUN dnf install -y dnf-plugins-core && \
 dnf copr enable -y vbatts/bazel && \
 dnf -y install \
-bazel-0.26.0-2.fc30 \
+bazel \
 cpio \
 patch \
 make \
@@ -33,7 +33,9 @@ git clone https://github.com/mvdan/sh.git $GOPATH/src/mvdan.cc/sh && \
 cd $GOPATH/src/mvdan.cc/sh/cmd/shfmt && \
 git checkout v2.5.0 && \
 go get mvdan.cc/sh/cmd/shfmt && \
-go install
+go install && \
+# install ginkgo
+go get -u github.com/onsi/ginkgo/ginkgo
 
 COPY rsyncd.conf /etc/rsyncd.conf
 
