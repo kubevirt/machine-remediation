@@ -2,7 +2,7 @@
 
 set -e
 
-source $(dirname "$0")/common.sh
+source $(dirname "$0")/../common.sh
 
 (cd ${REPO_DIR}/tools/resource-generator/ && go install)
 resource-generator --type=machine-remediation-operator --namespace={{.Namespace}} --repository={{.ContainerPrefix}} --version={{.ContainerTag}} --pullPolicy={{.ImagePullPolicy}} --verbosity={{.Verbosity}} >${REPO_DIR}/manifests/generated/machine-remediation-operator.yaml.in

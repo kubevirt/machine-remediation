@@ -2,7 +2,7 @@
 
 set -e
 
-source $(dirname "$0")/common.sh
+source $(dirname "$0")/../common.sh
 
 # remove generate manifests
 rm -rf ${REPO_DIR}/manifests/generated/*

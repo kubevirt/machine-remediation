@@ -2,7 +2,7 @@
 
 set -e
 
-source $(dirname "$0")/common.sh
+source $(dirname "$0")/../common.sh
 
 OUTPUT_PKG="kubevirt.io/machine-remediation-operator/pkg/client"
 APIS_PKG="kubevirt.io/machine-remediation-operator/pkg/apis"

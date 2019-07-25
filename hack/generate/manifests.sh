@@ -2,8 +2,8 @@
 
 set -e
 
-source hack/common.sh
-source hack/config.sh
+source $(dirname "$0")/../common.sh
+source $(dirname "$0")/../config.sh
 
 manifest_container_prefix=${manifest_container_prefix-${container_prefix}}
 

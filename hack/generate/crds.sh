@@ -2,7 +2,7 @@
 
 set -e
 
-source $(dirname "$0")/common.sh
+source $(dirname "$0")/../common.sh
 
 CRDS_GENERATORS_CMD_DIR=${VENDOR_DIR}/sigs.k8s.io/controller-tools/cmd
 
