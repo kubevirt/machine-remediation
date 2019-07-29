@@ -54,6 +54,7 @@ spec:
                 one can prevent all voluntary deletions by specifying 0. This is a
                 mutually exclusive setting with "minAvailable".
               format: int32
+              minimum: 0
               type: integer
             minAvailable:
               description: An deletion of the machine is allowed if at least "minAvailable"
@@ -65,6 +66,7 @@ spec:
             selector:
               description: Label query over machines whose deletions are managed by
                 the disruption budget.
+              minimum: 0
               type: object
           type: object
         status:

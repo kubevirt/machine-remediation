@@ -15,6 +15,7 @@ type MachineDisruptionBudgetSpec struct {
 	// Label query over machines whose deletions are managed by the disruption
 	// budget.
 	// +optional
+	// +kubebuilder:validation:Minimum=0
 	Selector *metav1.LabelSelector `json:"selector,omitempty" protobuf:"bytes,2,opt,name=selector"`
 
 	// An deletion is allowed if at most "maxUnavailable" machines selected by
@@ -22,6 +23,7 @@ type MachineDisruptionBudgetSpec struct {
 	// For example, one can prevent all voluntary deletions by specifying 0.
 	// This is a mutually exclusive setting with "minAvailable".
 	// +optional
+	// +kubebuilder:validation:Minimum=0
 	MaxUnavailable *int32 `json:"maxUnavailable,omitempty" protobuf:"bytes,3,opt,name=maxUnavailable"`
 }
 

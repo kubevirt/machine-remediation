@@ -24,7 +24,6 @@ kubectl apply -f https://github.com/kubevirt/machine-remediation-operator/releas
 
 After just wait until the operator will deploy all components.
 
-
 ## How to run e2e tests
 
 You should have k8s or OpenShift environment with at least two worker nodes and run:
