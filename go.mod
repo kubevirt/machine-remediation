@@ -7,6 +7,8 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/markbates/inflect v1.0.4 // indirect
 	github.com/metal3-io/baremetal-operator v0.0.0-20190705194231-6d5a9e11b6d0
+	github.com/onsi/ginkgo v1.6.0
+	github.com/onsi/gomega v1.4.2
 	github.com/openshift/cluster-api v0.0.0-20190503193905-cad0f8326cd2 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.3

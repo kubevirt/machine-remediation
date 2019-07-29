@@ -53,3 +53,11 @@ generate-manifests: generate-templates
 .PHONY: generate-templates
 generate-templates:
 	./hack/dockerized "./hack/generate/templates.sh"
+
+.PHONY: e2e-tests-build
+e2e-tests-build:
+	./hack/dockerized "./hack/testing/build.sh"
+
+.PHONY: e2e-tests-run
+e2e-tests-run: e2e-tests-build
+	./hack/testing/run.sh

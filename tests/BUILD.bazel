@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "machinedisruptionbudget.go",
+        "machinehealthcheck.go",
+    ],
+    importpath = "kubevirt.io/machine-remediation-operator/tests",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//pkg/utils/conditions:go_default_library",
+        "//tests/utils:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/github.com/onsi/ginkgo:go_default_library",
+        "//vendor/github.com/onsi/gomega:go_default_library",
+        "//vendor/k8s.io/api/core/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/client:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["e2e_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//tests/utils:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1:go_default_library",
+        "//vendor/github.com/onsi/ginkgo:go_default_library",
+        "//vendor/github.com/onsi/gomega:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
+        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
+    ],
+)
