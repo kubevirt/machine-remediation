@@ -1,0 +1,93 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: machine-remediation-operator.{{.CsvVersion}}
+  namespace: placeholder
+  annotations:
+    capabilities: "Full Lifecycle"
+    categories: "Cluster"
+    alm-examples: |
+      [
+        {
+          "apiVersion":"machinehealthchecks.machineremediation.kubevirt.io/v1alpha1",
+          "kind":"MachineHealthCheck",
+          "metadata": {
+            "name":"cluster"
+          },
+          "spec": {
+            "selector": {
+              "matchLabels": {
+                 "machine.openshift.io/cluster-api-cluster": "cluster",
+                 "machine.openshift.io/cluster-api-machine-role": "worker",
+                 "machine.openshift.io/cluster-api-machine-type": "worker",
+                 "machine.openshift.io/cluster-api-machineset": "<machineset>"
+              }
+            },
+            "imagePullPolicy": "IfNotPresent"
+          }
+        }
+      ]
+    description: 'Provides all components to apply different remediation
+      strategies on an unhealthy machine'
+spec:
+  displayName: Machine Remediation
+  description: Deploy additional networking components for Kubernetes
+  keywords:
+    - Cluster
+    - Machine
+    - Remediation
+    - Health-check
+  version: {{.CsvVersion}}
+  maturity: alpha
+  maintainers:
+    - name: <TODO>
+      email: <TODO>
+  provider:
+    name: <TODO>
+  links:
+    - name: Source Code
+      url: https://github.com/kubevirt/machine-remediation-operator
+  icon: []
+  labels:
+    alm-owner-kubevirt: machine-remediation
+    operated-by: machine-remediation
+  selector:
+    matchLabels:
+      alm-owner-kubevirt: machine-remediation
+      operated-by: machine-remediation
+  installModes:
+    - type: OwnNamespace
+      supported: true
+    - type: SingleNamespace
+      supported: true
+    - type: MultiNamespace
+      supported: true
+    - type: AllNamespaces
+      supported: true
+  install:
+    strategy: deployment
+    spec:
+      permissions:
+        - serviceAccountName: machine-remediation-operator
+{{.OperatorRules}}
+      deployments:
+        - name: machine-remediation-operator
+          spec:
+{{.OperatorDeploymentSpec}}
+  customresourcedefinitions:
+    owned:
+      - name: machinedisruptionbudgets.machineremediation.kubevirt.io
+        version: v1alpha1
+        kind: MachineDisruptionBudget
+        displayName: Machine Disruption Budget
+        description: Machine Disruption Budget
+      - name: machinehealthchecks.machineremediation.kubevirt.io
+        version: v1alpha1
+        kind: MachineHealthCheck
+        displayName: Machine Health Check
+        description: Machine Health Check
+      - name: machineremediations.machineremediation.kubevirt.io
+        version: v1alpha1
+        kind: MachineRemediation
+        displayName: Machine Remediation
+        description: Machine Remediation

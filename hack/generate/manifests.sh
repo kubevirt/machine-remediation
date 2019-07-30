@@ -40,6 +40,7 @@ for arg in $args; do
         --container-tag=${container_tag} \
         --image-pull-policy=${image_pull_policy} \
         --verbosity=${verbosity} \
+        --csv-version=0.0.1 \
         --input-file=${infile} >${outfile}
 done
 
