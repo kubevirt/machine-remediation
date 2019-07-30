@@ -59,7 +59,7 @@ func main() {
 		// create operator deployment
 		operator := components.NewDeployment(*resourceType, *namespace, *repository, *version, imagePullPolicy, *verbosity)
 		utils.MarshallObject(operator, os.Stdout)
-
+	case "machine-remediation-operator-cr":
 		// create operator CR
 		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, *version, imagePullPolicy)
 		utils.MarshallObject(mro, os.Stdout)

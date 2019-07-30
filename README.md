@@ -20,6 +20,7 @@ You can check the [GitHub releases](https://github.com/kubevirt/machine-remediat
 
 ```bash
 kubectl apply -f https://github.com/kubevirt/machine-remediation-operator/releases/download/v0.3.3/machine-remediation-operator.yaml
+kubectl apply -f https://github.com/kubevirt/machine-remediation-operator/releases/download/v0.3.3/machine-remediation-operator-cr.yaml
 ```
 
 After just wait until the operator will deploy all components.

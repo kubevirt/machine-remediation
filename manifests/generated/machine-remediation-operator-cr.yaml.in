@@ -1,0 +1,12 @@
+---
+apiVersion: machineremediation.kubevirt.io/v1alpha1
+kind: MachineRemediationOperator
+metadata:
+  labels:
+    kubevirt.io: machine-remediation-operator-cr
+  name: machine-remediation-operator-cr
+  namespace: {{.Namespace}}
+spec:
+  imagePullPolicy: {{.ImagePullPolicy}}
+  imageRegistry: {{.ContainerPrefix}}
+  imageTag: {{.ContainerTag}}
