@@ -35,6 +35,9 @@ func NewDeployment(name string, namespace string, imageRepository string, imageT
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
+			Strategy: appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
+			},
 			Replicas: pointer.Int32Ptr(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
@@ -110,6 +113,12 @@ func newContainers(name string, namespace string, imageRepository string, imageT
 			Args:            args,
 			Resources:       resources,
 			ImagePullPolicy: pullPolicy,
+			Env: []corev1.EnvVar{
+				{
+					Name:  EnvVarOperatorVersion,
+					Value: imageTag,
+				},
+			},
 		},
 	}
 	return containers

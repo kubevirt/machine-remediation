@@ -4,7 +4,7 @@ kind: MachineRemediationOperator
 metadata:
   labels:
     kubevirt.io: machine-remediation-operator-cr
-  name: machine-remediation-operator-cr
+  name: mro
   namespace: {{.Namespace}}
 spec:
   imagePullPolicy: {{.ImagePullPolicy}}

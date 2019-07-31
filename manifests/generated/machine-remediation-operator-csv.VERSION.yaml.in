@@ -1,0 +1,190 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion":"machineremediation.kubevirt.io/v1alpha1",
+          "kind":"MachineRemediationOperator",
+          "metadata": {
+            "name":"mro",
+            "namespace":"openshift-machine-api"
+          },
+          "spec": {
+            "imagePullPolicy":"IfNotPresent",
+            "imageRegistry":"index.docker.io/kubevirt",
+            "imageTag":"v0.3.3"
+          }
+        }
+      ]
+    capabilities: Full Lifecycle
+    categories: OpenShift Optional
+    certified: "false"
+    containerImage: {{.ContainerPrefix}}/machine-remediation-operator:{{.ContainerTag}}
+    createdAt: ""
+    description: Deploys components to monitor and remediate unhealthy machines
+    repository: https://github.com/kubevirt/machine-remediation-operator
+    support: KubeVirt
+  name: machine-remediation-operator.{{.CSVVersion}}
+  namespace: {{.Namespace}}
+spec:
+  customresourcedefinitions:
+    owned:
+    - description: Represents a Machine Remediation Operator deployment
+      displayName: Machine Remediation Operator deployment
+      kind: MachineRemediationOperator
+      name: machineremediationoperators.machineremediation.kubevirt.io
+      specDescriptors:
+      - description: The ImagePullPolicy to use for the Machine Remediation components.
+        displayName: ImagePullPolicy
+        path: imagePullPolicy
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:imagePullPolicy
+      - description: The ImageRegistry to use for the Machine Remediation components.
+        displayName: ImageRegistry
+        path: imageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:text
+      - description: The ImageTag to use for the Machine Remediation components.
+        displayName: ImageTag
+        path: imageTag
+        x-descriptors:
+        - urn:alm:descriptor:text
+      statusDescriptors:
+      - description: Explanation for the current status of the cluster.
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      version: v1alpha1
+  description: |-
+    The **machine remediation operator** deploys components to monitor and remediate unhealthy machines for different platforms, it works on top of cluster-api controllers.
+
+    It should deploy three controllers:
+
+    * [machine-health-check](https://github.com/kubevirt/machine-remediation-operator/blob/master/docs/machine-health-check.md) controller
+    * [machine-disruption-budget](https://github.com/kubevirt/machine-remediation-operator/blob/master/docs/machine-disruption-budget.md) controller
+    * [machine-remediation](https://github.com/kubevirt/machine-remediation-operator/blob/master/docs/machine-remediation.md) controller
+  displayName: Machine Remediation Operator
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - machineremediation.kubevirt.io
+          resources:
+          - machineremediationoperators
+          - machineremediationoperators/status
+          verbs:
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - serviceaccounts
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          verbs:
+          - '*'
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          - clusterrolebindings
+          verbs:
+          - '*'
+        serviceAccountName: machine-remediation-operator
+      deployments:
+      - name: machine-remediation-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              kubevirt.io: machine-remediation-operator
+          strategy:
+            type: RollingUpdate
+          template:
+            metadata:
+              creationTimestamp: null
+              labels:
+                kubevirt.io: machine-remediation-operator
+            spec:
+              containers:
+              - args:
+                - --logtostderr=true
+                - --v={{.Verbosity}}
+                - --namespace={{.Namespace}}
+                command:
+                - /usr/bin/machine-remediation-operator
+                env:
+                - name: OPERATOR_VERSION
+                  value: {{.ContainerTag}}
+                image: {{.ContainerPrefix}}/machine-remediation-operator:{{.ContainerTag}}
+                imagePullPolicy: {{.ImagePullPolicy}}
+                name: machine-remediation-operator
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 20Mi
+              nodeSelector:
+                node-role.kubernetes.io/master: ""
+              securityContext:
+                runAsNonRoot: true
+              serviceAccountName: machine-remediation-operator
+              tolerations:
+              - effect: NoSchedule
+                key: node-role.kubernetes.io/master
+              - key: CriticalAddonsOnly
+                operator: Exists
+              - effect: NoExecute
+                key: node.kubernetes.io/not-ready
+                operator: Exists
+                tolerationSeconds: 120
+              - effect: NoExecute
+                key: node.kubernetes.io/unreachable
+                operator: Exists
+                tolerationSeconds: 120
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: false
+    type: AllNamespaces
+  keywords:
+  - remediation
+  - fencing
+  - HA
+  - health
+  - cluster-api
+  labels:
+    alm-owner-kubevirt: machineremediationoperator
+    operated-by: machineremediationoperator
+  links:
+  - name: KubeVirt
+    url: https://kubevirt.io
+  - name: Source Code
+    url: https://github.com/kubevirt/machine-remediation-operator
+  maintainers:
+  - email: kubevirt-dev@googlegroups.com
+    name: KubeVirt project
+  maturity: alpha
+  provider:
+    name: Machine Remediation Operator project
+  replaces: machine-remediation-operator.{{.CSVPreviousVersion}}
+  selector:
+    matchLabels:
+      alm-owner-kubevirt: machineremediationoperator
+      operated-by: machineremediationoperator
+  version: {{.CSVVersion}}

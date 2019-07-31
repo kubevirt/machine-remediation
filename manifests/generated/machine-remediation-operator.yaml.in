@@ -71,7 +71,8 @@ spec:
   selector:
     matchLabels:
       kubevirt.io: machine-remediation-operator
-  strategy: {}
+  strategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -84,6 +85,9 @@ spec:
         - --namespace={{.Namespace}}
         command:
         - /usr/bin/machine-remediation-operator
+        env:
+        - name: OPERATOR_VERSION
+          value: {{.ContainerTag}}
         image: {{.ContainerPrefix}}/machine-remediation-operator:{{.ContainerTag}}
         imagePullPolicy: {{.ImagePullPolicy}}
         name: machine-remediation-operator

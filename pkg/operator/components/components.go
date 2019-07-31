@@ -19,3 +19,8 @@ var (
 		ComponentMachineRemediation,
 	}
 )
+
+const (
+	// EnvVarOperatorVersion contains the name of operator version environment variable
+	EnvVarOperatorVersion = "OPERATOR_VERSION"
+)

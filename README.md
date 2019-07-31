@@ -6,13 +6,13 @@
 
 ## Architecture
 
-The machine remediation operator deploys fencing controllers to provide remediation solution for different platforms, it works on top of cluster-api controllers.
+The machine remediation operator deploys components to monitor and remediate unhealthy machines for different platforms, it works on top of cluster-api controllers.
 
 It should deploy three controllers:
 
-- [machine-health-check](docs/machine-health-check.md) controller
-- [machine-disruption-budget](docs/machine-disruption-budget.md) controller
-- [machine-remediation](docs/machine-remediation.md) controller
+* [machine-health-check](docs/machine-health-check.md) controller
+* [machine-disruption-budget](docs/machine-disruption-budget.md) controller
+* [machine-remediation](docs/machine-remediation.md) controller
 
 ## How to deploy
 
