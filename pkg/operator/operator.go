@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang/glog"
@@ -33,8 +34,9 @@ var _ reconcile.Reconciler = &ReconcileMachineRemediationOperator{}
 type ReconcileMachineRemediationOperator struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client    client.Client
-	namespace string
+	client          client.Client
+	namespace       string
+	operatorVersion string
 }
 
 // Add creates a new MachineRemediationOperator Controller and adds it to the Manager.
@@ -49,8 +51,9 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 
 func newReconciler(mgr manager.Manager, opts manager.Options) (reconcile.Reconciler, error) {
 	return &ReconcileMachineRemediationOperator{
-		client:    mgr.GetClient(),
-		namespace: opts.Namespace,
+		client:          mgr.GetClient(),
+		namespace:       opts.Namespace,
+		operatorVersion: os.Getenv(components.EnvVarOperatorVersion),
 	}, nil
 }
 
@@ -158,7 +161,14 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 			return err
 		}
 
-		if err := r.createOrUpdateDeployment(component, r.namespace, mro.Spec.ImageRegistry, mro.Spec.ImageTag, mro.Spec.ImagePullPolicy); err != nil {
+		deployData := &components.DeploymentData{
+			Name:            component,
+			Namespace:       r.namespace,
+			ImageRepository: mro.Spec.ImageRegistry,
+			PullPolicy:      mro.Spec.ImagePullPolicy,
+			OperatorVersion: r.operatorVersion,
+		}
+		if err := r.createOrUpdateDeployment(deployData); err != nil {
 			return err
 		}
 	}
@@ -198,10 +208,10 @@ func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespa
 	return deploy, nil
 }
 
-func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy) error {
-	newDeploy := components.NewDeployment(name, namespace, imageRepository, imageTag, pullPolicy, "4")
+func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *components.DeploymentData) error {
+	newDeploy := components.NewDeployment(data)
 
-	oldDeploy, err := r.getDeployment(name, namespace)
+	oldDeploy, err := r.getDeployment(data.Name, data.Namespace)
 	if errors.IsNotFound(err) {
 		if err := r.client.Create(context.TODO(), newDeploy); err != nil {
 			return err
@@ -261,7 +271,7 @@ func (r *ReconcileMachineRemediationOperator) getServiceAccount(name string, nam
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateServiceAccount(name string, namespace string) error {
-	newServiceAccount := components.NewServiceAccount(name, namespace)
+	newServiceAccount := components.NewServiceAccount(name, namespace, r.operatorVersion)
 
 	_, err := r.getServiceAccount(name, namespace)
 	if errors.IsNotFound(err) {
@@ -302,7 +312,7 @@ func (r *ReconcileMachineRemediationOperator) getClusterRole(name string) (*rbac
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateClusterRole(name string) error {
-	newClusterRole := components.NewClusterRole(name, components.Rules[name])
+	newClusterRole := components.NewClusterRole(name, components.Rules[name], r.operatorVersion)
 
 	_, err := r.getClusterRole(name)
 	if errors.IsNotFound(err) {
@@ -343,7 +353,7 @@ func (r *ReconcileMachineRemediationOperator) getClusterRoleBinding(name string)
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateClusterRoleBinding(name string, namespace string) error {
-	newClusterRoleBinding := components.NewClusterRoleBinding(name, namespace)
+	newClusterRoleBinding := components.NewClusterRoleBinding(name, namespace, r.operatorVersion)
 
 	_, err := r.getClusterRoleBinding(name)
 	if errors.IsNotFound(err) {

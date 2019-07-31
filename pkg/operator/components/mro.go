@@ -5,11 +5,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
 )
 
 // NewMachineRemediationOperator retruns new MachineRemediationOperator object
-func NewMachineRemediationOperator(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy) *mrv1.MachineRemediationOperator {
+func NewMachineRemediationOperator(name string, namespace string, imageRepository string, pullPolicy corev1.PullPolicy, operatorVersion string) *mrv1.MachineRemediationOperator {
 	return &mrv1.MachineRemediationOperator{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "machineremediation.kubevirt.io/v1alpha1",
@@ -19,13 +18,13 @@ func NewMachineRemediationOperator(name string, namespace string, imageRepositor
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				consts.LabelKubeVirt: name,
+				mrv1.SchemeGroupVersion.Group:              "",
+				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
 			},
 		},
 		Spec: mrv1.MachineRemediationOperatorSpec{
 			ImagePullPolicy: pullPolicy,
 			ImageRegistry:   imageRepository,
-			ImageTag:        imageTag,
 		},
 	}
 }

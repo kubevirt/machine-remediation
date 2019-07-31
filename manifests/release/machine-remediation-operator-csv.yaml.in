@@ -1,0 +1,1 @@
+{{index .GeneratedManifests "machine-remediation-operator-csv.yaml.in"}}

@@ -41,7 +41,7 @@ func main() {
 
 	// CSV specific arguments
 	csvVersion := flag.String("csv-version", "0.0.0", "ClusterServiceVersion version.")
-	csvPreviousVersion := flag.String("csv-previous-version", "0.0.0", "ClusterServiceVersion version to replace.")
+	csvPreviousVersion := flag.String("csv-previous-version", "", "ClusterServiceVersion version to replace.")
 
 	flag.Parse()
 
@@ -50,23 +50,31 @@ func main() {
 	switch *resourceType {
 	case "machine-remediation-operator":
 		// create service account for the machine-remediation-operator
-		sa := components.NewServiceAccount(*resourceType, *namespace)
+		sa := components.NewServiceAccount(*resourceType, *namespace, *version)
 		utils.MarshallObject(sa, os.Stdout)
 
 		// create cluster role for the machine-remediation-operator
-		cr := components.NewClusterRole(*resourceType, components.Rules[*resourceType])
+		cr := components.NewClusterRole(*resourceType, components.Rules[*resourceType], *version)
 		utils.MarshallObject(cr, os.Stdout)
 
 		// create cluster role binding for the machine-remediation-operator
-		crb := components.NewClusterRoleBinding(*resourceType, *namespace)
+		crb := components.NewClusterRoleBinding(*resourceType, *namespace, *version)
 		utils.MarshallObject(crb, os.Stdout)
 
 		// create operator deployment
-		operator := components.NewDeployment(*resourceType, *namespace, *repository, *version, imagePullPolicy, *verbosity)
+		operatorData := &components.DeploymentData{
+			Name:            *resourceType,
+			Namespace:       *namespace,
+			ImageRepository: *repository,
+			PullPolicy:      imagePullPolicy,
+			Verbosity:       *verbosity,
+			OperatorVersion: *version,
+		}
+		operator := components.NewDeployment(operatorData)
 		utils.MarshallObject(operator, os.Stdout)
 	case "machine-remediation-operator-cr":
 		// create operator CR
-		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, *version, imagePullPolicy)
+		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, imagePullPolicy, *version)
 		mro.Name = "mro"
 		utils.MarshallObject(mro, os.Stdout)
 	case "csv":

@@ -1,11 +1,11 @@
 package components
 
 import (
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 )
 
 var (
@@ -268,7 +268,7 @@ var (
 )
 
 // NewServiceAccount returns new ServiceAccount object
-func NewServiceAccount(name string, namespace string) *corev1.ServiceAccount {
+func NewServiceAccount(name string, namespace string, operatorVersion string) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -278,14 +278,15 @@ func NewServiceAccount(name string, namespace string) *corev1.ServiceAccount {
 			Namespace: namespace,
 			Name:      name,
 			Labels: map[string]string{
-				consts.LabelKubeVirt: "",
+				mrv1.SchemeGroupVersion.Group:              "",
+				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
 			},
 		},
 	}
 }
 
 // NewClusterRole returns new ClusterRole object
-func NewClusterRole(name string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
+func NewClusterRole(name string, rules []rbacv1.PolicyRule, operatorVersion string) *rbacv1.ClusterRole {
 	return &rbacv1.ClusterRole{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -294,7 +295,8 @@ func NewClusterRole(name string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole 
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				consts.LabelKubeVirt: "",
+				mrv1.SchemeGroupVersion.Group:              "",
+				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
 			},
 		},
 		Rules: rules,
@@ -302,7 +304,7 @@ func NewClusterRole(name string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole 
 }
 
 // NewClusterRoleBinding returns new ClusterRoleBinding object
-func NewClusterRoleBinding(name string, namespace string) *rbacv1.ClusterRoleBinding {
+func NewClusterRoleBinding(name string, namespace string, operatorVersion string) *rbacv1.ClusterRoleBinding {
 	return &rbacv1.ClusterRoleBinding{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -311,7 +313,8 @@ func NewClusterRoleBinding(name string, namespace string) *rbacv1.ClusterRoleBin
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				consts.LabelKubeVirt: "",
+				mrv1.SchemeGroupVersion.Group:              "",
+				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{

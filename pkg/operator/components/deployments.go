@@ -3,24 +3,34 @@ package components
 import (
 	"fmt"
 
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 )
 
 const namespaceOpenshiftMachineAPI = "openshift-machine-api"
+
+// DeploymentData contains all needed data to create new deployment object
+type DeploymentData struct {
+	Name            string
+	Namespace       string
+	ImageRepository string
+	PullPolicy      corev1.PullPolicy
+	Verbosity       string
+	OperatorVersion string
+}
 
 func getImage(name string, imageRepository string, imageTag string) string {
 	return fmt.Sprintf("%s/%s:%s", imageRepository, name, imageTag)
 }
 
 // NewDeployment returns new deployment object
-func NewDeployment(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy, verbosity string) *appsv1.Deployment {
-	template := newPodTemplateSpec(name, namespace, imageRepository, imageTag, pullPolicy, verbosity)
+func NewDeployment(data *DeploymentData) *appsv1.Deployment {
+	template := newPodTemplateSpec(data)
 
 	return &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -28,10 +38,10 @@ func NewDeployment(name string, namespace string, imageRepository string, imageT
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:      data.Name,
+			Namespace: data.Namespace,
 			Labels: map[string]string{
-				consts.LabelKubeVirt: name,
+				mrv1.SchemeGroupVersion.Group: data.Name,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -41,7 +51,8 @@ func NewDeployment(name string, namespace string, imageRepository string, imageT
 			Replicas: pointer.Int32Ptr(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					consts.LabelKubeVirt: name,
+					mrv1.SchemeGroupVersion.Group:              data.Name,
+					mrv1.SchemeGroupVersion.Group + "/version": data.OperatorVersion,
 				},
 			},
 			Template: *template,
@@ -49,8 +60,8 @@ func NewDeployment(name string, namespace string, imageRepository string, imageT
 	}
 }
 
-func newPodTemplateSpec(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy, verbosity string) *corev1.PodTemplateSpec {
-	containers := newContainers(name, namespace, imageRepository, imageTag, pullPolicy, verbosity)
+func newPodTemplateSpec(data *DeploymentData) *corev1.PodTemplateSpec {
+	containers := newContainers(data)
 	tolerations := []corev1.Toleration{
 		{
 			Key:    "node-role.kubernetes.io/master",
@@ -77,7 +88,8 @@ func newPodTemplateSpec(name string, namespace string, imageRepository string, i
 	return &corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.LabelKubeVirt: name,
+				mrv1.SchemeGroupVersion.Group:              data.Name,
+				mrv1.SchemeGroupVersion.Group + "/version": data.OperatorVersion,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -86,13 +98,13 @@ func newPodTemplateSpec(name string, namespace string, imageRepository string, i
 			SecurityContext: &corev1.PodSecurityContext{
 				RunAsNonRoot: pointer.BoolPtr(true),
 			},
-			ServiceAccountName: name,
+			ServiceAccountName: data.Name,
 			Tolerations:        tolerations,
 		},
 	}
 }
 
-func newContainers(name string, namespace string, imageRepository string, imageTag string, pullPolicy corev1.PullPolicy, verbosity string) []corev1.Container {
+func newContainers(data *DeploymentData) []corev1.Container {
 	resources := corev1.ResourceRequirements{
 		Requests: map[corev1.ResourceName]resource.Quantity{
 			corev1.ResourceMemory: resource.MustParse("20Mi"),
@@ -101,22 +113,22 @@ func newContainers(name string, namespace string, imageRepository string, imageT
 	}
 	args := []string{
 		"--logtostderr=true",
-		fmt.Sprintf("--v=%s", verbosity),
-		fmt.Sprintf("--namespace=%s", namespace),
+		fmt.Sprintf("--v=%s", data.Verbosity),
+		fmt.Sprintf("--namespace=%s", data.Namespace),
 	}
 
 	containers := []corev1.Container{
 		{
-			Name:            name,
-			Image:           getImage(name, imageRepository, imageTag),
-			Command:         []string{fmt.Sprintf("/usr/bin/%s", name)},
+			Name:            data.Name,
+			Image:           getImage(data.Name, data.ImageRepository, data.OperatorVersion),
+			Command:         []string{fmt.Sprintf("/usr/bin/%s", data.Name)},
 			Args:            args,
 			Resources:       resources,
-			ImagePullPolicy: pullPolicy,
+			ImagePullPolicy: data.PullPolicy,
 			Env: []corev1.EnvVar{
 				{
 					Name:  EnvVarOperatorVersion,
-					Value: imageTag,
+					Value: data.OperatorVersion,
 				},
 			},
 		},

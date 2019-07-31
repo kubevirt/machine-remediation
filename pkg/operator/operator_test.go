@@ -67,7 +67,6 @@ func newMachineRemediationOperator(name string) *mrv1.MachineRemediationOperator
 		Spec: mrv1.MachineRemediationOperatorSpec{
 			ImagePullPolicy: corev1.PullAlways,
 			ImageRegistry:   imageRegistry,
-			ImageTag:        imageTag,
 		},
 	}
 }
@@ -76,8 +75,9 @@ func newMachineRemediationOperator(name string) *mrv1.MachineRemediationOperator
 func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediationOperator {
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineRemediationOperator{
-		client:    fakeClient,
-		namespace: mrotesting.NamespaceTest,
+		client:          fakeClient,
+		namespace:       mrotesting.NamespaceTest,
+		operatorVersion: imageTag,
 	}
 }
 

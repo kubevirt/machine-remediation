@@ -36,6 +36,8 @@ type templateData struct {
 	ContainerPrefix    string
 	ImagePullPolicy    string
 	Verbosity          string
+	CSVVersion         string
+	CSVPreviousVersion string
 	GeneratedManifests map[string]string
 }
 
@@ -49,7 +51,9 @@ func main() {
 	inputFile := flag.String("input-file", "", "")
 	processFiles := flag.Bool("process-files", false, "")
 	processVars := flag.Bool("process-vars", false, "")
-	
+
+	csvVersion := flag.String("csv-version", "0.0.0", "")
+	csvPreviousVersion := flag.String("csv-previous-version", "0.0.0", "")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.CommandLine.ParseErrorsWhitelist.UnknownFlags = true
@@ -69,12 +73,16 @@ func main() {
 		data.ContainerPrefix = *containerPrefix
 		data.ImagePullPolicy = *imagePullPolicy
 		data.Verbosity = fmt.Sprintf("%s", *verbosity)
+		data.CSVVersion = *csvVersion
+		data.CSVPreviousVersion = *csvPreviousVersion
 	} else {
 		data.Namespace = "{{.Namespace}}"
 		data.ContainerTag = "{{.ContainerTag}}"
 		data.ContainerPrefix = "{{.ContainerPrefix}}"
 		data.ImagePullPolicy = "{{.ImagePullPolicy}}"
 		data.Verbosity = "{{.Verbosity}}"
+		data.CSVVersion = "{{.CSVVersion}}"
+		data.CSVPreviousVersion = "{{.CSVPreviousVersion}}"
 	}
 
 	if *processFiles {

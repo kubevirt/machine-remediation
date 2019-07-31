@@ -14,8 +14,6 @@ metadata:
           },
           "spec": {
             "imagePullPolicy":"IfNotPresent",
-            "imageRegistry":"index.docker.io/kubevirt",
-            "imageTag":"v0.3.3"
           }
         }
       ]
@@ -108,14 +106,16 @@ spec:
           replicas: 1
           selector:
             matchLabels:
-              kubevirt.io: machine-remediation-operator
+              machineremediation.kubevirt.io: machine-remediation-operator
+              machineremediation.kubevirt.io/version: {{.ContainerTag}}
           strategy:
             type: RollingUpdate
           template:
             metadata:
               creationTimestamp: null
               labels:
-                kubevirt.io: machine-remediation-operator
+                machineremediation.kubevirt.io: machine-remediation-operator
+                machineremediation.kubevirt.io/version: {{.ContainerTag}}
             spec:
               containers:
               - args:

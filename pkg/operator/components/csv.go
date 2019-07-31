@@ -32,8 +32,6 @@ const almExamples = `[
     },
     "spec": {
       "imagePullPolicy":"IfNotPresent",
-      "imageRegistry":"index.docker.io/kubevirt",
-      "imageTag":"v0.3.3"
     }
   }
 ]`
@@ -66,14 +64,15 @@ type csvStrategySpec struct {
 
 // NewClusterServiceVersion returns new ClusterServiceVersion object
 func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterServiceVersion, error) {
-	operator := NewDeployment(
-		ComponentMachineRemediationOperator,
-		data.Namespace,
-		data.ContainerPrefix,
-		data.ContainerTag,
-		corev1.PullPolicy(data.ImagePullPolicy),
-		data.Verbosity,
-	)
+	operatorData := &DeploymentData{
+		Name:            ComponentMachineRemediationOperator,
+		Namespace:       data.Namespace,
+		ImageRepository: data.ContainerPrefix,
+		PullPolicy:      corev1.PullPolicy(data.ImagePullPolicy),
+		Verbosity:       data.Verbosity,
+		OperatorVersion: data.ContainerTag,
+	}
+	operator := NewDeployment(operatorData)
 
 	strategySpec := csvStrategySpec{
 		ClusterPermissions: []csvClusterPermissions{
@@ -100,7 +99,7 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 		return nil, err
 	}
 
-	return &csvv1.ClusterServiceVersion{
+	csv := &csvv1.ClusterServiceVersion{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       csvv1.ClusterServiceVersionKind,
 			APIVersion: csvv1.ClusterServiceVersionAPIVersion,
@@ -126,7 +125,6 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 			Keywords:    []string{"remediation", "fencing", "HA", "health", "cluster-api"},
 			Version:     version.OperatorVersion{Version: csvVersion},
 			Maturity:    "alpha",
-			Replaces:    fmt.Sprintf("%s.%s", ComponentMachineRemediationOperator, data.ReplacesCSVVersion),
 			Maintainers: []csvv1.Maintainer{{
 				Name:  "KubeVirt project",
 				Email: "kubevirt-dev@googlegroups.com",
@@ -218,5 +216,11 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 				},
 			},
 		},
-	}, nil
+	}
+
+	if data.ReplacesCSVVersion != "" {
+		csv.Spec.Replaces = fmt.Sprintf("%s.%s", ComponentMachineRemediationOperator, data.ReplacesCSVVersion)
+	}
+
+	return csv, nil
 }

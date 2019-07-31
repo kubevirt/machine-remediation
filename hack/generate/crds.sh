@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 source $(dirname "$0")/../common.sh
 
@@ -14,11 +14,12 @@ CRDS_GENERATORS_CMD_DIR=${VENDOR_DIR}/sigs.k8s.io/controller-tools/cmd
 )
 
 echo "Generating CRD's"
-controller-gen crd --domain kubevirt.io --output-dir=manifests/generated/
+mkdir -p ${GENERATED_MANIFESTS_DIR}/crds
+controller-gen crd --domain kubevirt.io --output-dir=${GENERATED_MANIFESTS_DIR}/crds
 
 # add --- in the head of the file
-args=$(cd ${REPO_DIR}/manifests/generated && find . -type f -name "*.yaml")
+args=$(cd ${GENERATED_MANIFESTS_DIR}/crds && find . -type f -name "*.yaml")
 for arg in $args; do
-    file=${REPO_DIR}/manifests/generated/${arg}
+    file=${GENERATED_MANIFESTS_DIR}/crds/${arg}
     sed -i '1i ---' ${file}
 done

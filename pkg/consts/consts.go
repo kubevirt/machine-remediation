@@ -11,6 +11,4 @@ const (
 	ControllerMachineHealthCheck = "machine-health-check"
 	// ControllerMachineRemediation contains the name of achineRemediation controller
 	ControllerMachineRemediation = "machine-remediation"
-	// LabelKubeVirt contains the label key for kubevirt components
-	LabelKubeVirt = "kubevirt.io"
 )

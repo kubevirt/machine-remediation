@@ -63,9 +63,6 @@ type MachineRemediationOperatorList struct {
 
 // MachineRemediationOperatorSpec defines the spec of MachineRemediation
 type MachineRemediationOperatorSpec struct {
-	// The image tag to use for the continer images installed.
-	// Defaults to the same tag as the operator's container image.
-	ImageTag string `json:"imageTag,omitempty"`
 	// The image registry to pull the container images from
 	// Defaults to the same registry the operator's container image is pulled from.
 	ImageRegistry string `json:"imageRegistry,omitempty"`

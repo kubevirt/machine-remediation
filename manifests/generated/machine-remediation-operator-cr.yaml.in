@@ -3,10 +3,10 @@ apiVersion: machineremediation.kubevirt.io/v1alpha1
 kind: MachineRemediationOperator
 metadata:
   labels:
-    kubevirt.io: machine-remediation-operator-cr
+    machineremediation.kubevirt.io: ""
+    machineremediation.kubevirt.io/version: {{.ContainerTag}}
   name: mro
   namespace: {{.Namespace}}
 spec:
   imagePullPolicy: {{.ImagePullPolicy}}
   imageRegistry: {{.ContainerPrefix}}
-  imageTag: {{.ContainerTag}}
