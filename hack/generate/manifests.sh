@@ -30,8 +30,8 @@ for arg in $args; do
     final_out_dir=$(dirname ${MANIFESTS_OUT_DIR}/${arg})
     mkdir -p ${final_out_dir}
 
-    manifest=$(basename -s .in.tmp ${arg})
-    outfile=${final_out_dir}/${manifest}
+    manifest=$(basename -s .yaml.in.tmp ${arg})
+    outfile=${final_out_dir}/${manifest}.${container_tag}.yaml
 
     manifest-templator \
         --process-vars \

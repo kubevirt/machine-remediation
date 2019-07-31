@@ -23,7 +23,11 @@ deploy:
   script: docker login -u="${DOCKER_USER}" -p="${DOCKER_PASSWORD}" && CONTAINER_PREFIX=index.docker.io/kubevirt
     CONTAINER_TAG=$TRAVIS_TAG make bazel-push-images
   skip_cleanup: true
-  file: 
+  on:
+    tags: true
+- provider: script
+  script: CONTAINER_PREFIX=index.docker.io/kubevirt CONTAINER_TAG=$TRAVIS_TAG make generate
+  skip_cleanup: true
   on:
     tags: true
 - provider: releases

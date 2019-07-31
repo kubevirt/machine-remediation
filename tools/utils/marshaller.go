@@ -27,6 +27,9 @@ func MarshallObject(obj interface{}, writer io.Writer) error {
 	unstructured.RemoveNestedField(r.Object, "spec", "template", "metadata", "creationTimestamp")
 	unstructured.RemoveNestedField(r.Object, "status")
 
+	// remove CSV specific empty fields
+	unstructured.RemoveNestedField(r.Object, "spec", "apiservicedefinitions")
+
 	jsonBytes, err = json.Marshal(r.Object)
 	if err != nil {
 		return err

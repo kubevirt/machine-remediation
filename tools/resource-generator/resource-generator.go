@@ -31,12 +31,17 @@ import (
 )
 
 func main() {
+	// General arguments
 	resourceType := flag.String("type", "", "Type of resource to generate.")
 	namespace := flag.String("namespace", "kube-system", "Namespace to use.")
 	repository := flag.String("repository", "kubevirt", "Image Repository to use.")
 	version := flag.String("version", "latest", "version to use.")
 	pullPolicy := flag.String("pullPolicy", "IfNotPresent", "ImagePullPolicy to use.")
 	verbosity := flag.String("verbosity", "2", "Verbosity level to use.")
+
+	// CSV specific arguments
+	csvVersion := flag.String("csv-version", "0.0.0", "ClusterServiceVersion version.")
+	csvPreviousVersion := flag.String("csv-previous-version", "0.0.0", "ClusterServiceVersion version to replace.")
 
 	flag.Parse()
 
@@ -62,7 +67,23 @@ func main() {
 	case "machine-remediation-operator-cr":
 		// create operator CR
 		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, *version, imagePullPolicy)
+		mro.Name = "mro"
 		utils.MarshallObject(mro, os.Stdout)
+	case "csv":
+		data := &components.ClusterServiceVersionData{
+			CSVVersion:         *csvVersion,
+			ContainerPrefix:    *repository,
+			ContainerTag:       *version,
+			ImagePullPolicy:    imagePullPolicy,
+			Namespace:          *namespace,
+			ReplacesCSVVersion: *csvPreviousVersion,
+			Verbosity:          *verbosity,
+		}
+		csv, err := components.NewClusterServiceVersion(data)
+		if err != nil {
+			panic(fmt.Errorf("failed to get CSV component: %v", err))
+		}
+		utils.MarshallObject(csv, os.Stdout)
 	default:
 		panic(fmt.Errorf("unknown resource type %s", *resourceType))
 	}
