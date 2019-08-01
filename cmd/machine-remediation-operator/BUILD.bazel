@@ -56,7 +56,10 @@ container_image(
     base = ":crds-image",
     directory = "/usr/bin/",
     entrypoint = ["/usr/bin/machine-remediation-operator"],
-    files = [":machine-remediation-operator"],
+    files = [
+        ":machine-remediation-operator",
+        "//tools/csv-generator",
+    ],
     user = "65534",
     visibility = ["//visibility:public"],
 )

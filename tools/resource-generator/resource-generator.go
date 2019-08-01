@@ -39,10 +39,6 @@ func main() {
 	pullPolicy := flag.String("pullPolicy", "IfNotPresent", "ImagePullPolicy to use.")
 	verbosity := flag.String("verbosity", "2", "Verbosity level to use.")
 
-	// CSV specific arguments
-	csvVersion := flag.String("csv-version", "0.0.0", "ClusterServiceVersion version.")
-	csvPreviousVersion := flag.String("csv-previous-version", "", "ClusterServiceVersion version to replace.")
-
 	flag.Parse()
 
 	imagePullPolicy := corev1.PullPolicy(*pullPolicy)
@@ -77,21 +73,6 @@ func main() {
 		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, imagePullPolicy, *version)
 		mro.Name = "mro"
 		utils.MarshallObject(mro, os.Stdout)
-	case "csv":
-		data := &components.ClusterServiceVersionData{
-			CSVVersion:         *csvVersion,
-			ContainerPrefix:    *repository,
-			ContainerTag:       *version,
-			ImagePullPolicy:    imagePullPolicy,
-			Namespace:          *namespace,
-			ReplacesCSVVersion: *csvPreviousVersion,
-			Verbosity:          *verbosity,
-		}
-		csv, err := components.NewClusterServiceVersion(data)
-		if err != nil {
-			panic(fmt.Errorf("failed to get CSV component: %v", err))
-		}
-		utils.MarshallObject(csv, os.Stdout)
 	default:
 		panic(fmt.Errorf("unknown resource type %s", *resourceType))
 	}
