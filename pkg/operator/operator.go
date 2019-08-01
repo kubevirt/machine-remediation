@@ -8,12 +8,8 @@ import (
 
 	"github.com/golang/glog"
 
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
@@ -34,9 +30,10 @@ var _ reconcile.Reconciler = &ReconcileMachineRemediationOperator{}
 type ReconcileMachineRemediationOperator struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client          client.Client
-	namespace       string
-	operatorVersion string
+	client           client.Client
+	namespace        string
+	operatorVersion  string
+	crdsManifestsDir string
 }
 
 // Add creates a new MachineRemediationOperator Controller and adds it to the Manager.
@@ -51,9 +48,10 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 
 func newReconciler(mgr manager.Manager, opts manager.Options) (reconcile.Reconciler, error) {
 	return &ReconcileMachineRemediationOperator{
-		client:          mgr.GetClient(),
-		namespace:       opts.Namespace,
-		operatorVersion: os.Getenv(components.EnvVarOperatorVersion),
+		client:           mgr.GetClient(),
+		namespace:        opts.Namespace,
+		operatorVersion:  os.Getenv(components.EnvVarOperatorVersion),
+		crdsManifestsDir: "/data",
 	}, nil
 }
 
@@ -147,6 +145,13 @@ func (r *ReconcileMachineRemediationOperator) Reconcile(request reconcile.Reques
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1.MachineRemediationOperator) error {
+	for _, crd := range components.CRDS {
+		glog.Infof("Creating or updating CRD %q", crd)
+		if err := r.createOrUpdateCustomResourceDefinition(crd); err != nil {
+			return err
+		}
+	}
+
 	for _, component := range components.Components {
 		glog.Infof("Creating objets for component %q", component)
 		if err := r.createOrUpdateServiceAccount(component, r.namespace); err != nil {
@@ -167,6 +172,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 			ImageRepository: mro.Spec.ImageRegistry,
 			PullPolicy:      mro.Spec.ImagePullPolicy,
 			OperatorVersion: r.operatorVersion,
+			Verbosity:       "2",
 		}
 		if err := r.createOrUpdateDeployment(deployData); err != nil {
 			return err
@@ -177,6 +183,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 
 func (r *ReconcileMachineRemediationOperator) deleteComponents() error {
 	for _, component := range components.Components {
+		glog.Infof("Deleting objets for component %q", component)
 		if err := r.deleteDeployment(component, r.namespace); err != nil {
 			return err
 		}
@@ -193,192 +200,15 @@ func (r *ReconcileMachineRemediationOperator) deleteComponents() error {
 			return err
 		}
 	}
+
+	for _, crd := range components.CRDS {
+		glog.Infof("Deleting CRD %q", crd)
+		if err := r.deleteCustomResourceDefinition(crd); err != nil {
+			return err
+		}
+	}
+
 	return nil
-}
-
-func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespace string) (*appsv1.Deployment, error) {
-	deploy := &appsv1.Deployment{}
-	key := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-	if err := r.client.Get(context.TODO(), key, deploy); err != nil {
-		return nil, err
-	}
-	return deploy, nil
-}
-
-func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *components.DeploymentData) error {
-	newDeploy := components.NewDeployment(data)
-
-	oldDeploy, err := r.getDeployment(data.Name, data.Namespace)
-	if errors.IsNotFound(err) {
-		if err := r.client.Create(context.TODO(), newDeploy); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	// do not override some user specific configuration
-	newDeploy.Annotations = oldDeploy.Annotations
-	newDeploy.Labels = oldDeploy.Labels
-	newDeploy.Spec.Replicas = oldDeploy.Spec.Replicas
-
-	// do not update the status, deployment controller one who responsible to update it
-	newDeploy.Status = oldDeploy.Status
-	return r.client.Update(context.TODO(), newDeploy)
-}
-
-func (r *ReconcileMachineRemediationOperator) deleteDeployment(name string, namespace string) error {
-	deploy, err := r.getDeployment(name, namespace)
-	if errors.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	return r.client.Delete(context.TODO(), deploy)
-}
-
-func (r *ReconcileMachineRemediationOperator) isDeploymentReady(name string, namespace string) (bool, error) {
-	d, err := r.getDeployment(name, namespace)
-	if err != nil {
-		return false, err
-	}
-	if d.Generation <= d.Status.ObservedGeneration &&
-		d.Status.Replicas == *d.Spec.Replicas &&
-		d.Status.UpdatedReplicas == d.Status.Replicas &&
-		d.Status.UnavailableReplicas == 0 {
-		return true, nil
-	}
-	return false, nil
-}
-
-func (r *ReconcileMachineRemediationOperator) getServiceAccount(name string, namespace string) (*corev1.ServiceAccount, error) {
-	sa := &corev1.ServiceAccount{}
-	key := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-	if err := r.client.Get(context.TODO(), key, sa); err != nil {
-		return nil, err
-	}
-	return sa, nil
-}
-
-func (r *ReconcileMachineRemediationOperator) createOrUpdateServiceAccount(name string, namespace string) error {
-	newServiceAccount := components.NewServiceAccount(name, namespace, r.operatorVersion)
-
-	_, err := r.getServiceAccount(name, namespace)
-	if errors.IsNotFound(err) {
-		if err := r.client.Create(context.TODO(), newServiceAccount); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return r.client.Update(context.TODO(), newServiceAccount)
-}
-
-func (r *ReconcileMachineRemediationOperator) deleteServiceAccount(name string, namespace string) error {
-	sa, err := r.getServiceAccount(name, namespace)
-	if errors.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	return r.client.Delete(context.TODO(), sa)
-}
-
-func (r *ReconcileMachineRemediationOperator) getClusterRole(name string) (*rbacv1.ClusterRole, error) {
-	cr := &rbacv1.ClusterRole{}
-	key := types.NamespacedName{
-		Name:      name,
-		Namespace: metav1.NamespaceNone,
-	}
-	if err := r.client.Get(context.TODO(), key, cr); err != nil {
-		return nil, err
-	}
-	return cr, nil
-}
-
-func (r *ReconcileMachineRemediationOperator) createOrUpdateClusterRole(name string) error {
-	newClusterRole := components.NewClusterRole(name, components.Rules[name], r.operatorVersion)
-
-	_, err := r.getClusterRole(name)
-	if errors.IsNotFound(err) {
-		if err := r.client.Create(context.TODO(), newClusterRole); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return r.client.Update(context.TODO(), newClusterRole)
-}
-
-func (r *ReconcileMachineRemediationOperator) deleteClusterRole(name string) error {
-	cr, err := r.getClusterRole(name)
-	if errors.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	return r.client.Delete(context.TODO(), cr)
-}
-
-func (r *ReconcileMachineRemediationOperator) getClusterRoleBinding(name string) (*rbacv1.ClusterRoleBinding, error) {
-	crb := &rbacv1.ClusterRoleBinding{}
-	key := types.NamespacedName{
-		Name:      name,
-		Namespace: metav1.NamespaceNone,
-	}
-	if err := r.client.Get(context.TODO(), key, crb); err != nil {
-		return nil, err
-	}
-	return crb, nil
-}
-
-func (r *ReconcileMachineRemediationOperator) createOrUpdateClusterRoleBinding(name string, namespace string) error {
-	newClusterRoleBinding := components.NewClusterRoleBinding(name, namespace, r.operatorVersion)
-
-	_, err := r.getClusterRoleBinding(name)
-	if errors.IsNotFound(err) {
-		if err := r.client.Create(context.TODO(), newClusterRoleBinding); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return r.client.Update(context.TODO(), newClusterRoleBinding)
-}
-
-func (r *ReconcileMachineRemediationOperator) deleteClusterRoleBinding(name string) error {
-	crb, err := r.getClusterRoleBinding(name)
-	if errors.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	return r.client.Delete(context.TODO(), crb)
 }
 
 func (r *ReconcileMachineRemediationOperator) statusAvailable(mro *mrv1.MachineRemediationOperator) error {

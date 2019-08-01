@@ -258,7 +258,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 
 		if result != tc.expected.result {
 			if tc.expected.result.Requeue {
-				before := tc.expected.result.RequeueAfter
+				before := tc.expected.result.RequeueAfter - time.Second
 				after := tc.expected.result.RequeueAfter + time.Second
 				if after < result.RequeueAfter || before > result.RequeueAfter {
 					t.Errorf("Test case: %s. Expected RequeueAfter between: %v and %v, got: %v", tc.node.Name, before, after, result)

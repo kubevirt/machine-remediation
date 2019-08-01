@@ -1,4 +1,4 @@
-.PHONY: bazel-build-images
+.PHONY: bazel-build
 bazel-build: bazel-generate
 	./hack/dockerized "./hack/bazel/build.sh"
 
@@ -48,7 +48,7 @@ generate-client:
 
 .PHONY: generate-manifests
 generate-manifests: generate-templates
-	./hack/dockerized "./hack/generate/manifests.sh"
+	./hack/dockerized "CONTAINER_PREFIX=${CONTAINER_PREFIX} CONTAINER_TAG=${CONTAINER_TAG} ./hack/generate/manifests.sh"
 
 .PHONY: generate-templates
 generate-templates:

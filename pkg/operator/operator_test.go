@@ -10,6 +10,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,6 +30,7 @@ const (
 
 func init() {
 	// Add types to scheme
+	extv1beta1.AddToScheme(scheme.Scheme)
 	mrv1.AddToScheme(scheme.Scheme)
 }
 
@@ -75,9 +77,10 @@ func newMachineRemediationOperator(name string) *mrv1.MachineRemediationOperator
 func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediationOperator {
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineRemediationOperator{
-		client:          fakeClient,
-		namespace:       mrotesting.NamespaceTest,
-		operatorVersion: imageTag,
+		client:           fakeClient,
+		namespace:        mrotesting.NamespaceTest,
+		operatorVersion:  imageTag,
+		crdsManifestsDir: "../../manifests/generated/crds",
 	}
 }
 
@@ -109,6 +112,7 @@ func TestReconcile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, result)
 
+	// verify that operator created all deployments
 	deploys := &appsv1.DeploymentList{}
 	assert.NoError(t, r.client.List(context.TODO(), deploys))
 	assert.Equal(t, 3, len(deploys.Items))
@@ -117,6 +121,11 @@ func TestReconcile(t *testing.T) {
 		assert.Equal(t, corev1.PullAlways, container.ImagePullPolicy)
 		assert.Equal(t, fmt.Sprintf("%s/%s:%s", imageRegistry, container.Name, imageTag), container.Image)
 	}
+
+	// verify that operator created all crds
+	crds := &extv1beta1.CustomResourceDefinitionList{}
+	assert.NoError(t, r.client.List(context.TODO(), crds))
+	assert.Equal(t, 3, len(crds.Items))
 
 	updatedMro = &mrv1.MachineRemediationOperator{}
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
@@ -152,6 +161,7 @@ func TestReconcile(t *testing.T) {
 	updatedMro.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 	assert.NoError(t, r.client.Update(context.TODO(), updatedMro))
 
+	// verify that operator deletes all resources once it has deletion timestamp
 	result, err = r.Reconcile(request)
 	assert.NoError(t, err)
 	assert.Equal(t, reconcile.Result{}, result)
@@ -159,6 +169,10 @@ func TestReconcile(t *testing.T) {
 	deploys = &appsv1.DeploymentList{}
 	assert.NoError(t, r.client.List(context.TODO(), deploys))
 	assert.Equal(t, 0, len(deploys.Items))
+
+	crds = &extv1beta1.CustomResourceDefinitionList{}
+	assert.NoError(t, r.client.List(context.TODO(), crds))
+	assert.Equal(t, 0, len(crds.Items))
 
 	updatedMro = &mrv1.MachineRemediationOperator{}
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
