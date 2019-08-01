@@ -26,7 +26,7 @@ metadata:
     repository: https://github.com/kubevirt/machine-remediation-operator
     support: KubeVirt
   name: machine-remediation-operator.{{.CSVVersion}}
-  namespace: {{.Namespace}}
+  namespace: placeholder
 spec:
   customresourcedefinitions:
     owned:

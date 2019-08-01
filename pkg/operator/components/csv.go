@@ -106,7 +106,7 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s.%s", ComponentMachineRemediationOperator, data.CSVVersion),
-			Namespace: data.Namespace,
+			Namespace: "placeholder",
 			Annotations: map[string]string{
 				"capabilities":   "Full Lifecycle",
 				"categories":     "OpenShift Optional",
