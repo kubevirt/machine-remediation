@@ -4,7 +4,7 @@ set -e
 
 source hack/common.sh
 
-rm -rf ${CMD_OUT_DIR}
+rm -rf ${BIN_OUT_DIR}
 
 # Build all binaries for amd64
 bazel build \
