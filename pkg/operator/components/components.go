@@ -24,3 +24,21 @@ const (
 	// EnvVarOperatorVersion contains the name of operator version environment variable
 	EnvVarOperatorVersion = "OPERATOR_VERSION"
 )
+
+const (
+	// CRDMachineDisruptionBudget contains the kind of the MachineDisruptionBudget CRD
+	CRDMachineDisruptionBudget = "machinedisruptionbudget"
+	// CRDMachineHealthCheck contains the kind of the MachineHealthCheck CRD
+	CRDMachineHealthCheck = "machinehealthcheck"
+	// CRDMachineRemediation contains the kind of the MachineRemediation CRD
+	CRDMachineRemediation = "machineremediation"
+)
+
+var (
+	// CRDS contains names of all CRD's that the operator should deploy
+	CRDS = []string{
+		CRDMachineDisruptionBudget,
+		CRDMachineHealthCheck,
+		CRDMachineRemediation,
+	}
+)

@@ -63,7 +63,7 @@ func main() {
 		panic("at least one of process-files or process-vars must be true")
 	}
 
-	data := templateData{
+	data := &templateData{
 		GeneratedManifests: make(map[string]string),
 	}
 
@@ -86,26 +86,31 @@ func main() {
 	}
 
 	if *processFiles {
-		manifests, err := ioutil.ReadDir(*genDir)
-		if err != nil {
-			panic(err)
-		}
-
-		for _, manifest := range manifests {
-			if manifest.IsDir() {
-				continue
-			}
-			b, err := ioutil.ReadFile(filepath.Join(*genDir, manifest.Name()))
-			if err != nil {
-				panic(err)
-			}
-			data.GeneratedManifests[manifest.Name()] = string(b)
-		}
+		getGeneratedFiles(*genDir, data)
 	}
 
 	tmpl := template.Must(template.ParseFiles(*inputFile))
 	err := tmpl.Execute(os.Stdout, data)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func getGeneratedFiles(rootDir string, data *templateData) {
+	manifests, err := ioutil.ReadDir(rootDir)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, manifest := range manifests {
+		if manifest.IsDir() {
+			getGeneratedFiles(filepath.Join(rootDir, manifest.Name()), data)
+			continue
+		}
+		b, err := ioutil.ReadFile(filepath.Join(rootDir, manifest.Name()))
+		if err != nil {
+			panic(err)
+		}
+		data.GeneratedManifests[manifest.Name()] = string(b)
 	}
 }

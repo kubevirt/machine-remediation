@@ -253,6 +253,17 @@ var (
 			},
 			{
 				APIGroups: []string{
+					"apiextensions.k8s.io",
+				},
+				Resources: []string{
+					"customresourcedefinitions",
+				},
+				Verbs: []string{
+					rbacv1.VerbAll,
+				},
+			},
+			{
+				APIGroups: []string{
 					"rbac.authorization.k8s.io",
 				},
 				Resources: []string{

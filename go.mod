@@ -16,6 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.3.0
 	k8s.io/api v0.0.0-20190717022910-653c86b0609b
+	k8s.io/apiextensions-apiserver v0.0.0-20190409022649-727a075fdec8
 	k8s.io/apimachinery v0.0.0-20190717022731-0bb8574e0887
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/code-generator v0.0.0-20190627204931-86aa6a6a5cf3

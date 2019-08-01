@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
+	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/controllers"
 	"kubevirt.io/machine-remediation-operator/pkg/operator"
@@ -47,6 +48,10 @@ func main() {
 	glog.Infof("Registering Components.")
 
 	// Setup Scheme for all resources
+	if err := extv1beta1.AddToScheme(mgr.GetScheme()); err != nil {
+		glog.Fatal(err)
+	}
+
 	if err := mrv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
