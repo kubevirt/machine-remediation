@@ -6,6 +6,7 @@ go_library(
     importpath = "kubevirt.io/machine-remediation-operator/tools/csv-generator",
     visibility = ["//visibility:private"],
     deps = [
+        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
         "//pkg/operator/components:go_default_library",
         "//tools/utils:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
