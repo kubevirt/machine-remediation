@@ -20,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = Describe("[Feature:MachineDisruptionBudget] MachineDisruptionBudget controller", func() {
+var _ = Describe("[Feature:MachineDisruptionBudget]", func() {
 	var c client.Client
 	var workerNode *corev1.Node
 	var workerMachineSet *mapiv1.MachineSet
@@ -65,7 +65,11 @@ var _ = Describe("[Feature:MachineDisruptionBudget] MachineDisruptionBudget cont
 		Expect(err).ToNot(HaveOccurred())
 
 		glog.V(2).Infof("Create machine health check with label selector: %s", workerMachine.Labels)
-		err = testsutils.CreateMachineHealthCheck(testsutils.MachineHealthCheckName, workerMachine.Labels)
+		err = testsutils.CreateMachineHealthCheck(
+			testsutils.MachineHealthCheckName,
+			mrv1.RemediationStrategyTypeReCreate,
+			workerMachine.Labels,
+		)
 		Expect(err).ToNot(HaveOccurred())
 
 		unhealthyConditions := &conditions.UnhealthyConditions{

@@ -12,44 +12,42 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
 	testsutils "kubevirt.io/machine-remediation-operator/tests/utils"
 
-	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = Describe("[Feature:MachineHealthCheck]", func() {
+var _ = Describe("[Feature:MachineRemediation]", func() {
 	var c client.Client
-	var numberOfReadyWorkers int
-	var workerNode *corev1.Node
-	var workerMachine *mapiv1.Machine
+	var numberOfReadyNodes int
+	var testNode *corev1.Node
 
-	stopKubeletAndValidateMachineDeletion := func(workerNodeName *corev1.Node, workerMachine *mapiv1.Machine, timeout time.Duration) {
-		By(fmt.Sprintf("Stopping kubelet service on the node %s", workerNode.Name))
-		err := testsutils.StopKubelet(workerNode.Name)
+	stopKubeletAndValidateMachineReboot := func(testNode *corev1.Node, timeout time.Duration) {
+		By(fmt.Sprintf("Stopping kubelet service on the node %s", testNode.Name))
+		err := testsutils.StopKubelet(testNode.Name)
 		Expect(err).ToNot(HaveOccurred())
 
-		By(fmt.Sprintf("Validating that node %s has 'NotReady' condition", workerNode.Name))
-		err = testsutils.WaitForNodeCondition(c, workerNode.Name, corev1.NodeReady, corev1.ConditionUnknown, testsutils.WaitLong)
+		By(fmt.Sprintf("Validating that node %s has 'NotReady' condition", testNode.Name))
+		err = testsutils.WaitForNodeCondition(c, testNode.Name, corev1.NodeReady, corev1.ConditionUnknown, testsutils.WaitLong)
 		Expect(err).ToNot(HaveOccurred())
 
-		By(fmt.Sprintf("Validating that machine %s is deleted", workerMachine.Name))
-		machine := &mapiv1.Machine{}
+		By(fmt.Sprintf("Validating that node %s is deleted", testNode.Name))
 		key := types.NamespacedName{
-			Namespace: workerMachine.Namespace,
-			Name:      workerMachine.Name,
+			Namespace: testNode.Namespace,
+			Name:      testNode.Name,
 		}
 		Eventually(func() bool {
-			err := c.Get(context.TODO(), key, machine)
+			node := &corev1.Node{}
+			err := c.Get(context.TODO(), key, node)
 			if err != nil {
 				if errors.IsNotFound(err) {
 					return true
 				}
 			}
-			glog.V(2).Infof("machine deletion timestamp %s still exists", machine.DeletionTimestamp)
 			return false
 		}, timeout, 5*time.Second).Should(BeTrue())
 	}
@@ -59,25 +57,26 @@ var _ = Describe("[Feature:MachineHealthCheck]", func() {
 		c, err = testsutils.LoadClient()
 		Expect(err).ToNot(HaveOccurred())
 
-		workerNodes, err := testsutils.GetWorkerNodes(c)
+		nodes := &corev1.NodeList{}
+		err = c.List(context.TODO(), nodes)
 		Expect(err).ToNot(HaveOccurred())
 
-		readyWorkerNodes := testsutils.FilterReadyNodes(workerNodes)
-		Expect(readyWorkerNodes).ToNot(BeEmpty())
+		readyNodes := testsutils.FilterReadyNodes(nodes.Items)
+		Expect(readyNodes).ToNot(BeEmpty())
 
-		numberOfReadyWorkers = len(readyWorkerNodes)
-		workerNode = &readyWorkerNodes[0]
-		glog.V(2).Infof("Worker node %s", workerNode.Name)
+		numberOfReadyNodes = len(readyNodes)
+		testNode = &readyNodes[rand.Intn(numberOfReadyNodes)]
+		glog.V(2).Infof("Test node %s", testNode.Name)
 
-		workerMachine, err = testsutils.GetMachineFromNode(c, workerNode)
+		testMachine, err := testsutils.GetMachineFromNode(c, testNode)
 		Expect(err).ToNot(HaveOccurred())
-		glog.V(2).Infof("Worker machine %s", workerMachine.Name)
+		glog.V(2).Infof("Test machine %s", testMachine.Name)
 
-		glog.V(2).Infof("Create machine health check with label selector: %s", workerMachine.Labels)
+		glog.V(2).Infof("Create machine health check with label selector: %s", testMachine.Labels)
 		err = testsutils.CreateMachineHealthCheck(
 			testsutils.MachineHealthCheckName,
-			mrv1.RemediationStrategyTypeReCreate,
-			workerMachine.Labels,
+			mrv1.RemediationStrategyTypeReboot,
+			testMachine.Labels,
 		)
 		Expect(err).ToNot(HaveOccurred())
 	})
@@ -99,7 +98,7 @@ var _ = Describe("[Feature:MachineHealthCheck]", func() {
 		})
 
 		It("should delete unhealthy machine", func() {
-			stopKubeletAndValidateMachineDeletion(workerNode, workerMachine, 2*time.Minute)
+			stopKubeletAndValidateMachineReboot(testNode, 2*time.Minute)
 		})
 
 		AfterEach(func() {
@@ -109,12 +108,8 @@ var _ = Describe("[Feature:MachineHealthCheck]", func() {
 		})
 	})
 
-	It("should delete unhealthy machine", func() {
-		stopKubeletAndValidateMachineDeletion(workerNode, workerMachine, 6*time.Minute)
-	})
-
 	AfterEach(func() {
-		testsutils.WaitForNodesToGetReady(c, map[string]string{testsutils.WorkerNodeRoleLabel: ""}, numberOfReadyWorkers, 15*time.Minute)
+		testsutils.WaitForNodesToGetReady(c, map[string]string{}, numberOfReadyNodes, 15*time.Minute)
 		testsutils.DeleteMachineHealthCheck(testsutils.MachineHealthCheckName)
 		testsutils.DeleteKubeletKillerPods()
 	})

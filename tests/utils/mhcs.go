@@ -16,7 +16,7 @@ import (
 )
 
 // CreateMachineHealthCheck will create MachineHealthCheck CR with the relevant selector
-func CreateMachineHealthCheck(name string, labels map[string]string) error {
+func CreateMachineHealthCheck(name string, strategy mrv1.RemediationStrategyType, labels map[string]string) error {
 	c, err := LoadClient()
 	if err != nil {
 		return err
@@ -31,6 +31,7 @@ func CreateMachineHealthCheck(name string, labels map[string]string) error {
 			Selector: metav1.LabelSelector{
 				MatchLabels: labels,
 			},
+			RemediationStrategy: &strategy,
 		},
 	}
 	return c.Create(context.TODO(), mhc)
