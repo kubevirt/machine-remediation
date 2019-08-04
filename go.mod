@@ -37,13 +37,13 @@ replace github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-
 
 replace k8s.io/code-generator => k8s.io/code-generator v0.0.0-20190311093542-50b561225d70
 
-replace k8s.io/api => github.com/openshift/kubernetes-api v0.0.0-20190709164144-5b6d4ec96213
+replace k8s.io/api => k8s.io/api v0.0.0-20190313235455-40a48860b5ab
 
-replace k8s.io/apiextensions-apiserver => github.com/openshift/kubernetes-apiextensions-apiserver v0.0.0-20190625023712-ee330a2a5c6d
+replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 
-replace k8s.io/apimachinery => github.com/openshift/kubernetes-apimachinery v0.0.0-20190321181449-eab709b58ad6
+replace k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190313205120-d7deff9243b1
 
-replace k8s.io/client-go => github.com/openshift/kubernetes-client-go v2.0.0-alpha.0.0.20190701222832-70952d66b5d1+incompatible
+replace k8s.io/client-go => k8s.io/client-go v11.0.0+incompatible
 
 replace sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v0.0.0-20190724202554-0c1d754dd648
 
