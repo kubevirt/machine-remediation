@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
@@ -33,6 +34,7 @@ func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespa
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *components.DeploymentData) error {
 	newDeploy := components.NewDeployment(data)
+	newDeploy.Spec.Replicas = pointer.Int32Ptr(2)
 
 	oldDeploy, err := r.getDeployment(data.Name, data.Namespace)
 	if errors.IsNotFound(err) {
