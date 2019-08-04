@@ -22,10 +22,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
 
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
 	"kubevirt.io/machine-remediation-operator/tools/utils"
 )
@@ -38,6 +40,7 @@ func main() {
 	verbosity := flag.String("verbosity", "2", "Verbosity level to use.")
 	csvVersion := flag.String("csv-version", "0.0.0", "ClusterServiceVersion version.")
 	csvPreviousVersion := flag.String("csv-previous-version", "", "ClusterServiceVersion version to replace.")
+	dumpCRD := flag.Bool("dump-crd", false, "Dump operator CRD together with CSV to the stdout.")
 
 	flag.Parse()
 
@@ -56,4 +59,15 @@ func main() {
 		panic(fmt.Errorf("failed to get CSV component: %v", err))
 	}
 	utils.MarshallObject(csv, os.Stdout)
+
+	if *dumpCRD {
+		crdFilePath := fmt.Sprintf("/data/%s_%s_%s.yaml", "machineremediation", mrv1.SchemeGroupVersion.Version, "machineremediationoperator")
+		crdFile, err := ioutil.ReadFile(crdFilePath)
+		if err != nil {
+			panic(fmt.Errorf("failed to read CRD file: %v", err))
+		}
+		if _, err := os.Stdout.Write(crdFile); err != nil {
+			panic(fmt.Errorf("failed to write CRD to stdout: %v", err))
+		}
+	}
 }
