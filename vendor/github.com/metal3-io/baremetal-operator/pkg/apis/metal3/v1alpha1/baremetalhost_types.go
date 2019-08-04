@@ -23,12 +23,12 @@ type OperationalStatus string
 
 const (
 	// OperationalStatusOK is the status value for when the host is
-	// configured correctly and not actively being managed.
+	// configured correctly and is manageable.
 	OperationalStatusOK OperationalStatus = "OK"
 
 	// OperationalStatusDiscovered is the status value for when the
-	// host is only partially configured, such as when a few values
-	// are loaded from Ironic.
+	// host is only partially configured, such as when when the BMC
+	// address is known but the login credentials are not.
 	OperationalStatusDiscovered OperationalStatus = "discovered"
 
 	// OperationalStatusError is the status value for when the host
@@ -116,16 +116,17 @@ type BareMetalHostSpec struct {
 	Taints []corev1.Taint `json:"taints,omitempty"`
 
 	// How do we connect to the BMC?
-	BMC BMCDetails `json:"bmc"`
+	BMC BMCDetails `json:"bmc,omitempty"`
 
 	// What is the name of the hardware profile for this host? It
 	// should only be necessary to set this when inspection cannot
 	// automatically determine the profile.
-	HardwareProfile string `json:"hardwareProfile"`
+	HardwareProfile string `json:"hardwareProfile,omitempty"`
 
 	// Which MAC address will PXE boot? This is optional for some
 	// types, but required for libvirt VMs driven by vbmc.
-	BootMACAddress string `json:"bootMACAddress"`
+	// +kubebuilder:validation:Pattern=[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}
+	BootMACAddress string `json:"bootMACAddress,omitempty"`
 
 	// Should the server be online?
 	Online bool `json:"online"`
@@ -143,7 +144,13 @@ type BareMetalHostSpec struct {
 	UserData *corev1.SecretReference `json:"userData,omitempty"`
 
 	// Description is a human-entered text used to help identify the host
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
+
+	// ExternallyProvisioned means something else is managing the
+	// image running on the host and the operator should only manage
+	// the power status and hardware inventory inspection. If the
+	// Image field is filled in, this field is ignored.
+	ExternallyProvisioned bool `json:"externallyProvisioned,omitempty"`
 }
 
 // Image holds the details of an image either to provisioned or that
@@ -227,11 +234,14 @@ type Storage struct {
 }
 
 // VLANID is a 12-bit 802.1Q VLAN identifier
-type VLANID int16
+type VLANID int32
 
 // VLAN represents the name and ID of a VLAN
 type VLAN struct {
-	ID   VLANID `json:"id"`
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=4094
+	ID VLANID `json:"id"`
+
 	Name string `json:"name,omitempty"`
 }
 
@@ -244,6 +254,7 @@ type NIC struct {
 	Model string `json:"model"`
 
 	// The device MAC addr
+	// +kubebuilder:validation:Pattern=[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}
 	MAC string `json:"mac"`
 
 	// The IP address of the device
@@ -256,16 +267,37 @@ type NIC struct {
 	VLANs []VLAN `json:"vlans,omitempty"`
 
 	// The untagged VLAN ID
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=4094
 	VLANID VLANID `json:"vlanId"`
 
 	// Whether the NIC is PXE Bootable
 	PXE bool `json:"pxe"`
 }
 
+// Firmware describes the firmware on the host.
+type Firmware struct {
+	// The BIOS for this firmware
+	BIOS BIOS `json:"bios"`
+}
+
+// BIOS describes the BIOS version on the host.
+type BIOS struct {
+	// The release/build date for this BIOS
+	Date string `json:"date"`
+
+	// The vendor name for this BIOS
+	Vendor string `json:"vendor"`
+
+	// The version of the BIOS
+	Version string `json:"version"`
+}
+
 // HardwareDetails collects all of the information about hardware
 // discovered on the host.
 type HardwareDetails struct {
 	SystemVendor HardwareSystemVendor `json:"systemVendor"`
+	Firmware     Firmware             `json:"firmware"`
 	RAMMebibytes int                  `json:"ramMebibytes"`
 	NIC          []NIC                `json:"nics"`
 	Storage      []Storage            `json:"storage"`
@@ -335,6 +367,15 @@ type ProvisionStatus struct {
 
 // BareMetalHost is the Schema for the baremetalhosts API
 // +k8s:openapi-gen=true
+// +kubebuilder:resource:shortName=bmh;bmhost
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.operationalStatus",description="Operational status"
+// +kubebuilder:printcolumn:name="Provisioning Status",type="string",JSONPath=".status.provisioning.state",description="Provisioning status"
+// +kubebuilder:printcolumn:name="Consumer",type="string",JSONPath=".spec.consumerRef.name",description="Consumer using this host"
+// +kubebuilder:printcolumn:name="BMC",type="string",JSONPath=".spec.bmc.address",description="Address of management controller"
+// +kubebuilder:printcolumn:name="Hardware Profile",type="string",JSONPath=".status.hardwareProfile",description="The type of hardware detected"
+// +kubebuilder:printcolumn:name="Online",type="string",JSONPath=".spec.online",description="Whether the host is online or not"
+// +kubebuilder:printcolumn:name="Error",type="string",JSONPath=".status.errorMessage",description="Most recent error"
 type BareMetalHost struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -476,9 +517,14 @@ func (host *BareMetalHost) CredentialsNeedValidation(currentSecret corev1.Secret
 // NeedsHardwareInspection looks at the state of the host to determine
 // if hardware inspection should be run.
 func (host *BareMetalHost) NeedsHardwareInspection() bool {
-	if host.Spec.ConsumerRef != nil {
+	if host.WasExternallyProvisioned() {
 		// Never perform inspection if we already know something is
-		// using the host.
+		// using the host and we didn't provision it.
+		return false
+	}
+	if host.WasProvisioned() {
+		// Never perform inspection if we have already provisioned
+		// this host, because we don't want to reboot it.
 		return false
 	}
 	return host.Status.HardwareDetails == nil
@@ -520,10 +566,22 @@ func (host *BareMetalHost) WasProvisioned() bool {
 // WasExternallyProvisioned returns true when we think something else
 // is managing the image running on the host.
 func (host *BareMetalHost) WasExternallyProvisioned() bool {
-	if host.Spec.Image == nil && host.Spec.ConsumerRef != nil {
-		return true
-	}
-	return false
+	// NOTE(dhellmann): The Image setting takes precedent over the
+	// ExternallyProvisioned flag.
+	//
+	// The user can change the ExternallyProvisioned field at any
+	// time. So, they could start to provision a host in the normal
+	// way and then while it's in the middle of provisioning set
+	// ExternallyProvisioned=true. At that point, the logic managing
+	// the provisioning workflow would be circumvented and the host
+	// status would never update properly.
+	//
+	// We could allow that, but it's easier to reason about the host
+	// if we say that giving an image and saying a host is externally
+	// provisioned are mutually exclusive, but the image has
+	// precedence if both are provided. We end up with fewer overall
+	// transitions in the state diagram that way.
+	return host.Spec.ExternallyProvisioned && host.Spec.Image == nil
 }
 
 // NeedsDeprovisioning compares the settings with the provisioning

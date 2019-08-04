@@ -27,7 +27,7 @@ require (
 	sigs.k8s.io/controller-tools v0.1.11
 )
 
-replace github.com/metal3-io/baremetal-operator => github.com/cynepco3hahue/baremetal-operator v0.0.0-20190703074131-22b01a873954
+replace github.com/metal3-io/baremetal-operator => github.com/openshift/baremetal-operator v0.0.0-20190727010256-d905ab5eaddd
 
 replace github.com/operator-framework/operator-lifecycle-manager => github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190726210436-d2209c409b35
 
