@@ -138,8 +138,8 @@ func TestReconcile(t *testing.T) {
 
 	// update all deployments status to have desired number of replicas
 	for _, d := range deploys.Items {
-		d.Status.Replicas = 1
-		d.Status.UpdatedReplicas = 1
+		d.Status.Replicas = 2
+		d.Status.UpdatedReplicas = 2
 		assert.NoError(t, r.client.Update(context.TODO(), &d))
 	}
 

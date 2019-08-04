@@ -123,6 +123,16 @@ spec:
                 machineremediation.kubevirt.io: machine-remediation-operator
                 machineremediation.kubevirt.io/version: {{.ContainerTag}}
             spec:
+              affinity:
+                podAntiAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                  - labelSelector:
+                      matchExpressions:
+                      - key: machineremediation.kubevirt.io
+                        operator: In
+                        values:
+                        - machine-remediation-operator
+                    topologyKey: kubernetes.io/hostname
               containers:
               - args:
                 - --logtostderr=true
