@@ -6,15 +6,16 @@ import (
 	"testing"
 	"time"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
+	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
+	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -51,7 +52,7 @@ func TestHasMatchingLabels(t *testing.T) {
 			machineHealthCheck: &mrv1.MachineHealthCheck{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "NoMatchingLabels",
-					Namespace: mrotesting.NamespaceTest,
+					Namespace: consts.NamespaceOpenshiftMachineAPI,
 				},
 				TypeMeta: metav1.TypeMeta{
 					Kind: "MachineHealthCheck",
@@ -120,7 +121,7 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineHealthChe
 	return &ReconcileMachineHealthCheck{
 		client:    fakeClient,
 		scheme:    scheme.Scheme,
-		namespace: mrotesting.NamespaceTest,
+		namespace: consts.NamespaceOpenshiftMachineAPI,
 	}
 }
 

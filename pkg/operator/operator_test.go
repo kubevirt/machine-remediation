@@ -17,7 +17,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -64,7 +64,7 @@ func newMachineRemediationOperator(name string) *mrv1.MachineRemediationOperator
 		TypeMeta: metav1.TypeMeta{Kind: "MachineRemediationOperator"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: mrotesting.NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		},
 		Spec: mrv1.MachineRemediationOperatorSpec{
 			ImagePullPolicy: corev1.PullAlways,
@@ -78,7 +78,7 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediati
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineRemediationOperator{
 		client:           fakeClient,
-		namespace:        mrotesting.NamespaceTest,
+		namespace:        consts.NamespaceOpenshiftMachineAPI,
 		operatorVersion:  imageTag,
 		crdsManifestsDir: "../../manifests/generated/crds",
 	}
@@ -90,7 +90,7 @@ func TestReconcile(t *testing.T) {
 	r := newFakeReconciler(mro)
 	request := reconcile.Request{
 		NamespacedName: types.NamespacedName{
-			Namespace: mrotesting.NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 			Name:      mro.Name,
 		},
 	}
@@ -102,7 +102,7 @@ func TestReconcile(t *testing.T) {
 	updatedMro := &mrv1.MachineRemediationOperator{}
 	key := types.NamespacedName{
 		Name:      mro.Name,
-		Namespace: mrotesting.NamespaceTest,
+		Namespace: consts.NamespaceOpenshiftMachineAPI,
 	}
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
 	assert.Equal(t, true, hasFinalizer(updatedMro))

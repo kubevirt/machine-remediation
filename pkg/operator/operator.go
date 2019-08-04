@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -120,7 +121,7 @@ func (r *ReconcileMachineRemediationOperator) Reconcile(request reconcile.Reques
 	}
 
 	for _, component := range components.Components {
-		ready, err := r.isDeploymentReady(component, r.namespace)
+		ready, err := r.isDeploymentReady(component, consts.NamespaceOpenshiftMachineAPI)
 		if err != nil {
 			if err := r.statusProgressing(mro, err.Error(), fmt.Sprintf("Failed to get deployment %q", component)); err != nil {
 				glog.Errorf("Failed to update operator status: %v", err)
@@ -154,7 +155,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 
 	for _, component := range components.Components {
 		glog.Infof("Creating objets for component %q", component)
-		if err := r.createOrUpdateServiceAccount(component, r.namespace); err != nil {
+		if err := r.createOrUpdateServiceAccount(component, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 
@@ -162,13 +163,13 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 			return err
 		}
 
-		if err := r.createOrUpdateClusterRoleBinding(component, r.namespace); err != nil {
+		if err := r.createOrUpdateClusterRoleBinding(component, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 
 		deployData := &components.DeploymentData{
 			Name:            component,
-			Namespace:       r.namespace,
+			Namespace:       consts.NamespaceOpenshiftMachineAPI,
 			ImageRepository: mro.Spec.ImageRegistry,
 			PullPolicy:      mro.Spec.ImagePullPolicy,
 			OperatorVersion: r.operatorVersion,
@@ -184,7 +185,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 func (r *ReconcileMachineRemediationOperator) deleteComponents() error {
 	for _, component := range components.Components {
 		glog.Infof("Deleting objets for component %q", component)
-		if err := r.deleteDeployment(component, r.namespace); err != nil {
+		if err := r.deleteDeployment(component, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 
@@ -196,7 +197,7 @@ func (r *ReconcileMachineRemediationOperator) deleteComponents() error {
 			return err
 		}
 
-		if err := r.deleteServiceAccount(component, r.namespace); err != nil {
+		if err := r.deleteServiceAccount(component, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 	}

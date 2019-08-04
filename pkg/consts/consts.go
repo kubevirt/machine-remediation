@@ -11,4 +11,6 @@ const (
 	ControllerMachineHealthCheck = "machine-health-check"
 	// ControllerMachineRemediation contains the name of achineRemediation controller
 	ControllerMachineRemediation = "machine-remediation"
+	// NamespaceOpenshiftMachineAPI contains namespace name for the machine-api componenets under the OpenShift cluster
+	NamespaceOpenshiftMachineAPI = "openshift-machine-api"
 )

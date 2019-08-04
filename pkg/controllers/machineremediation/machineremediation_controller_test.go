@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -39,7 +40,7 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediati
 	return &ReconcileMachineRemediation{
 		client:     fakeClient,
 		remediator: remediator,
-		namespace:  mrotesting.NamespaceTest,
+		namespace:  consts.NamespaceOpenshiftMachineAPI,
 	}
 }
 
@@ -116,7 +117,7 @@ func TestReconcile(t *testing.T) {
 	for _, tc := range testsCases {
 		request := reconcile.Request{
 			NamespacedName: types.NamespacedName{
-				Namespace: mrotesting.NamespaceTest,
+				Namespace: consts.NamespaceOpenshiftMachineAPI,
 				Name:      tc.machineRemediation.Name,
 			},
 		}

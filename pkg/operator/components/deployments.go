@@ -12,8 +12,6 @@ import (
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 )
 
-const namespaceOpenshiftMachineAPI = "openshift-machine-api"
-
 // DeploymentData contains all needed data to create new deployment object
 type DeploymentData struct {
 	Name            string

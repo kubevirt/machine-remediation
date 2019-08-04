@@ -163,11 +163,11 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 				},
 				{
 					Type:      csvv1.InstallModeTypeMultiNamespace,
-					Supported: false,
+					Supported: true,
 				},
 				{
 					Type:      csvv1.InstallModeTypeAllNamespaces,
-					Supported: false,
+					Supported: true,
 				},
 			},
 			InstallStrategy: csvv1.NamedInstallStrategy{

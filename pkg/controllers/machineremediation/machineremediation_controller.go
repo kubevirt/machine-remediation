@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"

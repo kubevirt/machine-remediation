@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -58,7 +59,7 @@ func newMachineSet(name string, size int32) *mapiv1.MachineSet {
 		TypeMeta: metav1.TypeMeta{Kind: "MachineSet"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: mrotesting.NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 			Labels:    mrotesting.FooBar(),
 			UID:       uuid.NewUUID(),
 		},
@@ -87,7 +88,7 @@ func newMachineDeployment(name string, size int32) *mapiv1.MachineDeployment {
 		TypeMeta: metav1.TypeMeta{Kind: "MachineDeployment"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: mrotesting.NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 			Labels:    mrotesting.FooBar(),
 			UID:       uuid.NewUUID(),
 		},
@@ -609,7 +610,7 @@ func TestReconcile(t *testing.T) {
 		recorder := record.NewFakeRecorder(10)
 		key := types.NamespacedName{
 			Name:      "foobar",
-			Namespace: mrotesting.NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		}
 
 		objects := []runtime.Object{}

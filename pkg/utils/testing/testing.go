@@ -14,13 +14,6 @@ import (
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 )
 
-const (
-	// NamespaceTest contains the name of the testing namespace
-	NamespaceTest = "test"
-	// MachineAnnotationKey contains default machine node annotation
-	MachineAnnotationKey = "machine.openshift.io/machine"
-)
-
 var (
 	// KnownDate contains date that can be used under tests
 	KnownDate = metav1.Time{Time: time.Date(1985, 06, 03, 0, 0, 0, 0, time.Local)}
@@ -47,7 +40,7 @@ func NewMinAvailableMachineDisruptionBudget(minAvailable int32) *mrv1.MachineDis
 		TypeMeta: metav1.TypeMeta{Kind: "MachineDisruptionBudget"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foobar",
-			Namespace: NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		},
 		Spec: mrv1.MachineDisruptionBudgetSpec{
 			MinAvailable: &minAvailable,
@@ -62,7 +55,7 @@ func NewMaxUnavailableMachineDisruptionBudget(maxUnavailable int32) *mrv1.Machin
 		TypeMeta: metav1.TypeMeta{Kind: "MachineDisruptionBudget"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foobar",
-			Namespace: NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		},
 		Spec: mrv1.MachineDisruptionBudgetSpec{
 			MaxUnavailable: &maxUnavailable,
@@ -76,7 +69,7 @@ func NewMachineHealthCheck(name string) *mrv1.MachineHealthCheck {
 	return &mrv1.MachineHealthCheck{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind: "MachineHealthCheck",
@@ -93,7 +86,7 @@ func NewUnhealthyConditionsConfigMap(name string, data string) *corev1.ConfigMap
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind: "ConfigMap",
@@ -111,7 +104,7 @@ func NewBareMetalHost(name string, online bool, powerOn bool) *bmov1.BareMetalHo
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: make(map[string]string),
 			Name:        name,
-			Namespace:   NamespaceTest,
+			Namespace:   consts.NamespaceOpenshiftMachineAPI,
 		},
 		Spec: bmov1.BareMetalHostSpec{
 			Online: online,
@@ -128,10 +121,10 @@ func NewMachine(name string, nodeName string, bareMetalHostName string) *mapiv1.
 		TypeMeta: metav1.TypeMeta{Kind: "Machine"},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				consts.AnnotationBareMetalHost: fmt.Sprintf("%s/%s", NamespaceTest, bareMetalHostName),
+				consts.AnnotationBareMetalHost: fmt.Sprintf("%s/%s", consts.NamespaceOpenshiftMachineAPI, bareMetalHostName),
 			},
 			Name:            name,
-			Namespace:       NamespaceTest,
+			Namespace:       consts.NamespaceOpenshiftMachineAPI,
 			OwnerReferences: []metav1.OwnerReference{{Kind: "MachineSet"}},
 			Labels:          FooBar(),
 		},
@@ -151,7 +144,7 @@ func NewMachineRemediation(name string, machineName string, remediationType mrv1
 		TypeMeta: metav1.TypeMeta{Kind: "MachineRemediation"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: NamespaceTest,
+			Namespace: consts.NamespaceOpenshiftMachineAPI,
 		},
 		Spec: mrv1.MachineRemediationSpec{
 			MachineName: machineName,
@@ -177,7 +170,7 @@ func NewNode(name string, ready bool, machineName string) *corev1.Node {
 			Name:      name,
 			Namespace: metav1.NamespaceNone,
 			Annotations: map[string]string{
-				consts.AnnotationMachine: fmt.Sprintf("%s/%s", NamespaceTest, machineName),
+				consts.AnnotationMachine: fmt.Sprintf("%s/%s", consts.NamespaceOpenshiftMachineAPI, machineName),
 			},
 			Labels: map[string]string{},
 		},
