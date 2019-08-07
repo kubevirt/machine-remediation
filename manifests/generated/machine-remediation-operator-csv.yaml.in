@@ -45,11 +45,6 @@ spec:
         path: imageRegistry
         x-descriptors:
         - urn:alm:descriptor:text
-      - description: The ImageTag to use for the Machine Remediation components.
-        displayName: ImageTag
-        path: imageTag
-        x-descriptors:
-        - urn:alm:descriptor:text
       statusDescriptors:
       - description: Explanation for the current status of the cluster.
         displayName: Conditions
