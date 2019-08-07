@@ -155,12 +155,12 @@ func getMachineHealthCheckListOptions() *client.ListOptions {
 
 func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.RemediationStrategyType, machine *mapiv1.Machine) (reconcile.Result, error) {
 	glog.Infof("Initialising remediation logic for machine %s", machine.Name)
-	if !hasMachineSetOwner(*machine) {
+	if !hasMachineSetOwner(machine) && !isMaster(machine, r.client) {
 		glog.Infof("Machine %s has no machineSet controller owner, skipping remediation", machine.Name)
 		return reconcile.Result{}, nil
 	}
 
-	node, err := getNodeFromMachine(*machine, r.client)
+	node, err := getNodeFromMachine(machine, r.client)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			glog.Warningf("Node %s not found for machine %s", node.Name, machine.Name)
@@ -210,7 +210,7 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 				return r.remediationStrategyReboot(machine, node)
 			}
 
-			if isMaster(*machine, r.client) {
+			if isMaster(machine, r.client) {
 				glog.Infof("The machine %s is a master node, skipping remediation", machine.Name)
 				return reconcile.Result{}, nil
 			}
@@ -291,7 +291,7 @@ func isConditionsStatusesEqual(cond *corev1.NodeCondition, unhealthyCond *condit
 	return cond.Status == unhealthyCond.Status
 }
 
-func getNodeFromMachine(machine mapiv1.Machine, client client.Client) (*corev1.Node, error) {
+func getNodeFromMachine(machine *mapiv1.Machine, client client.Client) (*corev1.Node, error) {
 	if machine.Status.NodeRef == nil {
 		glog.Errorf("node NodeRef not found in machine %s", machine.Name)
 		return nil, golangerrors.New("node NodeRef not found in machine")
@@ -313,7 +313,7 @@ func unhealthyForTooLong(nodeCondition *corev1.NodeCondition, timeout time.Durat
 	return false
 }
 
-func hasMachineSetOwner(machine mapiv1.Machine) bool {
+func hasMachineSetOwner(machine *mapiv1.Machine) bool {
 	ownerRefs := machine.ObjectMeta.GetOwnerReferences()
 	for _, or := range ownerRefs {
 		if or.Kind == ownerControllerKind {
@@ -341,7 +341,7 @@ func hasMatchingLabels(machineHealthCheck *mrv1.MachineHealthCheck, machine *map
 	return true
 }
 
-func isMaster(machine mapiv1.Machine, client client.Client) bool {
+func isMaster(machine *mapiv1.Machine, client client.Client) bool {
 	masterLabels := []string{
 		"node-role.kubernetes.io/master",
 	}

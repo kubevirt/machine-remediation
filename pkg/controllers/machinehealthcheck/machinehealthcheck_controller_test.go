@@ -316,7 +316,7 @@ func TestHasMachineSetOwner(t *testing.T) {
 	}
 
 	for _, tc := range testsCases {
-		if got := hasMachineSetOwner(*tc.machine); got != tc.expected {
+		if got := hasMachineSetOwner(tc.machine); got != tc.expected {
 			t.Errorf("Test case: Machine %s. Expected: %t, got: %t", tc.machine.Name, tc.expected, got)
 		}
 	}
