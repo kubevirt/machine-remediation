@@ -146,6 +146,20 @@ var (
 					"watch",
 				},
 			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"events",
+				},
+				Verbs: []string{
+					"create",
+					"list",
+					"watch",
+					"patch",
+				},
+			},
 		},
 		ComponentMachineRemediation: []rbacv1.PolicyRule{
 			{
@@ -210,6 +224,20 @@ var (
 				},
 				Verbs: []string{
 					rbacv1.VerbAll,
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"events",
+				},
+				Verbs: []string{
+					"create",
+					"list",
+					"watch",
+					"patch",
 				},
 			},
 		},
