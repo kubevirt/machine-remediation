@@ -197,12 +197,6 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 								Path:         "imageRegistry",
 								XDescriptors: []string{"urn:alm:descriptor:text"},
 							},
-							{
-								Description:  "The ImageTag to use for the Machine Remediation components.",
-								DisplayName:  "ImageTag",
-								Path:         "imageTag",
-								XDescriptors: []string{"urn:alm:descriptor:text"},
-							},
 						},
 						StatusDescriptors: []csvv1.StatusDescriptor{
 							{
