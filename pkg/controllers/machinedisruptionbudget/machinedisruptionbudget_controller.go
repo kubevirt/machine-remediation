@@ -11,7 +11,6 @@ import (
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/record"
@@ -66,7 +65,6 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 func newReconciler(mgr manager.Manager, opts manager.Options) *ReconcileMachineDisruption {
 	return &ReconcileMachineDisruption{
 		client:   mgr.GetClient(),
-		scheme:   mgr.GetScheme(),
 		recorder: mgr.GetEventRecorderFor("machine-disruption-controller"),
 	}
 }
@@ -94,7 +92,6 @@ type ReconcileMachineDisruption struct {
 	// that reads objects from the cache and writes to the apiserver
 	client   client.Client
 	recorder record.EventRecorder
-	scheme   *runtime.Scheme
 }
 
 // Reconcile reads that state of the cluster for MachineDisruptionBudget and machine objects and makes changes based on labels under

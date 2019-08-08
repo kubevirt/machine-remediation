@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
 
@@ -29,8 +28,8 @@ import (
 )
 
 const (
-	machineAnnotationKey = "machine.openshift.io/machine"
-	ownerControllerKind  = "MachineSet"
+	machineAnnotationKey           = "machine.openshift.io/machine"
+	ownerControllerKind            = "MachineSet"
 	disableRemediationAnotationKey = "healthchecking.openshift.io/disabled"
 )
 
@@ -44,7 +43,6 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 func newReconciler(mgr manager.Manager, opts manager.Options) reconcile.Reconciler {
 	return &ReconcileMachineHealthCheck{
 		client:    mgr.GetClient(),
-		scheme:    mgr.GetScheme(),
 		namespace: opts.Namespace,
 	}
 }
@@ -66,7 +64,6 @@ type ReconcileMachineHealthCheck struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client    client.Client
-	scheme    *runtime.Scheme
 	namespace string
 }
 
@@ -122,6 +119,11 @@ func (r *ReconcileMachineHealthCheck) Reconcile(request reconcile.Request) (reco
 		return reconcile.Result{}, err
 	}
 
+	if hasRemediationDisabledAnnotation(*machine) {
+		glog.Infof("Machine %q has a matching %s annotation set to <true>, remediation is skipped.", machine.Name, disableRemediationAnotationKey)
+		return reconcile.Result{}, nil
+	}
+
 	// If the current machine matches any existing MachineHealthCheck CRD
 	allMachineHealthChecks := &mrv1.MachineHealthCheckList{}
 	err = r.client.List(context.Background(), allMachineHealthChecks)
@@ -130,11 +132,6 @@ func (r *ReconcileMachineHealthCheck) Reconcile(request reconcile.Request) (reco
 		return reconcile.Result{}, err
 	}
 
-	if hasRemediationDisabledAnnotation(*machine) {
-		glog.Infof("Machine %s has a matching %s annotation set to <true>, remediation is skipped.",
-			machineKey, disableRemediationAnotationKey)
-		return reconcile.Result{}, nil
-	}	
 	for _, hc := range allMachineHealthChecks.Items {
 
 		if hasMatchingLabels(&hc, machine) {
@@ -280,11 +277,6 @@ func (r *ReconcileMachineHealthCheck) remediationStrategyReboot(machine *mapiv1.
 			MachineName: machine.Name,
 			Type:        mrv1.RemediationTypeReboot,
 		},
-		Status: mrv1.MachineRemediationStatus{
-			State:     mrv1.RemediationStateStarted,
-			Reason:    "Machine remediation started",
-			StartTime: &metav1.Time{Time: time.Now()},
-		},
 	}
 
 	glog.Infof("Machine %s has been unhealthy for too long, creating machine remediation", machine.Name)
@@ -337,7 +329,6 @@ func hasRemediationDisabledAnnotation(machine mapiv1.Machine) bool {
 	}
 	return skipRemediation == "true"
 }
-
 
 func hasMatchingLabels(machineHealthCheck *mrv1.MachineHealthCheck, machine *mapiv1.Machine) bool {
 	selector, err := metav1.LabelSelectorAsSelector(&machineHealthCheck.Spec.Selector)

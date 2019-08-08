@@ -173,7 +173,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 			ImageRepository: mro.Spec.ImageRegistry,
 			PullPolicy:      mro.Spec.ImagePullPolicy,
 			OperatorVersion: r.operatorVersion,
-			Verbosity:       "2",
+			Verbosity:       "4",
 		}
 		if err := r.createOrUpdateDeployment(deployData); err != nil {
 			return err
