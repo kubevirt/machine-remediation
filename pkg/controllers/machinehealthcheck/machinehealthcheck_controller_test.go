@@ -163,6 +163,12 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 	nodeUnhealthyForTooLong := mrotesting.NewNode("nodeUnhealthyForTooLong", false, "machineUnhealthyForTooLong")
 	machineUnhealthyForTooLong := mrotesting.NewMachine("machineUnhealthyForTooLong", nodeUnhealthyForTooLong.Name, "")
 
+	// remediation disabled annotation 
+
+	nodeWithRemediationDisabled := mrotesting.NewNode("nodeWithRemediationDisabled", true, "machineWithRemediationDisabled")
+	machineWithRemediationDisabled := mrotesting.NewMachine("machineWithRemediationDisabled", "node", "")
+	machineWithRemediationDisabled.Annotations[disableRemediationAnotationKey] = "true"
+
 	testsCases := []struct {
 		machine             *mapiv1.Machine
 		node                *corev1.Node
@@ -227,6 +233,14 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 			expected: expectedReconcile{
 				result: reconcile.Result{},
 				error:  true,
+			},
+		},
+		{
+			machine: machineWithRemediationDisabled,
+			node:    nodeWithRemediationDisabled,
+			expected: expectedReconcile{
+				result: reconcile.Result{},
+				error:  false,
 			},
 		},
 	}

@@ -31,6 +31,7 @@ import (
 const (
 	machineAnnotationKey = "machine.openshift.io/machine"
 	ownerControllerKind  = "MachineSet"
+	disableRemediationAnotationKey = "healthchecking.openshift.io/disabled"
 )
 
 // Add creates a new MachineHealthCheck Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -129,7 +130,13 @@ func (r *ReconcileMachineHealthCheck) Reconcile(request reconcile.Request) (reco
 		return reconcile.Result{}, err
 	}
 
+	if hasRemediationDisabledAnnotation(*machine) {
+		glog.Infof("Machine %s has a matching %s annotation set to <true>, remediation is skipped.",
+			machineKey, disableRemediationAnotationKey)
+		return reconcile.Result{}, nil
+	}	
 	for _, hc := range allMachineHealthChecks.Items {
+
 		if hasMatchingLabels(&hc, machine) {
 			glog.V(4).Infof("Machine %s has a matching machineHealthCheck: %s", machineKey, hc.Name)
 			return remediate(r, hc.Spec.RemediationStrategy, machine)
@@ -322,6 +329,15 @@ func hasMachineSetOwner(machine *mapiv1.Machine) bool {
 	}
 	return false
 }
+
+func hasRemediationDisabledAnnotation(machine mapiv1.Machine) bool {
+	skipRemediation, ok := machine.Annotations[disableRemediationAnotationKey]
+	if !ok {
+		return false
+	}
+	return skipRemediation == "true"
+}
+
 
 func hasMatchingLabels(machineHealthCheck *mrv1.MachineHealthCheck, machine *mapiv1.Machine) bool {
 	selector, err := metav1.LabelSelectorAsSelector(&machineHealthCheck.Spec.Selector)
