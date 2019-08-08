@@ -7,7 +7,7 @@ import (
 	"github.com/golang/glog"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 
@@ -27,7 +27,6 @@ type ReconcileMachineRemediation struct {
 	// that reads objects from the cache and writes to the apiserver
 	client     client.Client
 	remediator Remediator
-	scheme     *runtime.Scheme
 	namespace  string
 }
 
@@ -44,7 +43,6 @@ func AddWithRemediator(mgr manager.Manager, remediator Remediator, opts manager.
 func newReconciler(mgr manager.Manager, remediator Remediator, opts manager.Options) (reconcile.Reconciler, error) {
 	return &ReconcileMachineRemediation{
 		client:     mgr.GetClient(),
-		scheme:     mgr.GetScheme(),
 		remediator: remediator,
 		namespace:  opts.Namespace,
 	}, nil
@@ -86,6 +84,19 @@ func (r *ReconcileMachineRemediation) Reconcile(request reconcile.Request) (reco
 	// we do not want to do anything on delete objects
 	if mr.DeletionTimestamp != nil {
 		return reconcile.Result{}, nil
+	}
+
+	if mr.Status.State == "" {
+		mrCopy := mr.DeepCopy()
+		mrCopy.Status = mrv1.MachineRemediationStatus{
+			State:     mrv1.RemediationStateStarted,
+			Reason:    "Machine remediation started",
+			StartTime: &metav1.Time{Time: time.Now()},
+		}
+		if err := r.client.Status().Update(context.TODO(), mrCopy); err != nil {
+			glog.Errorf("failed to update MR %q status: %v", mr.Name, err)
+			return reconcile.Result{}, err
+		}
 	}
 
 	switch mr.Spec.Type {

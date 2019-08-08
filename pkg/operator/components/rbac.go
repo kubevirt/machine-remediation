@@ -172,6 +172,7 @@ var (
 				Verbs: []string{
 					"get",
 					"list",
+					"watch",
 				},
 			},
 			{
@@ -180,6 +181,7 @@ var (
 				},
 				Resources: []string{
 					"machineremediations",
+					"machineremediations/status",
 				},
 				Verbs: []string{
 					"delete",
@@ -200,6 +202,7 @@ var (
 					"delete",
 					"get",
 					"list",
+					"watch",
 				},
 			},
 			{
@@ -213,6 +216,7 @@ var (
 					"get",
 					"list",
 					"update",
+					"watch",
 				},
 			},
 			{

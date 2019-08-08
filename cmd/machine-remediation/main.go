@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
+
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/baremetal/remediator"
 	"kubevirt.io/machine-remediation-operator/pkg/controllers"
@@ -65,9 +66,9 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	bareMetalRemediator := remediator.NewBareMetalRemediator(mgr)
+	remediator := remediator.NewBareMetalRemediator(mgr)
 	addController := func(m manager.Manager, opts manager.Options) error {
-		return machineremediation.AddWithRemediator(m, bareMetalRemediator, opts)
+		return machineremediation.AddWithRemediator(m, remediator, opts)
 	}
 
 	// Setup all Controllers
