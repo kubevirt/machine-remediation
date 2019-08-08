@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
 
@@ -44,7 +43,6 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 func newReconciler(mgr manager.Manager, opts manager.Options) reconcile.Reconciler {
 	return &ReconcileMachineHealthCheck{
 		client:    mgr.GetClient(),
-		scheme:    mgr.GetScheme(),
 		namespace: opts.Namespace,
 	}
 }
@@ -66,7 +64,6 @@ type ReconcileMachineHealthCheck struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client    client.Client
-	scheme    *runtime.Scheme
 	namespace string
 }
 

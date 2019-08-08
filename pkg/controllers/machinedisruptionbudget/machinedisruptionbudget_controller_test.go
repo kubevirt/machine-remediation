@@ -37,7 +37,6 @@ func newFakeReconciler(recorder record.EventRecorder, initObjects ...runtime.Obj
 	return &ReconcileMachineDisruption{
 		client:   fakeClient,
 		recorder: recorder,
-		scheme:   scheme.Scheme,
 	}
 }
 

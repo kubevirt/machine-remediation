@@ -120,7 +120,6 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineHealthChe
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineHealthCheck{
 		client:    fakeClient,
-		scheme:    scheme.Scheme,
 		namespace: consts.NamespaceOpenshiftMachineAPI,
 	}
 }
