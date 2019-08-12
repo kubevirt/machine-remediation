@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/util/retry"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
 	machineutil "kubevirt.io/machine-remediation-operator/pkg/utils/machines"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -307,7 +308,7 @@ func (r *ReconcileMachineDisruption) countHealthyMachines(machines []mapiv1.Mach
 			continue
 		}
 
-		healthy, err := machineutil.IsMachineHealthy(r.client, &machine)
+		healthy, err := isMachineHealthy(r.client, &machine)
 		if err != nil {
 			return currentHealthy, err
 		}
@@ -542,4 +543,30 @@ func RetryDecrementMachineDisruptionsAllowed(c client.Client, machine *mapiv1.Ma
 	}
 
 	return err
+}
+
+// isMachineHealthy returns true if the the machine is running and machine node is healthy
+func isMachineHealthy(c client.Client, machine *mapiv1.Machine) (bool, error) {
+	if machine.Status.NodeRef == nil {
+		return false, fmt.Errorf("Machine %s does not have node reference", machine.Name)
+	}
+
+	node := &v1.Node{}
+	key := client.ObjectKey{Namespace: metav1.NamespaceNone, Name: machine.Status.NodeRef.Name}
+	if err := c.Get(context.TODO(), key, node); err != nil {
+		return false, err
+	}
+
+	unhealtyConditions, err := conditions.GetConditionsFromConfigMap(c, machine.Namespace)
+	if err != nil {
+		return false, err
+	}
+
+	nodeUnhealthyConditions := conditions.GetNodeUnhealthyConditions(node, unhealtyConditions)
+	if len(nodeUnhealthyConditions) > 0 {
+		glog.Infof("Machine %q unhealthy because of conditions: %v", machine.Name, nodeUnhealthyConditions)
+		return false, nil
+	}
+
+	return true, nil
 }
