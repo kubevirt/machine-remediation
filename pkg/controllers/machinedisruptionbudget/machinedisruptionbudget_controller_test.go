@@ -454,11 +454,14 @@ func TestGetMachineDisruptionBudgetForMachine(t *testing.T) {
 	mdbWithWrongSelector.Name = "mdbWithWrongSelector"
 	mdbWithWrongSelector.Spec.Selector = mrotesting.NewSelector(map[string]string{"wrongSelector": ""})
 
+	oneMdb := []*mrv1.MachineDisruptionBudget {mdbWithRightLabel1}
+	twoMdbs := []*mrv1.MachineDisruptionBudget {mdbWithRightLabel1, mdbWithRightLabel2} 
+	
 	testsCases := []struct {
 		testName string
-		mdbs     []*mrv1.MachineDisruptionBudget
+		mdbs     []*mrv1.MachineDisruptionBudget		
 		machine  *mapiv1.Machine
-		expected *mrv1.MachineDisruptionBudget
+		expected []*mrv1.MachineDisruptionBudget
 	}{
 		{
 			testName: "machine without labels",
@@ -482,13 +485,13 @@ func TestGetMachineDisruptionBudgetForMachine(t *testing.T) {
 			testName: "MDB with right selector",
 			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithRightLabel1},
 			machine:  machineWithRightLabel,
-			expected: mdbWithRightLabel1,
+			expected: oneMdb,
 		},
 		{
 			testName: "two MDB's with right selector",
 			mdbs:     []*mrv1.MachineDisruptionBudget{mdbWithRightLabel1, mdbWithRightLabel2},
 			machine:  machineWithRightLabel,
-			expected: mdbWithRightLabel1,
+			expected: twoMdbs,
 		},
 	}
 
@@ -698,7 +701,7 @@ func TestRepeatCheckAndDecrement(t *testing.T) {
 			testName: "With two MDB's",
 			machine:  machine,
 			mdbs:     []*mrv1.MachineDisruptionBudget{mdb1, mdb2},
-			error:    true,
+			error:    false,
 		},
 		{
 			testName: "With the MDB that has wrong observedGeneration",

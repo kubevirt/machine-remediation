@@ -375,7 +375,7 @@ func (r *ReconcileMachineDisruption) failSafe(mdb *mrv1.MachineDisruptionBudget)
 	return r.client.Status().Update(context.TODO(), newMdb)
 }
 
-func (r *ReconcileMachineDisruption) getMachineDisruptionBudgetForMachine(machine *mapiv1.Machine) *mrv1.MachineDisruptionBudget {
+func (r *ReconcileMachineDisruption) getMachineDisruptionBudgetForMachine(machine *mapiv1.Machine) []*mrv1.MachineDisruptionBudget {
 	// GetMachineMachineDisruptionBudgets returns an error only if no
 	// MachineDisruptionBudgets are found.  We don't return that as an error to the
 	// caller.
@@ -389,13 +389,7 @@ func (r *ReconcileMachineDisruption) getMachineDisruptionBudgetForMachine(machin
 		glog.V(4).Infof("Could not find MachineDisruptionBudget for machine %s in namespace %s with labels: %v", machine.Name, machine.Namespace, machine.Labels)
 		return nil
 	}
-
-	if len(mdbs) > 1 {
-		msg := fmt.Sprintf("Machine %q/%q matches multiple MachineDisruptionBudgets.  Chose %q arbitrarily.", machine.Namespace, machine.Name, mdbs[0].Name)
-		glog.Warning(msg)
-		r.recorder.Event(machine, v1.EventTypeWarning, "MultipleMachineDisruptionBudgets", msg)
-	}
-	return mdbs[0]
+	return mdbs
 }
 
 // This function returns machines using the MachineDisruptionBudget object.
@@ -466,14 +460,17 @@ func (r *ReconcileMachineDisruption) machineToMachineDisruptionBudget(o handler.
 		machine.Labels = o.Meta.GetLabels()
 	}
 
-	mdb := r.getMachineDisruptionBudgetForMachine(machine)
-	if mdb == nil {
-		glog.Errorf("Unable to find MachineDisruptionBudget for machine %s", machine.Name)
+	mdbs:= r.getMachineDisruptionBudgetForMachine(machine)
+	if len(mdbs) == 0 {
+		glog.V(4).Infof("Unable to find MachineDisruptionBudget for machine %s", machine.Name)
 		return nil
 	}
-
-	name := client.ObjectKey{Namespace: mdb.Namespace, Name: mdb.Name}
-	return []reconcile.Request{{NamespacedName: name}}
+	var requests []reconcile.Request
+    for _,mdb := range mdbs {
+		name := client.ObjectKey{Namespace: mdb.Namespace, Name: mdb.Name}
+		requests = append(requests, reconcile.Request{NamespacedName: name})
+	}
+	return requests
 }
 
 // isMachineDisruptionAllowed returns true if the provided MachineDisruptionBudget allows any disruption
@@ -528,18 +525,14 @@ func RetryDecrementMachineDisruptionsAllowed(c client.Client, machine *mapiv1.Ma
 			return err
 		}
 
-		if len(mdbs) > 1 {
-			return fmt.Errorf("machine %q has more than one MachineDisruptionBudget, which is not supported", machine.Name)
-		}
-
-		if len(mdbs) == 1 {
-			mdb = mdbs[0]
-
+		for _, mdb := range mdbs {
 			if !isMachineDisruptionAllowed(mdb, maxDisruptedMachinSize) {
 				return fmt.Errorf("machine disruption is not allowed")
 			}
 
-			return decrementMachineDisruptionsAllowed(c, machine.Name, mdb)
+			if err := decrementMachineDisruptionsAllowed(c, machine.Name, mdb); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
