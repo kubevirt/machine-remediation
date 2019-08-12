@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/ghodss/yaml"
 
@@ -33,6 +34,19 @@ func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespa
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *components.DeploymentData) error {
+	if data.ImageRepository == "" {
+		imageRepository, err := r.getOperatorImageRepository()
+		if err != nil {
+			return err
+		}
+
+		data.ImageRepository = imageRepository
+	}
+
+	if data.PullPolicy == "" {
+		data.PullPolicy = corev1.PullIfNotPresent
+	}
+
 	newDeploy := components.NewDeployment(data)
 	newDeploy.Spec.Replicas = pointer.Int32Ptr(2)
 
@@ -56,6 +70,34 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *com
 	// do not update the status, deployment controller one who responsible to update it
 	newDeploy.Status = oldDeploy.Status
 	return r.client.Update(context.TODO(), newDeploy)
+}
+
+func (r *ReconcileMachineRemediationOperator) getOperatorImageRepository() (string, error) {
+	ns, err := getOperatorNamespace()
+	if err != nil {
+		return "", err
+	}
+
+	operator, err := r.getDeployment(components.ComponentMachineRemediationOperator, ns)
+	if err != nil {
+		return "", err
+	}
+
+	image := strings.Split(operator.Spec.Template.Spec.Containers[0].Image, "/")
+	return strings.Join(image[:len(image)-1], "/"), nil
+}
+
+func getOperatorNamespace() (string, error) {
+	data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+	if err != nil {
+		return "", fmt.Errorf("failed to get operator namespace: %v", err)
+	}
+
+	if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
+		return ns, nil
+	}
+
+	return "", fmt.Errorf("failed to get operator namespace: %v", err)
 }
 
 func (r *ReconcileMachineRemediationOperator) deleteDeployment(name string, namespace string) error {
