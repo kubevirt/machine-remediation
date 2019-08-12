@@ -2,8 +2,8 @@ package machinehealthcheck
 
 import (
 	"context"
-	golangerrors "errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/golang/glog"
@@ -18,6 +18,7 @@ import (
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	disruption "kubevirt.io/machine-remediation-operator/pkg/controllers/machinedisruptionbudget"
 	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
+	machinesutils "kubevirt.io/machine-remediation-operator/pkg/utils/machines"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -214,12 +215,80 @@ func (r *ReconcileMachineHealthCheck) Reconcile(request reconcile.Request) (reco
 
 		if hasMatchingLabels(&hc, machine) {
 			glog.V(4).Infof("Machine %s has a matching machineHealthCheck: %s", machineKey, hc.Name)
-			return remediate(r, hc.Spec.RemediationStrategy, machine)
+			unhealthyConditions, err := conditions.GetConditionsFromConfigMap(r.client, r.namespace)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			result, err := remediate(r, hc.Spec.RemediationStrategy, machine, unhealthyConditions)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			// update MHC status
+			if err = updateMHCStatus(r.client, &hc, unhealthyConditions); err != nil {
+				return reconcile.Result{}, err
+			}
+			return result, nil
 		}
 	}
 
 	glog.Infof("Machine %s has no MachineHealthCheck associated", machineName)
 	return reconcile.Result{}, nil
+}
+
+func updateMHCStatus(c client.Client, mhc *mrv1.MachineHealthCheck, unhealthyConditions []conditions.UnhealthyCondition) error {
+	machines, err := machinesutils.GetMachinesByLabelSelector(c, &mhc.Spec.Selector, mhc.Namespace)
+	if err != nil {
+		return err
+	}
+
+	var totalHealthy int32
+	targetedMachines := []mrv1.TargetedMachine{}
+	for _, m := range machines.Items {
+		machineUnhealthyConditions, err := conditions.GetMachineUnhealthyConditions(c, &m, unhealthyConditions)
+		if err != nil {
+			return err
+		}
+
+		conditionsTypes := []corev1.NodeConditionType{}
+		for _, c := range machineUnhealthyConditions {
+			conditionsTypes = append(conditionsTypes, c.Name)
+		}
+
+		healthy := mrv1.MachineHealthyFalse
+		if len(machineUnhealthyConditions) == 0 {
+			healthy = mrv1.MachineHealthyTrue
+			totalHealthy++
+		}
+
+		targetedMachines = append(targetedMachines, mrv1.TargetedMachine{
+			Name:                m.Name,
+			Healthy:             healthy,
+			UnhealthyConditions: conditionsTypes,
+		})
+	}
+
+	targetedConditions := []mrv1.TargetedCondition{}
+	for _, c := range unhealthyConditions {
+		targetedConditions = append(targetedConditions, mrv1.TargetedCondition{
+			Name:   c.Name,
+			Status: c.Status,
+		})
+	}
+
+	if reflect.DeepEqual(targetedConditions, mhc.Status.TargetedConditions) &&
+		reflect.DeepEqual(targetedMachines, mhc.Status.TargetedMachines) &&
+		totalHealthy == mhc.Status.TotalHealthyMachines {
+		return nil
+	}
+
+	newMhc := mhc.DeepCopy()
+	newMhc.Status = mrv1.MachineHealthCheckStatus{
+		TargetedConditions:   targetedConditions,
+		TargetedMachines:     targetedMachines,
+		TotalHealthyMachines: totalHealthy,
+	}
+
+	return c.Status().Update(context.TODO(), newMhc)
 }
 
 // This is set so the fake client can be used for unit test. See:
@@ -235,14 +304,14 @@ func getMachineHealthCheckListOptions() *client.ListOptions {
 	}
 }
 
-func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.RemediationStrategyType, machine *mapiv1.Machine) (reconcile.Result, error) {
+func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.RemediationStrategyType, machine *mapiv1.Machine, unhealthyConditions []conditions.UnhealthyCondition) (reconcile.Result, error) {
 	glog.Infof("Initialising remediation logic for machine %s", machine.Name)
 	if !hasMachineSetOwner(machine) && !isMaster(machine, r.client) {
 		glog.Infof("Machine %s has no machineSet controller owner, skipping remediation", machine.Name)
 		return reconcile.Result{}, nil
 	}
 
-	node, err := getNodeFromMachine(machine, r.client)
+	node, err := machinesutils.GetNodeByMachine(r.client, machine)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			glog.Warningf("Node %s not found for machine %s", node.Name, machine.Name)
@@ -252,12 +321,7 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 		return reconcile.Result{}, err
 	}
 
-	cmUnhealtyConditions, err := conditions.GetUnhealthyConditionsConfigMap(r.client, r.namespace)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	nodeUnhealthyConditions, err := conditions.GetNodeUnhealthyConditions(node, cmUnhealtyConditions)
+	nodeUnhealthyConditions := conditions.GetNodeUnhealthyConditions(node, unhealthyConditions)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -268,7 +332,7 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 	for _, c := range nodeUnhealthyConditions {
 		nodeCondition := conditions.GetNodeCondition(node, c.Name)
 		// skip when current node condition is different from the one reported in the config map
-		if nodeCondition == nil || !isConditionsStatusesEqual(nodeCondition, &c) {
+		if nodeCondition == nil || !conditions.IsConditionsStatusesEqual(nodeCondition, &c) {
 			continue
 		}
 
@@ -364,24 +428,6 @@ func (r *ReconcileMachineHealthCheck) remediationStrategyReboot(machine *mapiv1.
 	return reconcile.Result{}, nil
 }
 
-func isConditionsStatusesEqual(cond *corev1.NodeCondition, unhealthyCond *conditions.UnhealthyCondition) bool {
-	return cond.Status == unhealthyCond.Status
-}
-
-func getNodeFromMachine(machine *mapiv1.Machine, client client.Client) (*corev1.Node, error) {
-	if machine.Status.NodeRef == nil {
-		glog.Errorf("node NodeRef not found in machine %s", machine.Name)
-		return nil, golangerrors.New("node NodeRef not found in machine")
-	}
-	node := &corev1.Node{}
-	nodeKey := types.NamespacedName{
-		Namespace: machine.Status.NodeRef.Namespace,
-		Name:      machine.Status.NodeRef.Name,
-	}
-	err := client.Get(context.TODO(), nodeKey, node)
-	return node, err
-}
-
 func unhealthyForTooLong(nodeCondition *corev1.NodeCondition, timeout time.Duration) bool {
 	now := time.Now()
 	if nodeCondition.LastTransitionTime.Add(timeout).Before(now) {
@@ -431,7 +477,7 @@ func isMaster(machine *mapiv1.Machine, client client.Client) bool {
 		"node-role.kubernetes.io/master",
 	}
 
-	node, err := getNodeFromMachine(machine, client)
+	node, err := machinesutils.GetNodeByMachine(client, machine)
 	if err != nil {
 		glog.Warningf("Couldn't get node for machine %s", machine.Name)
 		return false
