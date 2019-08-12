@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -9,6 +10,16 @@ const ConfigMapNodeUnhealthyConditions = "node-unhealthy-conditions"
 
 // RemediationStrategyType contains type of the remediation that we are wanting to use
 type RemediationStrategyType string
+
+// MachineHealthy indicates if the machine is healthy or unhealthy
+type MachineHealthy string
+
+const (
+	// MachineHealthyTrue indicates when the machine is healthy
+	MachineHealthyTrue MachineHealthy = "True"
+	// MachineHealthyFalse indicates when the machine is unhealthy
+	MachineHealthyFalse MachineHealthy = "False"
+)
 
 const (
 	// RemediationStrategyTypeReboot contains name of the reboot remediation strategy
@@ -55,5 +66,26 @@ type MachineHealthCheckSpec struct {
 
 // MachineHealthCheckStatus defines the observed state of MachineHealthCheck
 type MachineHealthCheckStatus struct {
-	// TODO(alberto)
+	// List of machines descriptions observed by MachineHealthCheck object
+	TargetedMachines []TargetedMachine `json:"targetedMachines,omitempty"`
+	// List of node conditions observed by MachineHealthCheck
+	TargetedConditions []TargetedCondition `json:"targetedConditions,omitempty"`
+	// Number of all observed healthy machines
+	TotalHealthyMachines int32 `json:"totalHealthyMachines,omitempty"`
+}
+
+// TargetedMachine defines machines observed by the machine health check object
+type TargetedMachine struct {
+	// Machine name
+	Name string `json:"name"`
+	// Indicate health of the machine
+	Healthy MachineHealthy `json:"healthy"`
+	// List of node conditions according to which machine is marked as unhealthy
+	UnhealthyConditions []corev1.NodeConditionType `json:"unhealthyConditions"`
+}
+
+// TargetedCondition defines conditions observed by the machine health check object
+type TargetedCondition struct {
+	Name   corev1.NodeConditionType `json:"name"`
+	Status corev1.ConditionStatus   `json:"status"`
 }
