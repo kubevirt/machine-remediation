@@ -154,7 +154,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 	}
 
 	for _, component := range components.Components {
-		glog.Infof("Creating objets for component %q", component)
+		glog.Infof("Creating objects for component %q", component)
 		if err := r.createOrUpdateServiceAccount(component, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
@@ -175,6 +175,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 			OperatorVersion: r.operatorVersion,
 			Verbosity:       "4",
 		}
+
 		if err := r.createOrUpdateDeployment(deployData); err != nil {
 			return err
 		}
