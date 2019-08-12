@@ -36,9 +36,9 @@ func init() {
 
 func verifyMachineRemediationOperatorConditions(
 	conditions []mrv1.MachineRemediationOperatorStatusCondition,
-	availabe mrv1.OperatorConditionStatus,
-	degraded mrv1.OperatorConditionStatus,
-	progressing mrv1.OperatorConditionStatus,
+	availabe corev1.ConditionStatus,
+	degraded corev1.ConditionStatus,
+	progressing corev1.ConditionStatus,
 ) bool {
 	for _, c := range conditions {
 		switch c.Type {
@@ -131,9 +131,9 @@ func TestReconcile(t *testing.T) {
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
 	assert.Equal(t, true, verifyMachineRemediationOperatorConditions(
 		updatedMro.Status.Conditions,
-		mrv1.ConditionFalse,
-		mrv1.ConditionFalse,
-		mrv1.ConditionTrue,
+		corev1.ConditionFalse,
+		corev1.ConditionFalse,
+		corev1.ConditionTrue,
 	))
 
 	// update all deployments status to have desired number of replicas
@@ -152,9 +152,9 @@ func TestReconcile(t *testing.T) {
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
 	assert.Equal(t, true, verifyMachineRemediationOperatorConditions(
 		updatedMro.Status.Conditions,
-		mrv1.ConditionTrue,
-		mrv1.ConditionFalse,
-		mrv1.ConditionFalse,
+		corev1.ConditionTrue,
+		corev1.ConditionFalse,
+		corev1.ConditionFalse,
 	))
 
 	// update mro object deletion timestamp

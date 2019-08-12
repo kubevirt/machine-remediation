@@ -21,19 +21,6 @@ const (
 	OperatorDegraded OperatorConditionType = "Degraded"
 )
 
-// OperatorConditionStatus contains the status of the operator condition.
-type OperatorConditionStatus string
-
-// These are valid condition statuses. "ConditionTrue" means a resource is in the condition.
-// "ConditionFalse" means a resource is not in the condition. "ConditionUnknown" means kubernetes
-// can't decide if a resource is in the condition or not. In the future, we could add other
-// intermediate conditions, e.g. ConditionDegraded.
-const (
-	ConditionTrue    OperatorConditionStatus = "True"
-	ConditionFalse   OperatorConditionStatus = "False"
-	ConditionUnknown OperatorConditionStatus = "Unknown"
-)
-
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -86,7 +73,7 @@ type MachineRemediationOperatorStatusCondition struct {
 	Type OperatorConditionType `json:"type"`
 
 	// status of the condition, one either True or False.
-	Status OperatorConditionStatus `json:"status"`
+	Status corev1.ConditionStatus `json:"status"`
 
 	// lastTransitionTime is the time of the last update to the current status object.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime"`
