@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/glog"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -218,17 +219,17 @@ func (r *ReconcileMachineRemediationOperator) statusAvailable(mro *mrv1.MachineR
 	mro.Status.Conditions = []mrv1.MachineRemediationOperatorStatusCondition{
 		{
 			Type:               mrv1.OperatorAvailable,
-			Status:             mrv1.ConditionTrue,
+			Status:             corev1.ConditionTrue,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 		{
 			Type:               mrv1.OperatorProgressing,
-			Status:             mrv1.ConditionFalse,
+			Status:             corev1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 		{
 			Type:               mrv1.OperatorDegraded,
-			Status:             mrv1.ConditionFalse,
+			Status:             corev1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 	}
@@ -240,17 +241,17 @@ func (r *ReconcileMachineRemediationOperator) statusDegraded(mro *mrv1.MachineRe
 	mro.Status.Conditions = []mrv1.MachineRemediationOperatorStatusCondition{
 		{
 			Type:               mrv1.OperatorAvailable,
-			Status:             mrv1.ConditionFalse,
+			Status:             corev1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 		{
 			Type:               mrv1.OperatorProgressing,
-			Status:             mrv1.ConditionFalse,
+			Status:             corev1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 		{
 			Type:               mrv1.OperatorDegraded,
-			Status:             mrv1.ConditionTrue,
+			Status:             corev1.ConditionTrue,
 			LastTransitionTime: metav1.Time{Time: now},
 			Reason:             reason,
 			Message:            message,
@@ -264,19 +265,19 @@ func (r *ReconcileMachineRemediationOperator) statusProgressing(mro *mrv1.Machin
 	mro.Status.Conditions = []mrv1.MachineRemediationOperatorStatusCondition{
 		{
 			Type:               mrv1.OperatorAvailable,
-			Status:             mrv1.ConditionFalse,
+			Status:             corev1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 		{
 			Type:               mrv1.OperatorProgressing,
-			Status:             mrv1.ConditionTrue,
+			Status:             corev1.ConditionTrue,
 			LastTransitionTime: metav1.Time{Time: now},
 			Reason:             reason,
 			Message:            message,
 		},
 		{
 			Type:               mrv1.OperatorDegraded,
-			Status:             mrv1.ConditionFalse,
+			Status:             corev1.ConditionFalse,
 			LastTransitionTime: metav1.Time{Time: now},
 		},
 	}
