@@ -91,14 +91,16 @@ spec:
     spec:
       affinity:
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: machineremediation.kubevirt.io
-                operator: In
-                values:
-                - machine-remediation-operator
-            topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: machineremediation.kubevirt.io
+                  operator: In
+                  values:
+                  - machine-remediation-operator
+              topologyKey: kubernetes.io/hostname
+            weight: 50
       containers:
       - args:
         - --logtostderr=true
