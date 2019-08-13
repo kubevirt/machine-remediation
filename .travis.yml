@@ -25,7 +25,7 @@ deploy:
   skip_cleanup: true
   on:
     all_branches: true
-    condition: $TRAVIS_BRANCH =~ ^release\/.*$
+    condition: $TRAVIS_BRANCH =~ ^release.*$
 - provider: script
   script: docker login -u="${DOCKER_USER}" -p="${DOCKER_PASSWORD}" && CONTAINER_PREFIX=index.docker.io/kubevirt
     CONTAINER_TAG=$TRAVIS_TAG make bazel-push-images
