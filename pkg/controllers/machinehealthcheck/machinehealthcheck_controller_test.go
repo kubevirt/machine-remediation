@@ -18,7 +18,9 @@ import (
 	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -162,7 +164,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 	nodeUnhealthyForTooLong := mrotesting.NewNode("nodeUnhealthyForTooLong", false, "machineUnhealthyForTooLong")
 	machineUnhealthyForTooLong := mrotesting.NewMachine("machineUnhealthyForTooLong", nodeUnhealthyForTooLong.Name, "")
 
-	// remediation disabled annotation 
+	// remediation disabled annotation
 
 	nodeWithRemediationDisabled := mrotesting.NewNode("nodeWithRemediationDisabled", true, "machineWithRemediationDisabled")
 	machineWithRemediationDisabled := mrotesting.NewMachine("machineWithRemediationDisabled", "node", "")
@@ -383,5 +385,147 @@ func TestApplyRemediationReboot(t *testing.T) {
 	}
 	if !mrExist {
 		t.Errorf("Expected: machine remediation with machine name %s should exist, got: no machine remediations", machineUnhealthyForTooLong.Name)
+	}
+}
+
+func TestGetNodeNamesForMHC(t *testing.T) {
+	testCases := []struct {
+		mhc               *mrv1.MachineHealthCheck
+		machines          []*mapiv1.Machine
+		expectedNodeNames []types.NodeName
+	}{
+		{
+			mhc: mrotesting.NewMachineHealthCheck("matchNodes"),
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("test", "node1", ""),
+				mrotesting.NewMachine("test2", "node2", ""),
+			},
+			expectedNodeNames: []types.NodeName{
+				"node1",
+				"node2",
+			},
+		},
+		{
+			mhc: &mrv1.MachineHealthCheck{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "noMatchingMachines",
+					Namespace: consts.NamespaceOpenshiftMachineAPI,
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind: "MachineHealthCheck",
+				},
+				Spec: mrv1.MachineHealthCheckSpec{
+					Selector: metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"no": "match",
+						},
+					},
+				},
+				Status: mrv1.MachineHealthCheckStatus{},
+			},
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("test", "node1", ""),
+				mrotesting.NewMachine("test2", "node2", ""),
+			},
+			expectedNodeNames: nil,
+		},
+		{
+			mhc: mrotesting.NewMachineHealthCheck("noNodeRefs"),
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("test", "", ""),
+				mrotesting.NewMachine("test2", "", ""),
+			},
+			expectedNodeNames: nil,
+		},
+	}
+	for _, tc := range testCases {
+		objects := []runtime.Object{}
+		for i := range tc.machines {
+			objects = append(objects, runtime.Object(tc.machines[i]))
+		}
+		r := newFakeReconciler(objects...)
+		nodeNames, err := r.getNodeNamesForMHC(tc.mhc)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !reflect.DeepEqual(nodeNames, tc.expectedNodeNames) {
+			t.Errorf("Expected: %v, got: %v", tc.expectedNodeNames, nodeNames)
+		}
+	}
+}
+
+func TestNodeRequestsFromMachineHealthCheck(t *testing.T) {
+	testCases := []struct {
+		mhc              *mrv1.MachineHealthCheck
+		machines         []*mapiv1.Machine
+		expectedRequests []reconcile.Request
+	}{
+		{
+			mhc: mrotesting.NewMachineHealthCheck("matchNodes"),
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("test", "node1", ""),
+				mrotesting.NewMachine("test2", "node2", ""),
+			},
+			expectedRequests: []reconcile.Request{
+				{
+					NamespacedName: client.ObjectKey{
+						Name: string("node1"),
+					},
+				},
+				{
+					NamespacedName: client.ObjectKey{
+						Name: string("node2"),
+					},
+				},
+			},
+		},
+		{
+			mhc: &mrv1.MachineHealthCheck{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "noMatchingMachines",
+					Namespace: consts.NamespaceOpenshiftMachineAPI,
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind: "MachineHealthCheck",
+				},
+				Spec: mrv1.MachineHealthCheckSpec{
+					Selector: metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"no": "match",
+						},
+					},
+				},
+				Status: mrv1.MachineHealthCheckStatus{},
+			},
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("test", "node1", ""),
+				mrotesting.NewMachine("test2", "node2", ""),
+			},
+			expectedRequests: nil,
+		},
+		{
+			mhc: mrotesting.NewMachineHealthCheck("noNodeRefs"),
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("test", "", ""),
+				mrotesting.NewMachine("test2", "", ""),
+			},
+			expectedRequests: nil,
+		},
+	}
+	for _, tc := range testCases {
+		objects := []runtime.Object{}
+		for i := range tc.machines {
+			objects = append(objects, runtime.Object(tc.machines[i]))
+		}
+		objects = append(objects, runtime.Object(tc.mhc))
+		r := newFakeReconciler(objects...)
+		o := handler.MapObject{
+			Meta:   tc.mhc.GetObjectMeta(),
+			Object: tc.mhc,
+		}
+		requests := r.nodeRequestsFromMachineHealthCheck(o)
+		if !reflect.DeepEqual(requests, tc.expectedRequests) {
+			t.Errorf("Expected: %v, got: %v", tc.expectedRequests, requests)
+		}
 	}
 }
