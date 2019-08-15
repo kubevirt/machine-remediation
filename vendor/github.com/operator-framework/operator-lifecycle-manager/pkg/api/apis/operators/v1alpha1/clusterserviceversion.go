@@ -10,11 +10,6 @@ import (
 
 const (
 	CopiedLabelKey = "olm.copiedFrom"
-
-	// ConditionsLengthLimit is the maximum length of Status.Conditions of a
-	// given ClusterServiceVersion object. The oldest condition(s) are removed
-	// from the list as it grows over time to keep it at limit.
-	ConditionsLengthLimit = 20
 )
 
 // obsoleteReasons are the set of reasons that mean a CSV should no longer be processed as active
@@ -72,18 +67,6 @@ func (c *ClusterServiceVersion) SetPhaseWithEvent(phase ClusterServiceVersionPha
 
 // SetPhase sets the current phase and adds a condition if necessary
 func (c *ClusterServiceVersion) SetPhase(phase ClusterServiceVersionPhase, reason ConditionReason, message string, now metav1.Time) {
-	newCondition := func() ClusterServiceVersionCondition {
-		return ClusterServiceVersionCondition{
-			Phase:              c.Status.Phase,
-			LastTransitionTime: c.Status.LastTransitionTime,
-			LastUpdateTime:     c.Status.LastUpdateTime,
-			Message:            message,
-			Reason:             reason,
-		}
-	}
-
-	defer c.TrimConditionsIfLimitExceeded()
-
 	c.Status.LastUpdateTime = now
 	if c.Status.Phase != phase {
 		c.Status.Phase = phase
@@ -92,13 +75,23 @@ func (c *ClusterServiceVersion) SetPhase(phase ClusterServiceVersionPhase, reaso
 	c.Status.Message = message
 	c.Status.Reason = reason
 	if len(c.Status.Conditions) == 0 {
-		c.Status.Conditions = append(c.Status.Conditions, newCondition())
-		return
+		c.Status.Conditions = append(c.Status.Conditions, ClusterServiceVersionCondition{
+			Phase:              c.Status.Phase,
+			LastTransitionTime: c.Status.LastTransitionTime,
+			LastUpdateTime:     c.Status.LastUpdateTime,
+			Message:            message,
+			Reason:             reason,
+		})
 	}
-
 	previousCondition := c.Status.Conditions[len(c.Status.Conditions)-1]
 	if previousCondition.Phase != c.Status.Phase || previousCondition.Reason != c.Status.Reason {
-		c.Status.Conditions = append(c.Status.Conditions, newCondition())
+		c.Status.Conditions = append(c.Status.Conditions, ClusterServiceVersionCondition{
+			Phase:              c.Status.Phase,
+			LastTransitionTime: c.Status.LastTransitionTime,
+			LastUpdateTime:     c.Status.LastUpdateTime,
+			Message:            message,
+			Reason:             reason,
+		})
 	}
 }
 
@@ -196,13 +189,4 @@ func (set InstallModeSet) Supports(operatorNamespace string, namespaces []string
 	}
 
 	return nil
-}
-
-func (c *ClusterServiceVersion) TrimConditionsIfLimitExceeded() {
-	if len(c.Status.Conditions) <= ConditionsLengthLimit {
-		return
-	}
-
-	firstIndex := len(c.Status.Conditions) - ConditionsLengthLimit
-	c.Status.Conditions = c.Status.Conditions[firstIndex:len(c.Status.Conditions)]
 }

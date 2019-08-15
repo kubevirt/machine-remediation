@@ -24,20 +24,23 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/cynepco3hahue/machine-health-check-operator/tools/components"
+	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
 )
 
 func TestMarshallObject(t *testing.T) {
 
-	handler, err := components.NewOperatorDeployment("{{.Namespace}}", "{{.DockerPrefix}}", "{{.DockerTag}}", v1.PullIfNotPresent, "2")
-	if err != nil {
-		t.Fatalf("error generating virt-handler deployment for marshall test %v", err)
+	operatorData := &components.DeploymentData{
+		Name:            "machine-remediation-operator",
+		Namespace:       "{{.Namespace}}",
+		ImageRepository: "{{.DockerPrefix}}",
+		PullPolicy:      v1.PullIfNotPresent,
+		Verbosity:       "2",
+		OperatorVersion: "{{.DockerTag}}",
 	}
+	handler := components.NewDeployment(operatorData)
 
 	writer := strings.Builder{}
-
 	MarshallObject(handler, &writer)
-
 	result := writer.String()
 
 	if !strings.Contains(result, "namespace: {{.Namespace}}") {
