@@ -9,8 +9,6 @@ go_library(
         "command.go",
         "command_notwin.go",
         "command_win.go",
-        "powershell_completions.go",
-        "shell_completions.go",
         "zsh_completions.go",
     ],
     importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/spf13/cobra",
