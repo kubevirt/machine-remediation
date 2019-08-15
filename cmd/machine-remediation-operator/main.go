@@ -7,6 +7,7 @@ import (
 	"github.com/golang/glog"
 
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
@@ -38,7 +39,7 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	namespaces := []string{consts.NamespaceOpenshiftMachineAPI}
+	namespaces := []string{consts.NamespaceOpenshiftMachineAPI, metav1.NamespaceNone}
 	if *namespace != "" {
 		namespaces = append(namespaces, *namespace)
 	}
