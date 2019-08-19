@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -22,29 +23,7 @@ const (
 )
 
 func node(name string, ready bool) *v1.Node {
-	nodeReadyStatus := corev1.ConditionTrue
-	if !ready {
-		nodeReadyStatus = corev1.ConditionUnknown
-	}
-
-	return &v1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: metav1.NamespaceNone,
-			Labels:    map[string]string{},
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind: "Node",
-		},
-		Status: corev1.NodeStatus{
-			Conditions: []corev1.NodeCondition{
-				{
-					Type:   corev1.NodeReady,
-					Status: nodeReadyStatus,
-				},
-			},
-		},
-	}
+	return mrotesting.NewNode(name, ready, "machineName")
 }
 
 func configMap(name string, data map[string]string) *corev1.ConfigMap {
@@ -245,6 +224,42 @@ func TestGetConditionsFromConfigMap(t *testing.T) {
 
 		if !reflect.DeepEqual(tc.expected.unhealthyConditions, unhealthyConditions) {
 			t.Errorf("Test case: %s. Expected unhealthy conditions %v ,got: %v", tc.name, tc.expected.unhealthyConditions, unhealthyConditions)
+		}
+	}
+}
+
+func TestGetNodeCondition(t *testing.T) {
+	testsCases := []struct {
+		node      *corev1.Node
+		condition *corev1.NodeCondition
+		expected  *corev1.NodeCondition
+	}{
+		{
+			node: node("hasCondition", true),
+			condition: &corev1.NodeCondition{
+				Type:   corev1.NodeReady,
+				Status: corev1.ConditionTrue,
+			},
+			expected: &corev1.NodeCondition{
+				Type:               corev1.NodeReady,
+				Status:             corev1.ConditionTrue,
+				LastTransitionTime: mrotesting.KnownDate,
+			},
+		},
+		{
+			node: node("doesNotHaveCondition", true),
+			condition: &corev1.NodeCondition{
+				Type:   corev1.NodeOutOfDisk,
+				Status: corev1.ConditionTrue,
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testsCases {
+		got := GetNodeCondition(tc.node, tc.condition.Type)
+		if !reflect.DeepEqual(got, tc.expected) {
+			t.Errorf("Test case: %s. Expected: %v, got: %v", tc.node.Name, tc.expected, got)
 		}
 	}
 }

@@ -14,7 +14,6 @@ import (
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
-	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
 	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -77,44 +76,6 @@ func TestHasMatchingLabels(t *testing.T) {
 			t.Errorf("Test case: %s. Expected: %t, got: %t", tc.machineHealthCheck.Name, tc.expected, got)
 		}
 	}
-}
-
-func TestGetNodeCondition(t *testing.T) {
-
-	testsCases := []struct {
-		node      *corev1.Node
-		condition *corev1.NodeCondition
-		expected  *corev1.NodeCondition
-	}{
-		{
-			node: mrotesting.NewNode("hasCondition", true, ""),
-			condition: &corev1.NodeCondition{
-				Type:   corev1.NodeReady,
-				Status: corev1.ConditionTrue,
-			},
-			expected: &corev1.NodeCondition{
-				Type:               corev1.NodeReady,
-				Status:             corev1.ConditionTrue,
-				LastTransitionTime: mrotesting.KnownDate,
-			},
-		},
-		{
-			node: mrotesting.NewNode("doesNotHaveCondition", true, ""),
-			condition: &corev1.NodeCondition{
-				Type:   corev1.NodeOutOfDisk,
-				Status: corev1.ConditionTrue,
-			},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range testsCases {
-		got := conditions.GetNodeCondition(tc.node, tc.condition.Type)
-		if !reflect.DeepEqual(got, tc.expected) {
-			t.Errorf("Test case: %s. Expected: %v, got: %v", tc.node.Name, tc.expected, got)
-		}
-	}
-
 }
 
 // newFakeReconciler returns a new reconcile.Reconciler with a fake client
