@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/util/retry"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
 	machineutil "kubevirt.io/machine-remediation-operator/pkg/utils/machines"
 
@@ -298,6 +299,11 @@ func (r *ReconcileMachineDisruption) getMachineDeploymentFinder(machine *mapiv1.
 func (r *ReconcileMachineDisruption) countHealthyMachines(machines []mapiv1.Machine, disruptedMachines map[string]metav1.Time, currentTime time.Time) (int32, error) {
 	var currentHealthy int32
 
+	unhealtyConditions, err := conditions.GetConditionsFromConfigMap(r.client, consts.NamespaceOpenshiftMachineAPI)
+	if err != nil {
+		return currentHealthy, err
+	}
+
 	for _, machine := range machines {
 		// Machine is being deleted.
 		if machine.DeletionTimestamp != nil {
@@ -308,7 +314,7 @@ func (r *ReconcileMachineDisruption) countHealthyMachines(machines []mapiv1.Mach
 			continue
 		}
 
-		healthy, err := isMachineHealthy(r.client, &machine)
+		healthy, err := isMachineHealthy(r.client, unhealtyConditions, &machine)
 		if err != nil {
 			return currentHealthy, err
 		}
@@ -546,7 +552,7 @@ func RetryDecrementMachineDisruptionsAllowed(c client.Client, machine *mapiv1.Ma
 }
 
 // isMachineHealthy returns true if the the machine is running and machine node is healthy
-func isMachineHealthy(c client.Client, machine *mapiv1.Machine) (bool, error) {
+func isMachineHealthy(c client.Client, unhealtyConditions []conditions.UnhealthyCondition, machine *mapiv1.Machine) (bool, error) {
 	if machine.Status.NodeRef == nil {
 		return false, fmt.Errorf("Machine %s does not have node reference", machine.Name)
 	}
@@ -554,11 +560,6 @@ func isMachineHealthy(c client.Client, machine *mapiv1.Machine) (bool, error) {
 	node := &v1.Node{}
 	key := client.ObjectKey{Namespace: metav1.NamespaceNone, Name: machine.Status.NodeRef.Name}
 	if err := c.Get(context.TODO(), key, node); err != nil {
-		return false, err
-	}
-
-	unhealtyConditions, err := conditions.GetConditionsFromConfigMap(c, machine.Namespace)
-	if err != nil {
 		return false, err
 	}
 
