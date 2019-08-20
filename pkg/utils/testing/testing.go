@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
+
+	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -186,5 +187,21 @@ func NewNode(name string, ready bool, machineName string) *corev1.Node {
 				},
 			},
 		},
+	}
+}
+
+// NewTargetedMachine returns a new TargetedMachine object that can be used for testing
+func NewTargetedMachine(name string, healthy bool, unhealthyConditions []corev1.NodeConditionType) mrv1.TargetedMachine {
+	if unhealthyConditions == nil {
+		unhealthyConditions = []corev1.NodeConditionType{}
+	}
+	healthyTyped := mrv1.MachineHealthyFalse
+	if healthy {
+		healthyTyped = mrv1.MachineHealthyTrue
+	}
+	return mrv1.TargetedMachine{
+		Name:                name,
+		Healthy:             healthyTyped,
+		UnhealthyConditions: unhealthyConditions,
 	}
 }
