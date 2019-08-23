@@ -34,7 +34,7 @@ goimports(
     write = True,
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "nogo")
 
 nogo(
     name = "nogo_vet",
@@ -154,4 +154,11 @@ load("@io_bazel_rules_docker//contrib:push-all.bzl", "docker_push")
 docker_push(
     name = "push-images",
     bundle = ":build-images",
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["doc.go"],
+    importpath = "kubevirt.io/machine-remediation-operator",
+    visibility = ["//visibility:public"],
 )
