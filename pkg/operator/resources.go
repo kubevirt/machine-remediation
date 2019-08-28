@@ -48,7 +48,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *com
 	}
 
 	newDeploy := components.NewDeployment(data)
-	newDeploy.Spec.Replicas = pointer.Int32Ptr(2)
+	newDeploy.Spec.Replicas = pointer.Int32Ptr(mrv1.GetReplicaCount(r.client))
 
 	oldDeploy, err := r.getDeployment(data.Name, data.Namespace)
 	if errors.IsNotFound(err) {
