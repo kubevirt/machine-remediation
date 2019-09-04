@@ -4,48 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/glog"
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
+
+	"github.com/golang/glog"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// IsMachineHealthy returns true if the the machine is running and machine node is healthy
-func IsMachineHealthy(c client.Client, machine *mapiv1.Machine) (bool, error) {
-	if machine.Status.NodeRef == nil {
-		return false, fmt.Errorf("Machine %s does not have node reference", machine.Name)
-	}
-
-	node := &v1.Node{}
-	key := client.ObjectKey{Namespace: metav1.NamespaceNone, Name: machine.Status.NodeRef.Name}
-	err := c.Get(context.TODO(), key, node)
-	if err != nil {
-		return false, err
-	}
-
-	cmUnhealtyConditions, err := conditions.GetUnhealthyConditionsConfigMap(c, machine.Namespace)
-	if err != nil {
-		return false, err
-	}
-
-	nodeUnhealthyConditions, err := conditions.GetNodeUnhealthyConditions(node, cmUnhealtyConditions)
-	if err != nil {
-		return false, err
-	}
-
-	if len(nodeUnhealthyConditions) > 0 {
-		glog.Infof("Machine %q unhealthy because of conditions: %v", machine.Name, nodeUnhealthyConditions)
-		return false, nil
-	}
-
-	return true, nil
-}
 
 // GetMachineMachineDisruptionBudgets returns list of machine disruption budgets that suit for the machine
 func GetMachineMachineDisruptionBudgets(c client.Client, machine *mapiv1.Machine) ([]*mrv1.MachineDisruptionBudget, error) {
@@ -76,4 +46,43 @@ func GetMachineMachineDisruptionBudgets(c client.Client, machine *mapiv1.Machine
 	}
 
 	return mdbs, nil
+}
+
+// GetMachinesByLabelSelector returns machines that suit to the label selector
+func GetMachinesByLabelSelector(c client.Client, selector *metav1.LabelSelector, namespace string) (*mapiv1.MachineList, error) {
+	sel, err := metav1.LabelSelectorAsSelector(selector)
+	if err != nil {
+		return nil, err
+	}
+	if sel.Empty() {
+		return nil, nil
+	}
+
+	machines := &mapiv1.MachineList{}
+	listOptions := &client.ListOptions{
+		Namespace:     namespace,
+		LabelSelector: sel,
+	}
+
+	if err = c.List(context.TODO(), machines, client.UseListOptions(listOptions)); err != nil {
+		return nil, err
+	}
+	return machines, nil
+}
+
+// GetNodeByMachine get the node object by machine object
+func GetNodeByMachine(c client.Client, machine *mapiv1.Machine) (*v1.Node, error) {
+	if machine.Status.NodeRef == nil {
+		glog.Errorf("machine %s does not have NodeRef", machine.Name)
+		return nil, fmt.Errorf("machine %s does not have NodeRef", machine.Name)
+	}
+	node := &v1.Node{}
+	nodeKey := types.NamespacedName{
+		Namespace: machine.Status.NodeRef.Namespace,
+		Name:      machine.Status.NodeRef.Name,
+	}
+	if err := c.Get(context.TODO(), nodeKey, node); err != nil {
+		return nil, err
+	}
+	return node, nil
 }

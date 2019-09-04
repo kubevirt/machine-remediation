@@ -79,44 +79,6 @@ func TestHasMatchingLabels(t *testing.T) {
 	}
 }
 
-func TestGetNodeCondition(t *testing.T) {
-
-	testsCases := []struct {
-		node      *corev1.Node
-		condition *corev1.NodeCondition
-		expected  *corev1.NodeCondition
-	}{
-		{
-			node: mrotesting.NewNode("hasCondition", true, ""),
-			condition: &corev1.NodeCondition{
-				Type:   corev1.NodeReady,
-				Status: corev1.ConditionTrue,
-			},
-			expected: &corev1.NodeCondition{
-				Type:               corev1.NodeReady,
-				Status:             corev1.ConditionTrue,
-				LastTransitionTime: mrotesting.KnownDate,
-			},
-		},
-		{
-			node: mrotesting.NewNode("doesNotHaveCondition", true, ""),
-			condition: &corev1.NodeCondition{
-				Type:   corev1.NodeOutOfDisk,
-				Status: corev1.ConditionTrue,
-			},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range testsCases {
-		got := conditions.GetNodeCondition(tc.node, tc.condition.Type)
-		if !reflect.DeepEqual(got, tc.expected) {
-			t.Errorf("Test case: %s. Expected: %v, got: %v", tc.node.Name, tc.expected, got)
-		}
-	}
-
-}
-
 // newFakeReconciler returns a new reconcile.Reconciler with a fake client
 func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineHealthCheck {
 	fakeClient := fake.NewFakeClient(initObjects...)
@@ -528,4 +490,212 @@ func TestNodeRequestsFromMachineHealthCheck(t *testing.T) {
 			t.Errorf("Expected: %v, got: %v", tc.expectedRequests, requests)
 		}
 	}
+}
+
+func testUpdateMHCStatus(t *testing.T, initObjects ...runtime.Object) {
+	machineHealthCheck := mrotesting.NewMachineHealthCheck("machineHealthCheck")
+	unhealthyConditions := []conditions.UnhealthyCondition{
+		conditions.UnhealthyCondition{
+			Name:   corev1.NodeReady,
+			Status: corev1.ConditionUnknown,
+		},
+	}
+	emptyUnhealthyConditions := []conditions.UnhealthyCondition{}
+	nodeUnhealthyConditions := []corev1.NodeConditionType{
+		corev1.NodeReady,
+	}
+	targetedConditions := []mrv1.TargetedCondition{
+		mrv1.TargetedCondition{
+			Name:   unhealthyConditions[0].Name,
+			Status: unhealthyConditions[0].Status,
+		},
+	}
+	emptyTargetedConditions := []mrv1.TargetedCondition(nil)
+	key := client.ObjectKey{
+		Namespace: machineHealthCheck.GetNamespace(),
+		Name:      machineHealthCheck.GetName(),
+	}
+	testsCases := []struct {
+		machines   []*mapiv1.Machine
+		nodes      []*corev1.Node
+		conditions []conditions.UnhealthyCondition
+		expected   *mrv1.MachineHealthCheckStatus
+	}{
+		// no machine
+		{
+			machines:   []*mapiv1.Machine{},
+			nodes:      []*corev1.Node{},
+			conditions: emptyUnhealthyConditions,
+			expected: &mrv1.MachineHealthCheckStatus{
+				TotalHealthyMachines: 0,
+				TargetedConditions:   emptyTargetedConditions,
+				TargetedMachines:     []mrv1.TargetedMachine(nil),
+			},
+		},
+		// single machine
+		{
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("machine1", "node1", ""),
+			},
+			nodes: []*corev1.Node{
+				mrotesting.NewNode("node1", true, "machine1"),
+			},
+			conditions: emptyUnhealthyConditions,
+			expected: &mrv1.MachineHealthCheckStatus{
+				TotalHealthyMachines: 1,
+				TargetedConditions:   emptyTargetedConditions,
+				TargetedMachines: []mrv1.TargetedMachine{
+					mrotesting.NewTargetedMachine("machine1", true, nil),
+				},
+			},
+		},
+		// multiple machines
+		{
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("machine1", "node1", ""),
+				mrotesting.NewMachine("machine2", "node2", ""),
+				mrotesting.NewMachine("machine3", "node3", ""),
+			},
+			nodes: []*corev1.Node{
+				mrotesting.NewNode("node1", true, "machine1"),
+				mrotesting.NewNode("node2", true, "machine2"),
+				mrotesting.NewNode("node3", true, "machine3"),
+			},
+			conditions: emptyUnhealthyConditions,
+			expected: &mrv1.MachineHealthCheckStatus{
+				TotalHealthyMachines: 3,
+				TargetedConditions:   emptyTargetedConditions,
+				TargetedMachines: []mrv1.TargetedMachine{
+					mrotesting.NewTargetedMachine("machine1", true, nil),
+					mrotesting.NewTargetedMachine("machine2", true, nil),
+					mrotesting.NewTargetedMachine("machine3", true, nil),
+				},
+			},
+		},
+		// some unhealthy machines
+		{
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("machine1", "node1", ""),
+				mrotesting.NewMachine("machine2", "node2", ""),
+				mrotesting.NewMachine("machine3", "node3", ""),
+				mrotesting.NewMachine("machine4", "node4", ""),
+				mrotesting.NewMachine("machine5", "node5", ""),
+			},
+			nodes: []*corev1.Node{
+				mrotesting.NewNode("node1", false, "machine1"),
+				mrotesting.NewNode("node2", true, "machine2"),
+				mrotesting.NewNode("node3", false, "machine3"),
+				mrotesting.NewNode("node4", false, "machine4"),
+				mrotesting.NewNode("node5", true, "machine5"),
+			},
+			conditions: unhealthyConditions,
+			expected: &mrv1.MachineHealthCheckStatus{
+				TotalHealthyMachines: 2,
+				TargetedConditions:   targetedConditions,
+				TargetedMachines: []mrv1.TargetedMachine{
+					mrotesting.NewTargetedMachine("machine1", false, nodeUnhealthyConditions),
+					mrotesting.NewTargetedMachine("machine2", true, nil),
+					mrotesting.NewTargetedMachine("machine3", false, nodeUnhealthyConditions),
+					mrotesting.NewTargetedMachine("machine4", false, nodeUnhealthyConditions),
+					mrotesting.NewTargetedMachine("machine5", true, nil),
+				},
+			},
+		},
+		// some unhealthy machines without conditions
+		{
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("machine1", "node1", ""),
+				mrotesting.NewMachine("machine2", "node2", ""),
+				mrotesting.NewMachine("machine3", "node3", ""),
+				mrotesting.NewMachine("machine4", "node4", ""),
+				mrotesting.NewMachine("machine5", "node5", ""),
+			},
+			nodes: []*corev1.Node{
+				mrotesting.NewNode("node1", false, "machine1"),
+				mrotesting.NewNode("node2", true, "machine2"),
+				mrotesting.NewNode("node3", false, "machine3"),
+				mrotesting.NewNode("node4", false, "machine4"),
+				mrotesting.NewNode("node5", true, "machine5"),
+			},
+			conditions: emptyUnhealthyConditions,
+			expected: &mrv1.MachineHealthCheckStatus{
+				TotalHealthyMachines: 5,
+				TargetedConditions:   emptyTargetedConditions,
+				TargetedMachines: []mrv1.TargetedMachine{
+					mrotesting.NewTargetedMachine("machine1", true, nil),
+					mrotesting.NewTargetedMachine("machine2", true, nil),
+					mrotesting.NewTargetedMachine("machine3", true, nil),
+					mrotesting.NewTargetedMachine("machine4", true, nil),
+					mrotesting.NewTargetedMachine("machine5", true, nil),
+				},
+			},
+		},
+		// machine with no node ref
+		{
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("machine1", "node1", ""),
+				mrotesting.NewMachine("machine2", "", ""),
+			},
+			nodes: []*corev1.Node{
+				mrotesting.NewNode("node1", true, "machine1"),
+			},
+			conditions: emptyUnhealthyConditions,
+			expected:   nil,
+		},
+		// machine with non existing node ref
+		{
+			machines: []*mapiv1.Machine{
+				mrotesting.NewMachine("machine1", "node1", ""),
+				mrotesting.NewMachine("machine2", "node2", ""),
+			},
+			nodes: []*corev1.Node{
+				mrotesting.NewNode("node1", true, "machine1"),
+			},
+			conditions: emptyUnhealthyConditions,
+			expected:   nil,
+		},
+	}
+	for _, tc := range testsCases {
+		objects := []runtime.Object{}
+		objects = append(objects, initObjects...)
+		objects = append(objects, machineHealthCheck)
+		for _, machine := range tc.machines {
+			objects = append(objects, machine)
+		}
+		for _, node := range tc.nodes {
+			objects = append(objects, node)
+		}
+		fakeClient := fake.NewFakeClient(objects...)
+		err := updateMHCStatus(fakeClient, machineHealthCheck, tc.conditions)
+		if tc.expected == nil {
+			if err == nil {
+				t.Errorf("Test case: %v. Error expected but didn't ocure", tc)
+			}
+			continue
+		}
+		if err != nil && tc.expected != nil {
+			t.Errorf("Test case: %v. Unexpected error: %v.", tc, err)
+			continue
+		}
+		updatedMhc := &mrv1.MachineHealthCheck{}
+		if err := fakeClient.Get(context.TODO(), key, updatedMhc); err != nil {
+			t.Errorf("Test case: %v. Unable to get updated MHC: %v", tc, err)
+			continue
+		}
+		if !reflect.DeepEqual(updatedMhc.Status, *tc.expected) {
+			t.Errorf("Test case: %v. Expected status: %v. Real status: %v", tc, *tc.expected, updatedMhc.Status)
+		}
+	}
+}
+
+func TestUpdateMHCStatus(t *testing.T) {
+	testUpdateMHCStatus(t)
+}
+
+func TestUpdateMHCStatusMachineWithNoMatchingLabels(t *testing.T) {
+	// machine with no matching labels
+	machineWithNoMatchingLabels := mrotesting.NewMachine("machineWithNoMatchingLabels", "nodeForMachineWithNoMatchingLabels", "")
+	machineWithNoMatchingLabels.Labels = map[string]string{"foo": "bar2"}
+	nodeForMachineWithNotMatchingLabels := mrotesting.NewNode("nodeForMachineWithNotMatchingLabels", true, machineWithNoMatchingLabels.Name)
+	testUpdateMHCStatus(t, machineWithNoMatchingLabels, nodeForMachineWithNotMatchingLabels)
 }

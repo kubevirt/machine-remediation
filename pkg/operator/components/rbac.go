@@ -100,6 +100,7 @@ var (
 					"machinedisruptionbudgets",
 					"machinedisruptionbudgets/status",
 					"machinehealthchecks",
+					"machinehealthchecks/status",
 				},
 				Verbs: []string{
 					"get",

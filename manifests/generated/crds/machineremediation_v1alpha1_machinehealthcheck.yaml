@@ -47,6 +47,47 @@ spec:
           type: object
         status:
           description: Most recently observed status of MachineHealthCheck resource
+          properties:
+            targetedConditions:
+              description: List of node conditions observed by MachineHealthCheck
+              items:
+                properties:
+                  name:
+                    type: string
+                  status:
+                    type: string
+                required:
+                - name
+                - status
+                type: object
+              type: array
+            targetedMachines:
+              description: List of machines descriptions observed by MachineHealthCheck
+                object
+              items:
+                properties:
+                  healthy:
+                    description: Indicate health of the machine
+                    type: string
+                  name:
+                    description: Machine name
+                    type: string
+                  unhealthyConditions:
+                    description: List of node conditions according to which machine
+                      is marked as unhealthy
+                    items:
+                      type: string
+                    type: array
+                required:
+                - name
+                - healthy
+                - unhealthyConditions
+                type: object
+              type: array
+            totalHealthyMachines:
+              description: Number of all observed healthy machines
+              format: int32
+              type: integer
           type: object
   version: v1alpha1
 status:
