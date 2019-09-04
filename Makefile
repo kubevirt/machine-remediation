@@ -18,6 +18,29 @@ bazel-tests:
 		--cache_test_results=no \
         --test_output=errors -- //pkg/... //tools/utils/..."
 
+.PHONY: cluster-build
+cluster-build:
+	KUBEVIRT_PROVIDER=okd-4.1 ./hack/cluster/build.sh
+
+.PHONY: cluster-clean
+cluster-clean:
+	./hack/cluster/clean.sh
+
+.PHONY: cluster-deploy
+cluster-deploy: cluster-clean
+	./hack/cluster/deploy.sh
+
+.PHONY: cluster-down
+cluster-down:
+	KUBEVIRT_PROVIDER=okd-4.1 ./cluster-up/down.sh
+
+.PHONY: cluster-sync
+cluster-sync: cluster-build cluster-deploy
+
+.PHONY: cluster-up
+cluster-up:
+	KUBEVIRT_PROVIDER=okd-4.1 ./cluster-up/up.sh
+
 .PHONY: deps-update
 deps-update:
 	SYNC_VENDOR=true ./hack/dockerized "./hack/deps-update.sh"
@@ -26,6 +49,14 @@ deps-update:
 distclean:
 	hack/dockerized "rm -rf vendor/ && rm -f go.sum && GO111MODULE=on go clean -modcache"
 	rm -rf vendor/
+
+.PHONY: e2e-tests-build
+e2e-tests-build:
+	./hack/dockerized "./hack/testing/build.sh"
+
+.PHONY: e2e-tests-run
+e2e-tests-run: e2e-tests-build
+	./hack/testing/run.sh
 
 .PHONY: fmt
 fmt:
@@ -63,10 +94,6 @@ generate-manifests: generate-templates
 generate-templates:
 	./hack/dockerized "./hack/generate/templates.sh"
 
-.PHONY: e2e-tests-build
-e2e-tests-build:
-	./hack/dockerized "./hack/testing/build.sh"
-
-.PHONY: e2e-tests-run
-e2e-tests-run: e2e-tests-build
-	./hack/testing/run.sh
+.PHONY: kubevirtci-download
+kubevirtci-download:
+	./hack/dockerized "./hack/kubevirtci/download.sh"

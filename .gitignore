@@ -27,3 +27,8 @@ tools/manifest-templator/manifest-templator
 
 # Ignore _out directory
 _out
+_ci-configs
+
+# Ignore IDE's directories
+.idea
+

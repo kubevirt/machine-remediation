@@ -8,6 +8,7 @@ install:
 - git reset --hard
 script:
 - make generate
+- make kubevirtci-download
 - if [[ -n "$(git status --porcelain)" ]] ; then echo "It seems like you need to run
   `make generate`. Please run it and commit the changes"; git status --porcelain;
   false; fi
