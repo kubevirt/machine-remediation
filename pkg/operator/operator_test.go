@@ -81,6 +81,7 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediati
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineRemediationOperator{
 		client:           fakeClient,
+		updateClient:     fakeClient,
 		namespace:        consts.NamespaceOpenshiftMachineAPI,
 		operatorVersion:  imageTag,
 		crdsManifestsDir: "../../manifests/generated/crds",
