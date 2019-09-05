@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
+	osconfigv1 "github.com/openshift/api/config/v1"
 
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,6 +62,10 @@ func main() {
 	}
 
 	if err := mrv1.AddToScheme(mgr.GetScheme()); err != nil {
+		glog.Fatal(err)
+	}
+
+	if err := osconfigv1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
 

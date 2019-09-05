@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	osconfigv1 "github.com/openshift/api/config/v1"
 	"github.com/stretchr/testify/assert"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -18,6 +19,7 @@ import (
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
+	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -32,6 +34,7 @@ func init() {
 	// Add types to scheme
 	extv1beta1.AddToScheme(scheme.Scheme)
 	mrv1.AddToScheme(scheme.Scheme)
+	osconfigv1.AddToScheme(scheme.Scheme)
 }
 
 func verifyMachineRemediationOperatorConditions(
@@ -84,10 +87,11 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediati
 	}
 }
 
-func TestReconcile(t *testing.T) {
+func testReconcile(t *testing.T, platform osconfigv1.PlatformType) {
+	ifrastructure := mrotesting.NewInfrastructure("cluster", platform)
 	mro := newMachineRemediationOperator("mro")
 
-	r := newFakeReconciler(mro)
+	r := newFakeReconciler(mro, ifrastructure)
 	request := reconcile.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: consts.NamespaceOpenshiftMachineAPI,
@@ -136,6 +140,27 @@ func TestReconcile(t *testing.T) {
 		corev1.ConditionTrue,
 	))
 
+	//verify that operator created MHC and MDB objects for BareMetal platform
+	mhc := &mrv1.MachineHealthCheck{}
+	mhcKey := types.NamespacedName{
+		Name:      consts.MasterMachineHealthCheck,
+		Namespace: consts.NamespaceOpenshiftMachineAPI,
+	}
+
+	mdb := &mrv1.MachineDisruptionBudget{}
+	mdbKey := types.NamespacedName{
+		Name:      consts.MasterMachineDisruptionBudget,
+		Namespace: consts.NamespaceOpenshiftMachineAPI,
+	}
+
+	if platform == osconfigv1.BareMetalPlatformType {
+		assert.NoError(t, r.client.Get(context.TODO(), mhcKey, mhc))
+		assert.NoError(t, r.client.Get(context.TODO(), mdbKey, mdb))
+	} else {
+		assert.Error(t, r.client.Get(context.TODO(), mhcKey, mhc))
+		assert.Error(t, r.client.Get(context.TODO(), mdbKey, mdb))
+	}
+
 	// update all deployments status to have desired number of replicas
 	for _, d := range deploys.Items {
 		replicas, err := r.getReplicasCount()
@@ -180,4 +205,12 @@ func TestReconcile(t *testing.T) {
 	updatedMro = &mrv1.MachineRemediationOperator{}
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
 	assert.Equal(t, false, hasFinalizer(updatedMro))
+}
+
+func TestReconcileBareMetalPlatform(t *testing.T) {
+	testReconcile(t, osconfigv1.BareMetalPlatformType)
+}
+
+func TestReconcileAWSPlatform(t *testing.T) {
+	testReconcile(t, osconfigv1.AWSPlatformType)
 }

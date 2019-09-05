@@ -8,6 +8,7 @@ import (
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
 
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
+	osconfigv1 "github.com/openshift/api/config/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -203,5 +204,19 @@ func NewTargetedMachine(name string, healthy bool, unhealthyConditions []corev1.
 		Name:                name,
 		Healthy:             healthyTyped,
 		UnhealthyConditions: unhealthyConditions,
+	}
+}
+
+// NewInfrastructure returns a new Infrastructure object that can be used for testing
+func NewInfrastructure(name string, platform osconfigv1.PlatformType) *osconfigv1.Infrastructure {
+	return &osconfigv1.Infrastructure{
+		TypeMeta: metav1.TypeMeta{Kind: "Infrastructure"},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: metav1.NamespaceNone,
+		},
+		Status: osconfigv1.InfrastructureStatus{
+			Platform: platform,
+		},
 	}
 }
