@@ -12,6 +12,7 @@ require (
 	github.com/metal3-io/baremetal-operator v0.0.0-20190705194231-6d5a9e11b6d0
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
+	github.com/openshift/api v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-api v0.0.0-20190503193905-cad0f8326cd2 // indirect
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190822225318-a96b2b847d08
 	github.com/prometheus/client_golang v1.0.0 // indirect
@@ -35,7 +36,7 @@ require (
 
 replace github.com/metal3-io/baremetal-operator => github.com/openshift/baremetal-operator v0.0.0-20190727010256-d905ab5eaddd
 
-replace github.com/openshift/api => github.com/openshift/api v3.9.1-0.20190730142803-0922aa5a655b+incompatible
+replace github.com/openshift/api => github.com/openshift/api v3.9.1-0.20190904155310-a25bb2adc83e+incompatible
 
 replace github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20190721020503-a85ea6a6b3a5
 
