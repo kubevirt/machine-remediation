@@ -12,9 +12,9 @@ type RemediationStrategyType string
 
 const (
 	// RemediationStrategyTypeReboot contains name of the reboot remediation strategy
-	RemediationStrategyTypeReboot = "reboot"
+	RemediationStrategyTypeReboot RemediationStrategyType = "reboot"
 	// RemediationStrategyTypeReCreate contains name of the re-create remediation strategy
-	RemediationStrategyTypeReCreate = "recreate"
+	RemediationStrategyTypeReCreate RemediationStrategyType = "recreate"
 )
 
 // +genclient
