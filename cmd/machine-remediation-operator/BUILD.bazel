@@ -10,6 +10,7 @@ go_library(
         "//pkg/consts:go_default_library",
         "//pkg/controllers:go_default_library",
         "//pkg/operator:go_default_library",
+        "//pkg/utils/mapper:go_default_library",
         "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/openshift/api/config/v1:go_default_library",

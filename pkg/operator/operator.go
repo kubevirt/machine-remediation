@@ -34,8 +34,6 @@ type ReconcileMachineRemediationOperator struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client           client.Client
-	updateClient     client.Client
-	mgr              manager.Manager
 	namespace        string
 	operatorVersion  string
 	crdsManifestsDir string
@@ -54,7 +52,6 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 func newReconciler(mgr manager.Manager, opts manager.Options) (reconcile.Reconciler, error) {
 	return &ReconcileMachineRemediationOperator{
 		client:           mgr.GetClient(),
-		mgr:              mgr,
 		namespace:        opts.Namespace,
 		operatorVersion:  os.Getenv(components.EnvVarOperatorVersion),
 		crdsManifestsDir: "/data",
@@ -195,19 +192,6 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 
 	// deploy masters MachineHealthCheck and MachineDisruptionBudget only for BareMetal environment
 	if baremetal {
-		// TODO(alukiano): ugly W/A to get client that already has registred MHC and MDB CRD's
-		// this client does not use cache at all
-		if r.updateClient == nil {
-			opts := client.Options{
-				Scheme: r.mgr.GetScheme(),
-			}
-			c, err := client.New(r.mgr.GetConfig(), opts)
-			if err != nil {
-				return err
-			}
-			r.updateClient = c
-		}
-
 		if err := r.createOrUpdateMachineHealthCheck(consts.MasterMachineHealthCheck, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}

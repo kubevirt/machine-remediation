@@ -81,7 +81,6 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediati
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineRemediationOperator{
 		client:           fakeClient,
-		updateClient:     fakeClient,
 		namespace:        consts.NamespaceOpenshiftMachineAPI,
 		operatorVersion:  imageTag,
 		crdsManifestsDir: "../../manifests/generated/crds",
@@ -89,10 +88,10 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineRemediati
 }
 
 func testReconcile(t *testing.T, platform osconfigv1.PlatformType) {
-	ifrastructure := mrotesting.NewInfrastructure("cluster", platform)
+	infrastructure := mrotesting.NewInfrastructure("cluster", platform)
 	mro := newMachineRemediationOperator("mro")
 
-	r := newFakeReconciler(mro, ifrastructure)
+	r := newFakeReconciler(mro, infrastructure)
 	request := reconcile.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: consts.NamespaceOpenshiftMachineAPI,

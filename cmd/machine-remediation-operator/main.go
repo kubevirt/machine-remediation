@@ -14,6 +14,7 @@ import (
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	"kubevirt.io/machine-remediation-operator/pkg/controllers"
 	"kubevirt.io/machine-remediation-operator/pkg/operator"
+	"kubevirt.io/machine-remediation-operator/pkg/utils/mapper"
 	"kubevirt.io/machine-remediation-operator/pkg/version"
 
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -45,7 +46,8 @@ func main() {
 		namespaces = append(namespaces, *namespace)
 	}
 	opts := manager.Options{
-		NewCache: cache.MultiNamespacedCacheBuilder(namespaces),
+		NewCache:       cache.MultiNamespacedCacheBuilder(namespaces),
+		MapperProvider: mapper.NewDynamicRESTMapper,
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
