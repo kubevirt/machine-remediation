@@ -237,7 +237,8 @@ github.com/onsi/gomega v1.4.2/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.5.0 h1:izbySO9zDPmjJ8rDjLvkA2zJHIo+HkYXHnf7eN7SSyo=
 github.com/onsi/gomega v1.5.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
-github.com/openshift/api v3.9.1-0.20190730142803-0922aa5a655b+incompatible/go.mod h1:dh9o4Fs58gpFXGSYfnVxGR9PnV53I8TW84pQaJDdGiY=
+github.com/openshift/api v3.9.1-0.20190904155310-a25bb2adc83e+incompatible h1:p/By3VvLr3qKUgScmVzv0X8OU7cgIBV2Hf215Ab3ve0=
+github.com/openshift/api v3.9.1-0.20190904155310-a25bb2adc83e+incompatible/go.mod h1:dh9o4Fs58gpFXGSYfnVxGR9PnV53I8TW84pQaJDdGiY=
 github.com/openshift/baremetal-operator v0.0.0-20190727010256-d905ab5eaddd h1:MRVvynv9x5epi9L38KnT3YXDVbF5Gelqn/rFWgg06RY=
 github.com/openshift/baremetal-operator v0.0.0-20190727010256-d905ab5eaddd/go.mod h1:cXwn0hhgHpORjBasg0RnZwhKaJGy9+r6qgj0HCXrs/Y=
 github.com/openshift/client-go v0.0.0-20190721020503-a85ea6a6b3a5/go.mod h1:6rzn+JTr7+WYS2E1TExP4gByoABxMznR6y2SnUIkmxk=
