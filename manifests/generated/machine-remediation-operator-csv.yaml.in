@@ -108,6 +108,22 @@ spec:
           - clusterrolebindings
           verbs:
           - '*'
+        - apiGroups:
+          - config.openshift.io
+          resources:
+          - infrastructures
+          - infrastructures/status
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - machineremediation.kubevirt.io
+          resources:
+          - machinedisruptionbudgets
+          - machinehealthchecks
+          verbs:
+          - '*'
         serviceAccountName: machine-remediation-operator
       deployments:
       - name: machine-remediation-operator

@@ -6,6 +6,8 @@ go_library(
         "components.go",
         "csv.go",
         "deployments.go",
+        "mdb.go",
+        "mhc.go",
         "mro.go",
         "rbac.go",
     ],
@@ -13,6 +15,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",
+        "//pkg/consts:go_default_library",
         "//vendor/github.com/blang/semver:go_default_library",
         "//vendor/github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1:go_default_library",
         "//vendor/github.com/operator-framework/operator-lifecycle-manager/pkg/lib/version:go_default_library",
