@@ -33,3 +33,5 @@ You should have k8s or OpenShift environment with at least two worker nodes and 
 export KUBECONFIG=/dir/cluster/kubeconfig
 make e2e-tests-run
 ```
+
+
