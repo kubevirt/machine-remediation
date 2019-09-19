@@ -26,7 +26,7 @@ func NewMastersMachineHealthCheck(name string, namespace string, operatorVersion
 		Spec: mrv1.MachineHealthCheckSpec{
 			Selector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					consts.MasterRoleLabel: "",
+					consts.MachineRoleLabel: "master",
 				},
 			},
 			RemediationStrategy: &rebootStrategy,
