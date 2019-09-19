@@ -11,12 +11,14 @@ const (
 	ControllerMachineHealthCheck = "machine-health-check"
 	// ControllerMachineRemediation contains the name of achineRemediation controller
 	ControllerMachineRemediation = "machine-remediation"
-	//MasterRoleLabel contains master role label
-	MasterRoleLabel = "node-role.kubernetes.io/master"
+	//MachineRoleLabel contains machine role label
+	MachineRoleLabel = "machine.openshift.io/cluster-api-machine-role"
 	// MasterMachineHealthCheck contains the MachineHealthCheck name for master nodes
 	MasterMachineHealthCheck = "masters"
 	// MasterMachineDisruptionBudget contains the MachineDisruptionBudget name for master nodes
 	MasterMachineDisruptionBudget = "masters"
 	// NamespaceOpenshiftMachineAPI contains namespace name for the machine-api componenets under the OpenShift cluster
 	NamespaceOpenshiftMachineAPI = "openshift-machine-api"
+	//NodeMasterRoleLabel contains node master role label
+	NodeMasterRoleLabel = "node-role.kubernetes.io/master"
 )
