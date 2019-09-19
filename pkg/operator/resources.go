@@ -87,7 +87,7 @@ func (r *ReconcileMachineRemediationOperator) getReplicasCount() (int32, error) 
 		context.TODO(),
 		masterNodes,
 		client.InNamespace(consts.NamespaceOpenshiftMachineAPI),
-		client.MatchingLabels(map[string]string{consts.MasterRoleLabel: ""}),
+		client.MatchingLabels(map[string]string{consts.NodeMasterRoleLabel: ""}),
 	); err != nil {
 		return 0, err
 	}

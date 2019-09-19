@@ -26,7 +26,7 @@ func NewMastersMachineDisruptionBudget(name string, namespace string, operatorVe
 		Spec: mrv1.MachineDisruptionBudgetSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					consts.MasterRoleLabel: "",
+					consts.MachineRoleLabel: "master",
 				},
 			},
 			MinAvailable: pointer.Int32Ptr(1),
