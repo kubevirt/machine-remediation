@@ -132,7 +132,6 @@ spec:
           selector:
             matchLabels:
               machineremediation.kubevirt.io: machine-remediation-operator
-              machineremediation.kubevirt.io/version: {{.ContainerTag}}
           strategy:
             type: RollingUpdate
           template:
@@ -140,7 +139,6 @@ spec:
               creationTimestamp: null
               labels:
                 machineremediation.kubevirt.io: machine-remediation-operator
-                machineremediation.kubevirt.io/version: {{.ContainerTag}}
             spec:
               affinity:
                 podAntiAffinity:
