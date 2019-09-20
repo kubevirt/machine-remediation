@@ -49,8 +49,7 @@ func NewDeployment(data *DeploymentData) *appsv1.Deployment {
 			Replicas: pointer.Int32Ptr(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					mrv1.SchemeGroupVersion.Group:              data.Name,
-					mrv1.SchemeGroupVersion.Group + "/version": data.OperatorVersion,
+					mrv1.SchemeGroupVersion.Group: data.Name,
 				},
 			},
 			Template: *template,
@@ -86,8 +85,7 @@ func newPodTemplateSpec(data *DeploymentData) *corev1.PodTemplateSpec {
 	return &corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				mrv1.SchemeGroupVersion.Group:              data.Name,
-				mrv1.SchemeGroupVersion.Group + "/version": data.OperatorVersion,
+				mrv1.SchemeGroupVersion.Group: data.Name,
 			},
 		},
 		Spec: corev1.PodSpec{
