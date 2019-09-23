@@ -192,11 +192,11 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 
 	// deploy masters MachineHealthCheck and MachineDisruptionBudget only for BareMetal environment
 	if baremetal {
-		if err := r.createOrUpdateMachineHealthCheck(consts.MasterMachineHealthCheck, consts.NamespaceOpenshiftMachineAPI); err != nil {
+		if err := r.createMachineHealthCheck(consts.MasterMachineHealthCheck, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 
-		if err := r.createOrUpdateMachineDisruptionBudget(consts.MasterMachineDisruptionBudget, consts.NamespaceOpenshiftMachineAPI); err != nil {
+		if err := r.createMachineDisruptionBudget(consts.MasterMachineDisruptionBudget, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 	}
