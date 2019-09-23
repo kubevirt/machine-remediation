@@ -5,6 +5,8 @@ const (
 	AnnotationBareMetalHost = "metal3.io/BareMetalHost"
 	// AnnotationMachine contains the annotation key for machine
 	AnnotationMachine = "machine.openshift.io/machine"
+	// AnnotationRebootInProgress contains the annotation key, that indicates that reboot in the progress
+	AnnotationRebootInProgress = "machineremediation.kubevirt.io/rebootInProgress"
 	// ControllerMachineDisruptionBudget contains the name of MachineDisruptionBudget controller
 	ControllerMachineDisruptionBudget = "machine-disruption-budget"
 	// ControllerMachineHealthCheck contains the name of MachineHealthCheck controller

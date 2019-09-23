@@ -73,17 +73,27 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 	switch machineRemediation.Status.State {
 	// initiating the reboot action
 	case mrv1.RemediationStateStarted:
+		rebootInProgress := isRebootInProgress(bmh)
 		// skip the reboot in case when the machine has power off state before the reboot action
 		// it can mean that an user power off the machine by purpose
-		if !bmh.Spec.Online {
+		if !bmh.Spec.Online && !rebootInProgress {
 			glog.V(4).Infof("Skip the remediation, machine %q has power off state before the remediation action", machine.Name)
 			mrCopy.Status.State = mrv1.RemediationStateSucceeded
 			mrCopy.Status.Reason = "Skip the reboot, the machine power off by an user"
 			mrCopy.Status.EndTime = &metav1.Time{Time: now}
 		} else {
+			if !rebootInProgress {
+				// set rebootInProgress annotation on the bare metal host
+				if bmhCopy.Annotations == nil {
+					bmhCopy.Annotations = map[string]string{}
+				}
+				bmhCopy.Annotations[consts.AnnotationRebootInProgress] = "true"
+			}
+
 			// power off the machine
 			glog.V(4).Infof("Power off machine %q", machine.Name)
 			bmhCopy.Spec.Online = false
+
 			if err := bmr.client.Update(context.TODO(), bmhCopy); err != nil {
 				return err
 			}
@@ -117,6 +127,15 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		// power on the machine
 		glog.V(4).Infof("Power on machine %q", machine.Name)
 		bmhCopy.Spec.Online = true
+
+		// remove the reboot in progress annotation
+		if bmhCopy.Annotations != nil {
+			_, ok := bmhCopy.Annotations[consts.AnnotationRebootInProgress]
+			if ok {
+				delete(bmhCopy.Annotations, consts.AnnotationRebootInProgress)
+			}
+		}
+
 		if err := bmr.client.Update(context.TODO(), bmhCopy); err != nil {
 			return err
 		}
@@ -214,4 +233,13 @@ func deleteMachineNode(c client.Client, machine *mapiv1.Machine) error {
 	}
 
 	return c.Delete(context.TODO(), node)
+}
+
+// isRebootInProgress returns true when the BareMetalHost currently is rebooting
+func isRebootInProgress(bmh *bmov1.BareMetalHost) bool {
+	rebootInProgress, ok := bmh.Annotations[consts.AnnotationRebootInProgress]
+	if !ok || rebootInProgress != "true" {
+		return false
+	}
+	return true
 }
