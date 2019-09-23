@@ -337,10 +337,10 @@ func (r *ReconcileMachineRemediationOperator) getMachineHealthCheck(name string,
 	return mhc, nil
 }
 
-func (r *ReconcileMachineRemediationOperator) createOrUpdateMachineHealthCheck(name string, namespace string) error {
+func (r *ReconcileMachineRemediationOperator) createMachineHealthCheck(name string, namespace string) error {
 	newMachineHealthCheck := components.NewMastersMachineHealthCheck(name, namespace, r.operatorVersion)
 
-	oldMachineHealthCheck, err := r.getMachineHealthCheck(name, namespace)
+	_, err := r.getMachineHealthCheck(name, namespace)
 	if errors.IsNotFound(err) {
 		if err := r.client.Create(context.TODO(), newMachineHealthCheck); err != nil {
 			return err
@@ -348,12 +348,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateMachineHealthCheck(n
 		return nil
 	}
 
-	if err != nil {
-		return err
-	}
-
-	newMachineHealthCheck.ResourceVersion = oldMachineHealthCheck.ResourceVersion
-	return r.client.Update(context.TODO(), newMachineHealthCheck)
+	return err
 }
 
 func (r *ReconcileMachineRemediationOperator) deleteMachineHealthCheck(name string, namespace string) error {
@@ -379,10 +374,10 @@ func (r *ReconcileMachineRemediationOperator) getMachineDisruptionBudget(name st
 	return mdb, nil
 }
 
-func (r *ReconcileMachineRemediationOperator) createOrUpdateMachineDisruptionBudget(name string, namespace string) error {
+func (r *ReconcileMachineRemediationOperator) createMachineDisruptionBudget(name string, namespace string) error {
 	newMachineDisruptionBudget := components.NewMastersMachineDisruptionBudget(name, namespace, r.operatorVersion)
 
-	oldMachineDisruptionBudget, err := r.getMachineDisruptionBudget(name, namespace)
+	_, err := r.getMachineDisruptionBudget(name, namespace)
 	if errors.IsNotFound(err) {
 		if err := r.client.Create(context.TODO(), newMachineDisruptionBudget); err != nil {
 			return err
@@ -390,12 +385,7 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateMachineDisruptionBud
 		return nil
 	}
 
-	if err != nil {
-		return err
-	}
-
-	newMachineDisruptionBudget.ResourceVersion = oldMachineDisruptionBudget.ResourceVersion
-	return r.client.Update(context.TODO(), newMachineDisruptionBudget)
+	return err
 }
 
 func (r *ReconcileMachineRemediationOperator) deleteMachineDisruptionBudget(name string, namespace string) error {
