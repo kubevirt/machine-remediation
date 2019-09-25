@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/golang/glog"
 	osconfigv1 "github.com/openshift/api/config/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -38,19 +39,21 @@ func (r *ReconcileMachineRemediationOperator) getDeployment(name string, namespa
 }
 
 func (r *ReconcileMachineRemediationOperator) createOrUpdateDeployment(data *components.DeploymentData) error {
-	if data.ImageRepository == "" {
+	// try to build the deployment image from the operator image
+	if data.ImageName == "" {
 		imageRepository, err := r.getOperatorImageRepository()
 		if err != nil {
 			return err
 		}
 
-		data.ImageRepository = imageRepository
+		data.ImageName = fmt.Sprintf("%s/%s:%s", imageRepository, data.Name, data.OperatorVersion)
 	}
 
 	if data.PullPolicy == "" {
 		data.PullPolicy = corev1.PullIfNotPresent
 	}
 
+	glog.Infof("Creating deployment %q with data %+v", data.Name, data)
 	newDeploy := components.NewDeployment(data)
 
 	replicas, err := r.getReplicasCount()

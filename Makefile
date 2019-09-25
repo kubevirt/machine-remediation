@@ -19,7 +19,7 @@ bazel-tests:
         --test_output=errors -- //pkg/... //tools/utils/..."
 
 .PHONY: cluster-build
-cluster-build:
+cluster-build: generate
 	KUBEVIRT_PROVIDER=okd-4.1 ./hack/cluster/build.sh
 
 .PHONY: cluster-clean
@@ -83,11 +83,11 @@ generate-csv:
 
 .PHONY: generate-manifests
 generate-manifests: generate-templates
-	./hack/dockerized "CONTAINER_PREFIX=${CONTAINER_PREFIX} \
-		CONTAINER_TAG=${CONTAINER_TAG} \
+	./hack/dockerized "CONTAINER_TAG=${CONTAINER_TAG} \
 		CSV_VERSION=${CSV_VERSION} \
 		CSV_PREVIOUS_VERSION=${CSV_PREVIOUS_VERSION} \
 		IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY} \
+		OPERATOR_IMAGE=${OPERATOR_IMAGE} \
 		./hack/generate/manifests.sh"
 
 .PHONY: generate-templates

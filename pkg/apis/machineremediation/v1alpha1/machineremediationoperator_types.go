@@ -50,9 +50,6 @@ type MachineRemediationOperatorList struct {
 
 // MachineRemediationOperatorSpec defines the spec of MachineRemediation
 type MachineRemediationOperatorSpec struct {
-	// The image registry to pull the container images from
-	// Defaults to the same registry the operator's container image is pulled from.
-	ImageRegistry string `json:"imageRegistry,omitempty"`
 	// The ImagePullPolicy to use.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty" valid:"required"`
 }

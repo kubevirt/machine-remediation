@@ -14,16 +14,40 @@ import (
 
 // DeploymentData contains all needed data to create new deployment object
 type DeploymentData struct {
+	ImageName       string
 	Name            string
 	Namespace       string
-	ImageRepository string
 	PullPolicy      corev1.PullPolicy
 	Verbosity       string
 	OperatorVersion string
 }
 
-func getImage(name string, imageRepository string, imageTag string) string {
-	return fmt.Sprintf("%s/%s:%s", imageRepository, name, imageTag)
+// ControllersImages contains all images that the operator should use
+type ControllersImages struct {
+	MachineDisruptionBudget string
+	MachineHealthCheck      string
+	MachineRemediation      string
+}
+
+// NewOperatorDeployment returns new operator deployment object
+func NewOperatorDeployment(data *DeploymentData, images *ControllersImages) *appsv1.Deployment {
+	deploy := NewDeployment(data)
+	imagesEnvs := []corev1.EnvVar{
+		{
+			Name:  ComponentMachineDisruptionBudget,
+			Value: images.MachineDisruptionBudget,
+		},
+		{
+			Name:  ComponentMachineHealthCheck,
+			Value: images.MachineHealthCheck,
+		},
+		{
+			Name:  ComponentMachineRemediation,
+			Value: images.MachineRemediation,
+		},
+	}
+	deploy.Spec.Template.Spec.Containers[0].Env = append(deploy.Spec.Template.Spec.Containers[0].Env, imagesEnvs...)
+	return deploy
 }
 
 // NewDeployment returns new deployment object
@@ -137,7 +161,7 @@ func newContainers(data *DeploymentData) []corev1.Container {
 	containers := []corev1.Container{
 		{
 			Name:            data.Name,
-			Image:           getImage(data.Name, data.ImageRepository, data.OperatorVersion),
+			Image:           data.ImageName,
 			Command:         []string{fmt.Sprintf("/usr/bin/%s", data.Name)},
 			Args:            args,
 			Resources:       resources,

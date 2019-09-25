@@ -4,7 +4,7 @@ kind: ServiceAccount
 metadata:
   labels:
     machineremediation.kubevirt.io: ""
-    machineremediation.kubevirt.io/version: {{.ContainerTag}}
+    machineremediation.kubevirt.io/version: {{.OperatorVersion}}
   name: machine-remediation-operator
   namespace: {{.Namespace}}
 ---
@@ -13,7 +13,7 @@ kind: ClusterRole
 metadata:
   labels:
     machineremediation.kubevirt.io: ""
-    machineremediation.kubevirt.io/version: {{.ContainerTag}}
+    machineremediation.kubevirt.io/version: {{.OperatorVersion}}
   name: machine-remediation-operator
 rules:
 - apiGroups:
@@ -81,7 +81,7 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     machineremediation.kubevirt.io: ""
-    machineremediation.kubevirt.io/version: {{.ContainerTag}}
+    machineremediation.kubevirt.io/version: {{.OperatorVersion}}
   name: machine-remediation-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -132,8 +132,14 @@ spec:
         - /usr/bin/machine-remediation-operator
         env:
         - name: OPERATOR_VERSION
-          value: {{.ContainerTag}}
-        image: {{.ContainerPrefix}}/machine-remediation-operator:{{.ContainerTag}}
+          value: {{.OperatorVersion}}
+        - name: machine-disruption-budget
+          value: {{.ImageMachineDisruptionBudget}}
+        - name: machine-health-check
+          value: {{.ImageMachineHealthCheck}}
+        - name: machine-remediation
+          value: {{.ImageMachineRemediation}}
+        image: {{.ImageOperator}}
         imagePullPolicy: {{.ImagePullPolicy}}
         name: machine-remediation-operator
         resources:

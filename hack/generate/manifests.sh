@@ -5,8 +5,6 @@ set -e
 source $(dirname "$0")/../common.sh
 source $(dirname "$0")/../config.sh
 
-manifest_container_prefix=${manifest_container_prefix-${container_prefix}}
-
 rm -rf ${MANIFESTS_OUT_DIR}
 
 (cd ${REPO_DIR}/tools/manifest-templator/ && go install)
@@ -35,9 +33,12 @@ for arg in $args; do
 
     manifest-templator \
         --process-vars \
+        --mdb-image=${mdb_image} \
+        --mhc-image=${mhc_image} \
+        --mr-image=${mr_image} \
+        --mro-image=${operator_image} \
         --namespace=${namespace} \
-        --container-prefix=${manifest_container_prefix} \
-        --container-tag=${container_tag} \
+        --version=${container_tag} \
         --image-pull-policy=${image_pull_policy} \
         --verbosity=${verbosity} \
         --csv-version=${csv_version} \

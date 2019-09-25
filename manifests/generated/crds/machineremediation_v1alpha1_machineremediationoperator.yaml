@@ -38,10 +38,6 @@ spec:
             imagePullPolicy:
               description: The ImagePullPolicy to use.
               type: string
-            imageRegistry:
-              description: The image registry to pull the container images from Defaults
-                to the same registry the operator's container image is pulled from.
-              type: string
           type: object
         status:
           description: Most recently observed status of MachineRemediationOperator

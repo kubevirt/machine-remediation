@@ -31,22 +31,24 @@ import (
 )
 
 type templateData struct {
-	Namespace          string
-	ContainerTag       string
-	ContainerPrefix    string
-	ImagePullPolicy    string
-	Verbosity          string
-	CSVVersion         string
-	CSVPreviousVersion string
-	GeneratedManifests map[string]string
+	ImageOperator                string
+	ImageMachineDisruptionBudget string
+	ImageMachineHealthCheck      string
+	ImageMachineRemediation      string
+	ImagePullPolicy              string
+	Namespace                    string
+	Verbosity                    string
+	CSVVersion                   string
+	CSVPreviousVersion           string
+	GeneratedManifests           map[string]string
+	OperatorVersion              string
 }
 
 func main() {
 	namespace := flag.String("namespace", "", "")
-	containerPrefix := flag.String("container-prefix", "", "")
-	containerTag := flag.String("container-tag", "", "")
 	imagePullPolicy := flag.String("image-pull-policy", "IfNotPresent", "")
 	verbosity := flag.String("verbosity", "2", "")
+	version := flag.String("version", "latest", "version to use.")
 	genDir := flag.String("generated-manifests-dir", "", "")
 	inputFile := flag.String("input-file", "", "")
 	processFiles := flag.Bool("process-files", false, "")
@@ -54,6 +56,12 @@ func main() {
 
 	csvVersion := flag.String("csv-version", "0.0.0", "")
 	csvPreviousVersion := flag.String("csv-previous-version", "0.0.0", "")
+
+	// controllers images
+	mdbImage := flag.String("mdb-image", "", "Machine disruption budget controller image, should include a repository and a tag.")
+	mhcImage := flag.String("mhc-image", "", "Machine health check controller image, should include a repository and a tag.")
+	mrImage := flag.String("mr-image", "", "Machine remediation controller image, should include a repository and a tag.")
+	mroImage := flag.String("mro-image", "", "Machine remediation operator controller image, should include a repository and a tag.")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.CommandLine.ParseErrorsWhitelist.UnknownFlags = true
@@ -69,16 +77,22 @@ func main() {
 
 	if *processVars {
 		data.Namespace = *namespace
-		data.ContainerTag = *containerTag
-		data.ContainerPrefix = *containerPrefix
+		data.OperatorVersion = *version
+		data.ImageOperator = *mroImage
+		data.ImageMachineDisruptionBudget = *mdbImage
+		data.ImageMachineHealthCheck = *mhcImage
+		data.ImageMachineRemediation = *mrImage
 		data.ImagePullPolicy = *imagePullPolicy
 		data.Verbosity = fmt.Sprintf("%s", *verbosity)
 		data.CSVVersion = *csvVersion
 		data.CSVPreviousVersion = *csvPreviousVersion
 	} else {
 		data.Namespace = "{{.Namespace}}"
-		data.ContainerTag = "{{.ContainerTag}}"
-		data.ContainerPrefix = "{{.ContainerPrefix}}"
+		data.OperatorVersion = "{{.OperatorVersion}}"
+		data.ImageOperator = "{{.ImageOperator}}"
+		data.ImageMachineDisruptionBudget = "{{.ImageMachineDisruptionBudget}}"
+		data.ImageMachineHealthCheck = "{{.ImageMachineHealthCheck}}"
+		data.ImageMachineRemediation = "{{.ImageMachineRemediation}}"
 		data.ImagePullPolicy = "{{.ImagePullPolicy}}"
 		data.Verbosity = "{{.Verbosity}}"
 		data.CSVVersion = "{{.CSVVersion}}"

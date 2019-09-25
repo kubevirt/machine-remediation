@@ -1,9 +1,10 @@
 container_images="cmd/machine-disruption-budget cmd/machine-health-check cmd/machine-remediation cmd/machine-remediation-operator"
 container_prefix=${CONTAINER_PREFIX:-index.docker.io/kubevirt}
 container_tag=${CONTAINER_TAG:-latest}
+operator_image=${OPERATOR_IMAGE:-"${container_prefix}/machine-remediation-operator:${container_tag}"}
 image_pull_policy=${IMAGE_PULL_POLICY:-IfNotPresent}
 csv_version=${CSV_VERSION:-0.0.0}
 csv_previous_version=${CSV_PREVIOUS_VERSION:-0.0.0}
-kubevirtci_git_hash="626ef1522fcd2a541a00613fc8c48f3efa7bf072"
+kubevirtci_git_hash="db8c24bf830bb927f01829e6c9f083627fe6b832"
 namespace=openshift-machine-api
 verbosity=${VERBOSITY:-2}

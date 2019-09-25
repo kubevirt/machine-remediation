@@ -20,7 +20,7 @@ metadata:
     capabilities: Full Lifecycle
     categories: OpenShift Optional
     certified: "false"
-    containerImage: {{.ContainerPrefix}}/machine-remediation-operator:{{.ContainerTag}}
+    containerImage: {{.ImageOperator}}
     createdAt: ""
     description: Deploys components to monitor and remediate unhealthy machines
     repository: https://github.com/kubevirt/machine-remediation-operator
@@ -40,11 +40,6 @@ spec:
         path: imagePullPolicy
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes:imagePullPolicy
-      - description: The ImageRegistry to use for the Machine Remediation components.
-        displayName: ImageRegistry
-        path: imageRegistry
-        x-descriptors:
-        - urn:alm:descriptor:text
       statusDescriptors:
       - description: Explanation for the current status of the cluster.
         displayName: Conditions
@@ -161,8 +156,14 @@ spec:
                 - /usr/bin/machine-remediation-operator
                 env:
                 - name: OPERATOR_VERSION
-                  value: {{.ContainerTag}}
-                image: {{.ContainerPrefix}}/machine-remediation-operator:{{.ContainerTag}}
+                  value: {{.OperatorVersion}}
+                - name: machine-disruption-budget
+                  value: {{.ImageMachineDisruptionBudget}}
+                - name: machine-health-check
+                  value: {{.ImageMachineHealthCheck}}
+                - name: machine-remediation
+                  value: {{.ImageMachineRemediation}}
+                image: {{.ImageOperator}}
                 imagePullPolicy: {{.ImagePullPolicy}}
                 name: machine-remediation-operator
                 resources:

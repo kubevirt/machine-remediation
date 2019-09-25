@@ -7,12 +7,6 @@ const (
 	AnnotationMachine = "machine.openshift.io/machine"
 	// AnnotationRebootInProgress contains the annotation key, that indicates that reboot in the progress
 	AnnotationRebootInProgress = "machineremediation.kubevirt.io/rebootInProgress"
-	// ControllerMachineDisruptionBudget contains the name of MachineDisruptionBudget controller
-	ControllerMachineDisruptionBudget = "machine-disruption-budget"
-	// ControllerMachineHealthCheck contains the name of MachineHealthCheck controller
-	ControllerMachineHealthCheck = "machine-health-check"
-	// ControllerMachineRemediation contains the name of achineRemediation controller
-	ControllerMachineRemediation = "machine-remediation"
 	//MachineRoleLabel contains machine role label
 	MachineRoleLabel = "machine.openshift.io/cluster-api-machine-role"
 	// MasterMachineHealthCheck contains the MachineHealthCheck name for master nodes

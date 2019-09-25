@@ -34,10 +34,15 @@ func main() {
 	// General arguments
 	resourceType := flag.String("type", "", "Type of resource to generate.")
 	namespace := flag.String("namespace", "kube-system", "Namespace to use.")
-	repository := flag.String("repository", "kubevirt", "Image Repository to use.")
 	version := flag.String("version", "latest", "version to use.")
 	pullPolicy := flag.String("pullPolicy", "IfNotPresent", "ImagePullPolicy to use.")
 	verbosity := flag.String("verbosity", "2", "Verbosity level to use.")
+
+	// controllers images
+	mdbImage := flag.String("mdb-image", "", "Machine disruption budget controller image, should include a repository and a tag.")
+	mhcImage := flag.String("mhc-image", "", "Machine health check controller image, should include a repository and a tag.")
+	mrImage := flag.String("mr-image", "", "Machine remediation controller image, should include a repository and a tag.")
+	mroImage := flag.String("mro-image", "", "Machine remediation operator controller image, should include a repository and a tag.")
 
 	flag.Parse()
 
@@ -59,18 +64,23 @@ func main() {
 
 		// create operator deployment
 		operatorData := &components.DeploymentData{
+			ImageName:       *mroImage,
 			Name:            *resourceType,
 			Namespace:       *namespace,
-			ImageRepository: *repository,
 			PullPolicy:      imagePullPolicy,
 			Verbosity:       *verbosity,
 			OperatorVersion: *version,
 		}
-		operator := components.NewDeployment(operatorData)
+		controllersImages := &components.ControllersImages{
+			MachineDisruptionBudget: *mdbImage,
+			MachineHealthCheck:      *mhcImage,
+			MachineRemediation:      *mrImage,
+		}
+		operator := components.NewOperatorDeployment(operatorData, controllersImages)
 		utils.MarshallObject(operator, os.Stdout)
 	case "machine-remediation-operator-cr":
 		// create operator CR
-		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, *repository, imagePullPolicy, *version)
+		mro := components.NewMachineRemediationOperator(*resourceType, *namespace, imagePullPolicy, *version)
 		mro.Name = "mro"
 		utils.MarshallObject(mro, os.Stdout)
 	default:
