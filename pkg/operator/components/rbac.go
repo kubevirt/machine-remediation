@@ -49,6 +49,8 @@ var (
 				},
 				Verbs: []string{
 					"get",
+					"list",
+					"watch",
 				},
 			},
 			{
