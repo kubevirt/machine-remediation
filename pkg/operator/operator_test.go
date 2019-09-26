@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
+	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
 	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -35,6 +37,11 @@ func init() {
 	extv1beta1.AddToScheme(scheme.Scheme)
 	mrv1.AddToScheme(scheme.Scheme)
 	osconfigv1.AddToScheme(scheme.Scheme)
+
+	// Add ENV variables for controller images
+	os.Setenv(components.ComponentMachineDisruptionBudget, fmt.Sprintf("%s/%s:%s", imageRegistry, components.ComponentMachineDisruptionBudget, imageTag))
+	os.Setenv(components.ComponentMachineHealthCheck, fmt.Sprintf("%s/%s:%s", imageRegistry, components.ComponentMachineHealthCheck, imageTag))
+	os.Setenv(components.ComponentMachineRemediation, fmt.Sprintf("%s/%s:%s", imageRegistry, components.ComponentMachineRemediation, imageTag))
 }
 
 func verifyMachineRemediationOperatorConditions(
@@ -71,7 +78,6 @@ func newMachineRemediationOperator(name string) *mrv1.MachineRemediationOperator
 		},
 		Spec: mrv1.MachineRemediationOperatorSpec{
 			ImagePullPolicy: corev1.PullAlways,
-			ImageRegistry:   imageRegistry,
 		},
 	}
 }

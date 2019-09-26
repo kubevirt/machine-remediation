@@ -32,10 +32,10 @@ func TestMarshallObject(t *testing.T) {
 	operatorData := &components.DeploymentData{
 		Name:            "machine-remediation-operator",
 		Namespace:       "{{.Namespace}}",
-		ImageRepository: "{{.DockerPrefix}}",
+		ImageName:       "{{.ImageOperator}}",
 		PullPolicy:      v1.PullIfNotPresent,
 		Verbosity:       "2",
-		OperatorVersion: "{{.DockerTag}}",
+		OperatorVersion: "{{.OperatorVersion}}",
 	}
 	handler := components.NewDeployment(operatorData)
 

@@ -4,9 +4,8 @@ kind: MachineRemediationOperator
 metadata:
   labels:
     machineremediation.kubevirt.io: ""
-    machineremediation.kubevirt.io/version: {{.ContainerTag}}
+    machineremediation.kubevirt.io/version: {{.OperatorVersion}}
   name: mro
   namespace: {{.Namespace}}
 spec:
   imagePullPolicy: {{.ImagePullPolicy}}
-  imageRegistry: {{.ContainerPrefix}}

@@ -40,6 +40,7 @@ go_test(
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",
         "//pkg/consts:go_default_library",
+        "//pkg/operator/components:go_default_library",
         "//pkg/utils/testing:go_default_library",
         "//vendor/github.com/openshift/api/config/v1:go_default_library",
         "//vendor/github.com/stretchr/testify/assert:go_default_library",

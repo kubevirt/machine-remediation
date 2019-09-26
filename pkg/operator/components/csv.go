@@ -38,14 +38,17 @@ const almExamples = `[
 
 // ClusterServiceVersionData contains all data needed for CSV generation
 type ClusterServiceVersionData struct {
-	Namespace          string
-	ContainerPrefix    string
-	ContainerTag       string
-	ImagePullPolicy    corev1.PullPolicy
-	Verbosity          string
-	CSVVersion         string
-	ReplacesCSVVersion string
-	CreatedAtTimestamp string
+	ImageOperator                string
+	ImageMachineDisruptionBudget string
+	ImageMachineHealthCheck      string
+	ImageMachineRemediation      string
+	Namespace                    string
+	ImagePullPolicy              corev1.PullPolicy
+	Verbosity                    string
+	CSVVersion                   string
+	ReplacesCSVVersion           string
+	CreatedAtTimestamp           string
+	OperatorVersion              string
 }
 
 type csvClusterPermissions struct {
@@ -65,14 +68,19 @@ type csvStrategySpec struct {
 // NewClusterServiceVersion returns new ClusterServiceVersion object
 func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterServiceVersion, error) {
 	operatorData := &DeploymentData{
+		ImageName:       data.ImageOperator,
 		Name:            ComponentMachineRemediationOperator,
 		Namespace:       data.Namespace,
-		ImageRepository: data.ContainerPrefix,
 		PullPolicy:      corev1.PullPolicy(data.ImagePullPolicy),
 		Verbosity:       data.Verbosity,
-		OperatorVersion: data.ContainerTag,
+		OperatorVersion: data.OperatorVersion,
 	}
-	operator := NewDeployment(operatorData)
+	controllersImages := &ControllersImages{
+		MachineDisruptionBudget: data.ImageMachineDisruptionBudget,
+		MachineHealthCheck:      data.ImageMachineHealthCheck,
+		MachineRemediation:      data.ImageMachineRemediation,
+	}
+	operator := NewOperatorDeployment(operatorData, controllersImages)
 
 	strategySpec := csvStrategySpec{
 		ClusterPermissions: []csvClusterPermissions{
@@ -110,7 +118,7 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 			Annotations: map[string]string{
 				"capabilities":   "Full Lifecycle",
 				"categories":     "OpenShift Optional",
-				"containerImage": getImage(ComponentMachineRemediationOperator, data.ContainerPrefix, data.ContainerTag),
+				"containerImage": data.ImageOperator,
 				"createdAt":      data.CreatedAtTimestamp,
 				"repository":     "https://github.com/kubevirt/machine-remediation-operator",
 				"certified":      "false",
@@ -190,12 +198,6 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 								DisplayName:  "ImagePullPolicy",
 								Path:         "imagePullPolicy",
 								XDescriptors: []string{"urn:alm:descriptor:io.kubernetes:imagePullPolicy"},
-							},
-							{
-								Description:  "The ImageRegistry to use for the Machine Remediation components.",
-								DisplayName:  "ImageRegistry",
-								Path:         "imageRegistry",
-								XDescriptors: []string{"urn:alm:descriptor:text"},
 							},
 						},
 						StatusDescriptors: []csvv1.StatusDescriptor{

@@ -172,9 +172,9 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 		}
 
 		deployData := &components.DeploymentData{
+			ImageName:       os.Getenv(component),
 			Name:            component,
 			Namespace:       consts.NamespaceOpenshiftMachineAPI,
-			ImageRepository: mro.Spec.ImageRegistry,
 			PullPolicy:      mro.Spec.ImagePullPolicy,
 			OperatorVersion: r.operatorVersion,
 			Verbosity:       "4",

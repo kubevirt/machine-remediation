@@ -12,7 +12,7 @@ docker_tag=devel
 
 # Build everyting and publish it
 ${REPO_DIR}/hack/dockerized "CONTAINER_PREFIX=${docker_prefix} CONTAINER_TAG=${docker_tag} ./hack/bazel/push-images.sh"
-${REPO_DIR}/hack/dockerized "CONTAINER_PREFIX=${manifest_docker_prefix} CONTAINER_TAG=${docker_tag} IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY} VERBOSITY=${VERBOSITY} ./hack/generate/manifests.sh"
+${REPO_DIR}/hack/dockerized "OPERATOR_IMAGE=${manifest_docker_prefix}/machine-remediation-operator:${docker_tag} CONTAINER_TAG=${docker_tag} IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY} VERBOSITY=${VERBOSITY} ./hack/generate/manifests.sh"
 
 # Make sure that all nodes use the newest images
 images=""

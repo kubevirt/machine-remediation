@@ -8,18 +8,20 @@ source $(dirname "$0")/../common.sh
 
 mkdir -p ${GENERATED_MANIFESTS_DIR}
 resource-generator \
+    --mdb-image={{.ImageMachineDisruptionBudget}} \
+    --mhc-image={{.ImageMachineHealthCheck}} \
+    --mr-image={{.ImageMachineRemediation}} \
+    --mro-image={{.ImageOperator}} \
     --type=machine-remediation-operator \
     --namespace={{.Namespace}} \
-    --repository={{.ContainerPrefix}} \
-    --version={{.ContainerTag}} \
+    --version={{.OperatorVersion}} \
     --pullPolicy={{.ImagePullPolicy}} \
     --verbosity={{.Verbosity}} \
     >${GENERATED_MANIFESTS_DIR}/machine-remediation-operator.yaml.in
 resource-generator \
     --type=machine-remediation-operator-cr \
     --namespace={{.Namespace}} \
-    --repository={{.ContainerPrefix}} \
-    --version={{.ContainerTag}} \
+    --version={{.OperatorVersion}} \
     --pullPolicy={{.ImagePullPolicy}} \
     --verbosity={{.Verbosity}} \
     >${GENERATED_MANIFESTS_DIR}/machine-remediation-operator-cr.yaml.in

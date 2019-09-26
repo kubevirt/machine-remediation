@@ -34,7 +34,6 @@ import (
 
 func main() {
 	namespace := flag.String("namespace", "opensgift-machine-api", "Namespace to use.")
-	repository := flag.String("repository", "index.docker.io/kubevirt", "Image Repository to use.")
 	version := flag.String("version", "latest", "version to use.")
 	pullPolicy := flag.String("pullPolicy", "IfNotPresent", "ImagePullPolicy to use.")
 	verbosity := flag.String("verbosity", "2", "Verbosity level to use.")
@@ -42,17 +41,26 @@ func main() {
 	csvPreviousVersion := flag.String("csv-previous-version", "", "ClusterServiceVersion version to replace.")
 	dumpCRD := flag.Bool("dump-crd", false, "Dump operator CRD together with CSV to the stdout.")
 
+	// controllers images
+	mdbImage := flag.String("mdb-image", "", "Machine disruption budget controller image, should include a repository and a tag.")
+	mhcImage := flag.String("mhc-image", "", "Machine health check controller image, should include a repository and a tag.")
+	mrImage := flag.String("mr-image", "", "Machine remediation controller image, should include a repository and a tag.")
+	mroImage := flag.String("mro-image", "", "Machine remediation operator controller image, should include a repository and a tag.")
+
 	flag.Parse()
 
 	imagePullPolicy := corev1.PullPolicy(*pullPolicy)
 	data := &components.ClusterServiceVersionData{
-		CSVVersion:         *csvVersion,
-		ContainerPrefix:    *repository,
-		ContainerTag:       *version,
-		ImagePullPolicy:    imagePullPolicy,
-		Namespace:          *namespace,
-		ReplacesCSVVersion: *csvPreviousVersion,
-		Verbosity:          *verbosity,
+		ImageOperator:                *mroImage,
+		ImageMachineDisruptionBudget: *mdbImage,
+		ImageMachineHealthCheck:      *mhcImage,
+		ImageMachineRemediation:      *mrImage,
+		CSVVersion:                   *csvVersion,
+		ImagePullPolicy:              imagePullPolicy,
+		Namespace:                    *namespace,
+		ReplacesCSVVersion:           *csvPreviousVersion,
+		Verbosity:                    *verbosity,
+		OperatorVersion:              *version,
 	}
 	csv, err := components.NewClusterServiceVersion(data)
 	if err != nil {
