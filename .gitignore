@@ -32,3 +32,6 @@ _ci-configs
 # Ignore IDE's directories
 .idea
 
+# Ignore vim temporary files
+.*.swp
+.*.swo
