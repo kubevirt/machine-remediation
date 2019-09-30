@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/record"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	disruption "kubevirt.io/machine-remediation-operator/pkg/controllers/machinedisruptionbudget"
@@ -33,6 +34,7 @@ const (
 	machineAnnotationKey           = "machine.openshift.io/machine"
 	ownerControllerKind            = "MachineSet"
 	disableRemediationAnotationKey = "healthchecking.openshift.io/disabled"
+	controllerName                 = "machinehealthcheck-controller"
 )
 
 var _ reconcile.Reconciler = &ReconcileMachineHealthCheck{}
@@ -48,6 +50,7 @@ func Add(mgr manager.Manager, opts manager.Options) error {
 func newReconciler(mgr manager.Manager, opts manager.Options) *ReconcileMachineHealthCheck {
 	return &ReconcileMachineHealthCheck{
 		client:    mgr.GetClient(),
+		recorder:  mgr.GetEventRecorderFor(controllerName),
 		namespace: opts.Namespace,
 	}
 }
@@ -55,7 +58,7 @@ func newReconciler(mgr manager.Manager, opts manager.Options) *ReconcileMachineH
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler, mapFn handler.ToRequestsFunc) error {
 	// Create a new controller
-	c, err := controller.New("machinehealthcheck-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
@@ -143,6 +146,7 @@ type ReconcileMachineHealthCheck struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client    client.Client
+	recorder  record.EventRecorder
 	namespace string
 }
 
@@ -349,6 +353,14 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 				// if the error appears here it means that machine healthcheck operation restricted by machine
 				// disruption budget, in this case we want to re-try after one minute
 				glog.Warning(err)
+				r.recorder.Eventf(
+					machine,
+					corev1.EventTypeWarning,
+					"MachineRemediationRestrictedByDisruptionBudget",
+					"Remedation of machine %s/%s has been aborted due to distruption budget violation",
+					machine.Namespace,
+					machine.Name,
+				)
 				return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 			}
 
@@ -358,13 +370,39 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 
 			if isMaster(machine, r.client) {
 				glog.Infof("The machine %s is a master node, skipping remediation", machine.Name)
+				r.recorder.Eventf(
+					machine,
+					corev1.EventTypeNormal,
+					"MachineRemediationSkippedMaster",
+					"Machine %s/%s is a master node, skipping remediation",
+					machine.Namespace,
+					machine.Name,
+				)
 				return reconcile.Result{}, nil
 			}
 			glog.Infof("Machine %s has been unhealthy for too long, deleting", machine.Name)
+
 			if err := r.client.Delete(context.TODO(), machine); err != nil {
 				glog.Errorf("Failed to delete machine %s, requeuing referenced node", machine.Name)
+				r.recorder.Eventf(
+					machine,
+					corev1.EventTypeWarning,
+					"MachineRemediationDeletionFailed",
+					"Machine %s/%s remediation failed: unable to delete Machine object: %v",
+					machine.Namespace,
+					machine.Name,
+					err,
+				)
 				return reconcile.Result{}, err
 			}
+			r.recorder.Eventf(
+				machine,
+				corev1.EventTypeNormal,
+				"MachineRemediationDeleted",
+				"Machine %s/%s has been remetiated by deleting Machine object",
+				machine.Namespace,
+				machine.Name,
+			)
 			return reconcile.Result{}, nil
 		}
 
@@ -377,6 +415,17 @@ func remediate(r *ReconcileMachineHealthCheck, remediationStrategy *mrv1.Remedia
 			nodeCondition.Type,
 			c.Timeout,
 			durationUnhealthy.String(),
+		)
+		r.recorder.Eventf(
+			machine,
+			corev1.EventTypeNormal,
+			"MachineRemediationWaiting",
+			"Machine %s/%s has unhealthy node %s with the condition %s and the timeout %s",
+			machine.Namespace,
+			machine.Name,
+			node.Name,
+			nodeCondition.Type,
+			c.Timeout,
 		)
 
 		// calculate the duration until the node will be unhealthy for too long
@@ -423,8 +472,24 @@ func (r *ReconcileMachineHealthCheck) remediationStrategyReboot(machine *mapiv1.
 
 	glog.Infof("Machine %s has been unhealthy for too long, creating machine remediation", machine.Name)
 	if err = r.client.Create(context.TODO(), mr); err != nil {
+		r.recorder.Eventf(
+			machine,
+			corev1.EventTypeWarning,
+			"MachineRemediationCreationFailed",
+			"Remediation request for machine %s/%s not created: %v",
+			machine.Namespace,
+			machine.Name,
+			err,
+		)
 		return reconcile.Result{}, err
 	}
+	r.recorder.Eventf(
+		machine,
+		corev1.EventTypeNormal,
+		"MachineRemediationCreated", "Machine remediation request created for machine %s/%s",
+		machine.Namespace,
+		machine.Name,
+	)
 	return reconcile.Result{}, nil
 }
 

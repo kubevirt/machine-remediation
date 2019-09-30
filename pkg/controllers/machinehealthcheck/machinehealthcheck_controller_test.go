@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/record"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
@@ -85,6 +86,7 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineHealthChe
 	return &ReconcileMachineHealthCheck{
 		client:    fakeClient,
 		namespace: consts.NamespaceOpenshiftMachineAPI,
+		recorder:  record.NewFakeRecorder(10),
 	}
 }
 
