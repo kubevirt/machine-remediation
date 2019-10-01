@@ -3,6 +3,7 @@ package machinehealthcheck
 import (
 	"context"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -82,17 +83,43 @@ func TestHasMatchingLabels(t *testing.T) {
 
 // newFakeReconciler returns a new reconcile.Reconciler with a fake client
 func newFakeReconciler(initObjects ...runtime.Object) *ReconcileMachineHealthCheck {
+	return newFakeReconcilerCustomRecorder(record.NewFakeRecorder(10), initObjects...)
+}
+
+func newFakeReconcilerCustomRecorder(recorder record.EventRecorder, initObjects ...runtime.Object) *ReconcileMachineHealthCheck {
 	fakeClient := fake.NewFakeClient(initObjects...)
 	return &ReconcileMachineHealthCheck{
 		client:    fakeClient,
 		namespace: consts.NamespaceOpenshiftMachineAPI,
-		recorder:  record.NewFakeRecorder(10),
+		recorder:  recorder,
 	}
 }
 
 type expectedReconcile struct {
 	result reconcile.Result
 	error  bool
+}
+
+func assertEvents(t *testing.T, testCase string, expectedEvents []string, realEvents chan string) {
+	if len(expectedEvents) != len(realEvents) {
+		t.Errorf(
+			"Test case: %s. Number of expected events (%v) differs from number of real events (%v)",
+			testCase,
+			len(expectedEvents),
+			len(realEvents),
+		)
+	} else {
+		for _, eventType := range expectedEvents {
+			select {
+			case event := <-realEvents:
+				if !strings.Contains(event, eventType) {
+					t.Errorf("Test case: %s. Expected %s event, got: %v", testCase, eventType, event)
+				}
+			default:
+				t.Errorf("Test case: %s. Expected %s event, but no event occured", testCase, eventType)
+			}
+		}
+	}
 }
 
 func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects ...runtime.Object) {
@@ -139,6 +166,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 		node                *corev1.Node
 		remediationStrategy mrv1.RemediationStrategyType
 		expected            expectedReconcile
+		expectedEvents      []string
 	}{
 		{
 			machine: machineUnhealthyForTooLong,
@@ -148,6 +176,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				error:  false,
 			},
 			remediationStrategy: mrv1.RemediationStrategyTypeReboot,
+			expectedEvents:      []string{"MachineRemediationCreated"},
 		},
 		{
 			machine: machineWithNodeHealthy,
@@ -156,6 +185,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				result: reconcile.Result{},
 				error:  false,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			machine: machineWithNodeRecentlyUnhealthy,
@@ -167,6 +197,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				},
 				error: false,
 			},
+			expectedEvents: []string{"MachineRemediationWaiting"},
 		},
 		{
 			machine: nil,
@@ -175,6 +206,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				result: reconcile.Result{},
 				error:  false,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			machine: nil,
@@ -183,6 +215,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				result: reconcile.Result{},
 				error:  false,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			machine: machineWithoutOwnerController,
@@ -191,6 +224,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				result: reconcile.Result{},
 				error:  false,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			machine: machineWithoutNodeRef,
@@ -199,6 +233,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				result: reconcile.Result{},
 				error:  true,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			machine: machineWithRemediationDisabled,
@@ -207,6 +242,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 				result: reconcile.Result{},
 				error:  false,
 			},
+			expectedEvents: []string{},
 		},
 	}
 
@@ -219,7 +255,8 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 			objects = append(objects, tc.machine)
 		}
 		objects = append(objects, tc.node)
-		r := newFakeReconciler(objects...)
+		recorder := record.NewFakeRecorder(10)
+		r := newFakeReconcilerCustomRecorder(recorder, objects...)
 
 		request := reconcile.Request{
 			NamespacedName: types.NamespacedName{
@@ -228,6 +265,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 			},
 		}
 		result, err := r.Reconcile(request)
+		assertEvents(t, tc.node.Name, tc.expectedEvents, recorder.Events)
 		if tc.expected.error != (err != nil) {
 			var errorExpectation string
 			if !tc.expected.error {
@@ -330,11 +368,19 @@ func TestApplyRemediationReboot(t *testing.T) {
 	nodeUnhealthyForTooLong := mrotesting.NewNode("nodeUnhealthyForTooLong", false, "machineUnhealthyForTooLong")
 	machineUnhealthyForTooLong := mrotesting.NewMachine("machineUnhealthyForTooLong", nodeUnhealthyForTooLong.Name, "")
 	machineHealthCheck := mrotesting.NewMachineHealthCheck("machineHealthCheck")
-	r := newFakeReconciler(nodeUnhealthyForTooLong, machineUnhealthyForTooLong, machineHealthCheck)
+	recorder := record.NewFakeRecorder(1)
+	r := newFakeReconcilerCustomRecorder(
+		recorder,
+		nodeUnhealthyForTooLong,
+		machineUnhealthyForTooLong,
+		machineHealthCheck,
+	)
 	_, err := r.remediationStrategyReboot(machineUnhealthyForTooLong, nodeUnhealthyForTooLong)
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
+
+	assertEvents(t, "TestApplyRemediationReboot", []string{"MachineRemediationCreated"}, recorder.Events)
 
 	machineRemediations := &mrv1.MachineRemediationList{}
 	if err := r.client.List(context.TODO(), machineRemediations); err != nil {
