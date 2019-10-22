@@ -43,10 +43,15 @@ type expectedRemediationResult struct {
 	nodeDeleted                     bool
 	machineRemediationDeleted       bool
 	rebootInProgressAnnotationExist bool
+	nodeRebootAnnotationExist       bool
 }
 
 func TestRemediationReboot(t *testing.T) {
 	nodeOnline := mrotesting.NewNode("nodeOnline", true, "machineOnline")
+	nodeOnline.Annotations = map[string]string{
+		consts.AnnotationNodeMachineReboot: "",
+	}
+
 	bareMetalHostOnline := mrotesting.NewBareMetalHost("bareMetalHostOnline", true, true)
 	bareMetalHostOnline.Annotations[consts.AnnotationRebootInProgress] = "true"
 	machineOnline := mrotesting.NewMachine("machineOnline", nodeOnline.Name, bareMetalHostOnline.Name)
@@ -55,6 +60,9 @@ func TestRemediationReboot(t *testing.T) {
 	machineOnlineWithoutRebootAnnotation := mrotesting.NewMachine("machineOnlineWithoutRebootAnnotation", nodeOnline.Name, bareMetalHostOnlineWithoutRebootAnnotation.Name)
 
 	nodeOffline := mrotesting.NewNode("nodeOffline", false, "machineOffline")
+	nodeOffline.Annotations = map[string]string{
+		consts.AnnotationNodeMachineReboot: "",
+	}
 
 	bareMetalHostOffline := mrotesting.NewBareMetalHost("bareMetalHostOffline", false, false)
 	machineOffline := mrotesting.NewMachine("machineOffline", nodeOffline.Name, bareMetalHostOffline.Name)
@@ -64,6 +72,10 @@ func TestRemediationReboot(t *testing.T) {
 	machineOfflineWithRebootAnnotation := mrotesting.NewMachine("machineOfflineWithRebootAnnotation", nodeOffline.Name, bareMetalHostOfflineWithRebootAnnotation.Name)
 
 	nodeNotReady := mrotesting.NewNode("nodeNotReady", false, "machineNotReady")
+	nodeNotReady.Annotations = map[string]string{
+		consts.AnnotationNodeMachineReboot: "",
+	}
+
 	bareMetalHostNotReady := mrotesting.NewBareMetalHost("bareMetalHostNotReady", true, true)
 	machineNotReady := mrotesting.NewMachine("machineNotReady", nodeNotReady.Name, bareMetalHostNotReady.Name)
 
@@ -82,6 +94,7 @@ func TestRemediationReboot(t *testing.T) {
 	}
 	machineRemediationPoweronNotReady := mrotesting.NewMachineRemediation("machineRemediationPoweronNotReady", machineNotReady.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
 	machineRemediationSucceeded := mrotesting.NewMachineRemediation("machineRemediationSucceeded", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateSucceeded)
+	machineRemediationFailed := mrotesting.NewMachineRemediation("machineRemediationFailed", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
 	machineRemediationStartedOfflineWithRebootInProgressAnnotation := mrotesting.NewMachineRemediation("machineRemediationStartedOfflineWithRebootInProgressAnnotation", machineOfflineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
 	machineRemediationStartedOnlineWithoutRebootInProgressAnnotation := mrotesting.NewMachineRemediation("machineRemediationStartedOnlineWithoutRebootInProgressAnnotation", machineOnlineWithoutRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
 	machineRemediationPoweroffOnlineWithRebootInProgressAnnotation := mrotesting.NewMachineRemediation("machineRemediationPoweroffOnlineWithRebootInProgressAnnotation", machineOfflineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
@@ -105,6 +118,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -119,6 +133,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -133,6 +148,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -147,6 +163,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     true,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -161,6 +178,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -175,6 +193,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -189,6 +208,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -203,6 +223,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -217,6 +238,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -231,6 +253,22 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       true,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
+			},
+		},
+		{
+			name:               "with machine remediation in failed state",
+			machineRemediation: machineRemediationFailed,
+			bareMetalHost:      bareMetalHostOnline,
+			node:               nodeOnline,
+			expected: expectedRemediationResult{
+				state:                           mrv1.RemediationStateFailed,
+				hasEndTime:                      false,
+				bareMetalHostOnline:             true,
+				nodeDeleted:                     false,
+				machineRemediationDeleted:       false,
+				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       false,
 			},
 		},
 		{
@@ -245,6 +283,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     false,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 		{
@@ -259,6 +298,7 @@ func TestRemediationReboot(t *testing.T) {
 				nodeDeleted:                     true,
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
+				nodeRebootAnnotationExist:       true,
 			},
 		},
 	}
@@ -357,6 +397,13 @@ func TestRemediationReboot(t *testing.T) {
 
 		if err == nil && tc.expected.nodeDeleted {
 			t.Errorf("%s failed, expected node %s to be not deleted", tc.name, node.Name)
+		}
+
+		if node != nil && node.Annotations != nil {
+			_, ok := node.Annotations[consts.AnnotationNodeMachineReboot]
+			if tc.expected.nodeRebootAnnotationExist != ok {
+				t.Errorf("%s failed, expected node reboot annotation %t, got %t", tc.name, tc.expected.nodeRebootAnnotationExist, ok)
+			}
 		}
 	}
 }
