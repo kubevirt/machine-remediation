@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/record"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
@@ -29,10 +30,11 @@ func init() {
 	mapiv1.AddToScheme(scheme.Scheme)
 }
 
-func newFakeBareMetalRemediator(objects ...runtime.Object) *BareMetalRemediator {
+func newFakeBareMetalRemediator(recorder record.EventRecorder, objects ...runtime.Object) *BareMetalRemediator {
 	fakeClient := fake.NewFakeClient(objects...)
 	return &BareMetalRemediator{
-		client: fakeClient,
+		client:   fakeClient,
+		recorder: recorder,
 	}
 }
 
@@ -92,6 +94,7 @@ func TestRemediationReboot(t *testing.T) {
 		bareMetalHost      *bmov1.BareMetalHost
 		node               *corev1.Node
 		expected           expectedRemediationResult
+		expectedEvents     []string
 	}{
 		{
 			name:               "with machine remediation started and host has power off state",
@@ -106,6 +109,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
 			},
+			expectedEvents: []string{"MachineRemediationSkippedOffline"},
 		},
 		{
 			name:               "with machine remediation started and host with rebootInProgress annotation has power off state",
@@ -120,6 +124,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{"MachineRemediationRebootStarted"},
 		},
 		{
 			name:               "with machine remediation started and host has power on state",
@@ -134,6 +139,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{"MachineRemediationRebootStarted"},
 		},
 		{
 			name:               "with machine remediation in power off state and host has power off state",
@@ -148,6 +154,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
 			},
+			expectedEvents: []string{"MachineRemediationRebootPoweringOn"},
 		},
 		{
 			name:               "with machine remediation in power off state and host has power on state",
@@ -162,6 +169,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			name:               "with machine remediation in power off state that timeouted",
@@ -176,6 +184,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
 			},
+			expectedEvents: []string{"MachineRemediationRebootTimedOut"},
 		},
 		{
 			name:               "with machine remediation in power on state and ready node",
@@ -190,6 +199,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{"MachineRemediationRebootSucceeded"},
 		},
 		{
 			name:               "with machine remediation in power on state that timeouted",
@@ -204,6 +214,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{"MachineRemediationRebootTimedOut"},
 		},
 		{
 			name:               "with machine remediation in power on state and non ready node",
@@ -218,6 +229,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			name:               "with machine remediation in succeeded state",
@@ -232,6 +244,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       true,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{},
 		},
 		{
 			name:               "with machine remediation in started state without reboot annotation",
@@ -246,6 +259,7 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: true,
 			},
+			expectedEvents: []string{"MachineRemediationRebootStarted"},
 		},
 		{
 			name:               "with machine remediation in poweroff state with reboot annotation",
@@ -260,11 +274,14 @@ func TestRemediationReboot(t *testing.T) {
 				machineRemediationDeleted:       false,
 				rebootInProgressAnnotationExist: false,
 			},
+			expectedEvents: []string{"MachineRemediationRebootPoweringOn"},
 		},
 	}
 
 	for _, tc := range testCases {
+		recorder := record.NewFakeRecorder(10)
 		bmr := newFakeBareMetalRemediator(
+			recorder,
 			nodeOnline,
 			nodeOffline,
 			nodeNotReady,
@@ -281,6 +298,8 @@ func TestRemediationReboot(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s failed, expected no error, got: %v", tc.name, err)
 		}
+
+		mrotesting.AssertEvents(t, tc.name, tc.expectedEvents, recorder.Events)
 
 		newMachineRemediation := &mrv1.MachineRemediation{}
 		key := types.NamespacedName{

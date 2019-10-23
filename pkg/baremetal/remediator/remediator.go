@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/glog"
-	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
+
+	"github.com/golang/glog"
+	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/record"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,13 +30,15 @@ const (
 
 // BareMetalRemediator implements Remediator interface for bare metal machines
 type BareMetalRemediator struct {
-	client client.Client
+	client   client.Client
+	recorder record.EventRecorder
 }
 
 // NewBareMetalRemediator returns new BareMetalRemediator object
 func NewBareMetalRemediator(mgr manager.Manager) *BareMetalRemediator {
 	return &BareMetalRemediator{
-		client: mgr.GetClient(),
+		client:   mgr.GetClient(),
+		recorder: mgr.GetEventRecorderFor("baremetal-remediator"),
 	}
 }
 
@@ -78,6 +82,13 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		// it can mean that an user power off the machine by purpose
 		if !bmh.Spec.Online && !rebootInProgress {
 			glog.V(4).Infof("Skip the remediation, machine %q has power off state before the remediation action", machine.Name)
+			bmr.recorder.Eventf(
+				machine,
+				corev1.EventTypeNormal,
+				"MachineRemediationSkippedOffline",
+				"Remediation of machine %q skipped because it was in power off state already",
+				machine.Name,
+			)
 			mrCopy.Status.State = mrv1.RemediationStateSucceeded
 			mrCopy.Status.Reason = "Skip the reboot, the machine power off by an user"
 			mrCopy.Status.EndTime = &metav1.Time{Time: now}
@@ -98,6 +109,14 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 				return err
 			}
 
+			bmr.recorder.Eventf(
+				machine,
+				corev1.EventTypeNormal,
+				"MachineRemediationRebootStarted",
+				"Reboot of machine %q has started",
+				machine.Name,
+			)
+
 			mrCopy.Status.State = mrv1.RemediationStatePowerOff
 			mrCopy.Status.Reason = "Starts the reboot process"
 		}
@@ -107,6 +126,13 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		// failed the remediation on timeout
 		if machineRemediation.Status.StartTime.Time.Add(rebootDefaultTimeout * time.Minute).Before(now) {
 			glog.Errorf("Remediation of machine %q failed on timeout", machine.Name)
+			bmr.recorder.Eventf(
+				machine,
+				corev1.EventTypeWarning,
+				"MachineRemediationRebootTimedOut",
+				"Remediation of machine %q timed out",
+				machine.Name,
+			)
 			mrCopy.Status.State = mrv1.RemediationStateFailed
 			mrCopy.Status.Reason = "Reboot failed on timeout"
 			mrCopy.Status.EndTime = &metav1.Time{Time: now}
@@ -139,6 +165,13 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		if err := bmr.client.Update(context.TODO(), bmhCopy); err != nil {
 			return err
 		}
+		bmr.recorder.Eventf(
+			machine,
+			corev1.EventTypeNormal,
+			"MachineRemediationRebootPoweringOn",
+			"Powering on machine %q",
+			machine.Name,
+		)
 
 		mrCopy.Status.State = mrv1.RemediationStatePowerOn
 		mrCopy.Status.Reason = "Reboot in progress"
@@ -148,6 +181,13 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		// failed the remediation on timeout
 		if machineRemediation.Status.StartTime.Time.Add(rebootDefaultTimeout * time.Minute).Before(now) {
 			glog.Errorf("Remediation of machine %q failed on timeout", machine.Name)
+			bmr.recorder.Eventf(
+				machine,
+				corev1.EventTypeWarning,
+				"MachineRemediationRebootTimedOut",
+				"Remediation of machine %q timed out",
+				machine.Name,
+			)
 			mrCopy.Status.State = mrv1.RemediationStateFailed
 			mrCopy.Status.Reason = "Reboot failed on timeout"
 			mrCopy.Status.EndTime = &metav1.Time{Time: now}
@@ -168,6 +208,13 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		// Node back to Ready under the cluster
 		if conditions.NodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
 			glog.V(4).Infof("Remediation of machine %q succeeded", machine.Name)
+			bmr.recorder.Eventf(
+				machine,
+				corev1.EventTypeNormal,
+				"MachineRemediationRebootSucceeded",
+				"Remediation of machine %q succeeded",
+				machine.Name,
+			)
 			mrCopy.Status.State = mrv1.RemediationStateSucceeded
 			mrCopy.Status.Reason = "Reboot succeeded"
 			mrCopy.Status.EndTime = &metav1.Time{Time: now}

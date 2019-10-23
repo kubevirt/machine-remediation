@@ -2,6 +2,8 @@ package testing
 
 import (
 	"fmt"
+	"strings"
+	"testing"
 	"time"
 
 	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
@@ -218,5 +220,27 @@ func NewInfrastructure(name string, platform osconfigv1.PlatformType) *osconfigv
 		Status: osconfigv1.InfrastructureStatus{
 			Platform: platform,
 		},
+	}
+}
+
+func AssertEvents(t *testing.T, testCase string, expectedEvents []string, realEvents chan string) {
+	if len(expectedEvents) != len(realEvents) {
+		t.Errorf(
+			"Test case: %s. Number of expected events (%v) differs from number of real events (%v)",
+			testCase,
+			len(expectedEvents),
+			len(realEvents),
+		)
+	} else {
+		for _, eventType := range expectedEvents {
+			select {
+			case event := <-realEvents:
+				if !strings.Contains(event, eventType) {
+					t.Errorf("Test case: %s. Expected %s event, got: %v", testCase, eventType, event)
+				}
+			default:
+				t.Errorf("Test case: %s. Expected %s event, but no event occured", testCase, eventType)
+			}
+		}
 	}
 }

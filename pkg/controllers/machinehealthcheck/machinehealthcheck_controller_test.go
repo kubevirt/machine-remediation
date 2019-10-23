@@ -3,7 +3,6 @@ package machinehealthcheck
 import (
 	"context"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -98,28 +97,6 @@ func newFakeReconcilerCustomRecorder(recorder record.EventRecorder, initObjects 
 type expectedReconcile struct {
 	result reconcile.Result
 	error  bool
-}
-
-func assertEvents(t *testing.T, testCase string, expectedEvents []string, realEvents chan string) {
-	if len(expectedEvents) != len(realEvents) {
-		t.Errorf(
-			"Test case: %s. Number of expected events (%v) differs from number of real events (%v)",
-			testCase,
-			len(expectedEvents),
-			len(realEvents),
-		)
-	} else {
-		for _, eventType := range expectedEvents {
-			select {
-			case event := <-realEvents:
-				if !strings.Contains(event, eventType) {
-					t.Errorf("Test case: %s. Expected %s event, got: %v", testCase, eventType, event)
-				}
-			default:
-				t.Errorf("Test case: %s. Expected %s event, but no event occured", testCase, eventType)
-			}
-		}
-	}
 }
 
 func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects ...runtime.Object) {
@@ -265,7 +242,7 @@ func testReconcile(t *testing.T, remediationWaitTime time.Duration, initObjects 
 			},
 		}
 		result, err := r.Reconcile(request)
-		assertEvents(t, tc.node.Name, tc.expectedEvents, recorder.Events)
+		mrotesting.AssertEvents(t, tc.node.Name, tc.expectedEvents, recorder.Events)
 		if tc.expected.error != (err != nil) {
 			var errorExpectation string
 			if !tc.expected.error {
@@ -380,7 +357,7 @@ func TestApplyRemediationReboot(t *testing.T) {
 		t.Fatalf("unexpected error %v", err)
 	}
 
-	assertEvents(t, "TestApplyRemediationReboot", []string{"MachineRemediationCreated"}, recorder.Events)
+	mrotesting.AssertEvents(t, "TestApplyRemediationReboot", []string{"MachineRemediationCreated"}, recorder.Events)
 
 	machineRemediations := &mrv1.MachineRemediationList{}
 	if err := r.client.List(context.TODO(), machineRemediations); err != nil {
