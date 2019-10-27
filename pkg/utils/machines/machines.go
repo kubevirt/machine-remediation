@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-
 	"github.com/golang/glog"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/cache"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -85,4 +87,27 @@ func GetNodeByMachine(c client.Client, machine *mapiv1.Machine) (*v1.Node, error
 		return nil, err
 	}
 	return node, nil
+}
+
+// GetMachineByNode get the machine object by node object
+func GetMachineByNode(c client.Client, node *v1.Node) (*mapiv1.Machine, error) {
+	machineKey, ok := node.Annotations[consts.AnnotationMachine]
+	if !ok {
+		return nil, fmt.Errorf("No machine annotation for node %s", node.Name)
+	}
+	glog.Infof("Node %s is annotated with machine %s", node.Name, machineKey)
+
+	machine := &mapiv1.Machine{}
+	namespace, machineName, err := cache.SplitMetaNamespaceKey(machineKey)
+	if err != nil {
+		return nil, err
+	}
+	key := &types.NamespacedName{
+		Namespace: namespace,
+		Name:      machineName,
+	}
+	if err := c.Get(context.TODO(), *key, machine); err != nil {
+		return nil, err
+	}
+	return machine, nil
 }

@@ -222,9 +222,23 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		}
 		return nil
 
+	// assumption that the reboot annotation removed because of node removal
 	case mrv1.RemediationStateSucceeded:
 		// remove machine remediation object
 		return bmr.client.Delete(context.TODO(), machineRemediation)
+
+	case mrv1.RemediationStateFailed:
+		node, err := getNodeByMachine(bmr.client, machine)
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// remove the reboot annotation from the node, to initiate the reboot again
+		return removeNodeRebootAnnotation(bmr.client, node)
 	}
 	return nil
 }
@@ -289,4 +303,20 @@ func isRebootInProgress(bmh *bmov1.BareMetalHost) bool {
 		return false
 	}
 	return true
+}
+
+// removeNodeRebootAnnotation removes the reboot annotation from the node
+func removeNodeRebootAnnotation(c client.Client, node *corev1.Node) error {
+	nodeCopy := node.DeepCopy()
+
+	if nodeCopy.Annotations == nil {
+		return nil
+	}
+
+	if _, ok := nodeCopy.Annotations[consts.AnnotationNodeMachineReboot]; !ok {
+		return nil
+	}
+
+	delete(nodeCopy.Annotations, consts.AnnotationNodeMachineReboot)
+	return c.Update(context.TODO(), nodeCopy)
 }

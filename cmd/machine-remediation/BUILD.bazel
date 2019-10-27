@@ -10,6 +10,7 @@ go_library(
         "//pkg/baremetal/remediator:go_default_library",
         "//pkg/controllers:go_default_library",
         "//pkg/controllers/machineremediation:go_default_library",
+        "//pkg/controllers/nodereboot:go_default_library",
         "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1:go_default_library",
