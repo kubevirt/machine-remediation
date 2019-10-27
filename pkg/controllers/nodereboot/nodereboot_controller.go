@@ -126,12 +126,15 @@ func isRebootInProgress(c client.Client, machineName string) (bool, error) {
 		return false, err
 	}
 
+	rebootInProgress := false
+
 	for _, mr := range machineRemediations.Items {
 		if mr.Spec.MachineName == machineName {
-			if mr.Status.EndTime != nil {
-				return true, nil
+			if mr.Status.EndTime == nil {
+				rebootInProgress = true
+				break
 			}
 		}
 	}
-	return false, nil
+	return rebootInProgress, nil
 }

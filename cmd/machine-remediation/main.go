@@ -11,6 +11,7 @@ import (
 	"kubevirt.io/machine-remediation-operator/pkg/baremetal/remediator"
 	"kubevirt.io/machine-remediation-operator/pkg/controllers"
 	"kubevirt.io/machine-remediation-operator/pkg/controllers/machineremediation"
+	"kubevirt.io/machine-remediation-operator/pkg/controllers/nodereboot"
 	"kubevirt.io/machine-remediation-operator/pkg/version"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
@@ -72,7 +73,7 @@ func main() {
 	}
 
 	// Setup all Controllers
-	if err := controllers.AddToManager(mgr, opts, addController); err != nil {
+	if err := controllers.AddToManager(mgr, opts, addController, nodereboot.Add); err != nil {
 		glog.Fatal(err)
 	}
 
