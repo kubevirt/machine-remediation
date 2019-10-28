@@ -1,4 +1,4 @@
-container_images="cmd/machine-disruption-budget cmd/machine-health-check cmd/machine-remediation cmd/machine-remediation-operator"
+container_images="cmd/machine-remediation cmd/machine-remediation-operator"
 container_prefix=${CONTAINER_PREFIX:-index.docker.io/kubevirt}
 container_tag=${CONTAINER_TAG:-latest}
 operator_image=${OPERATOR_IMAGE:-"${container_prefix}/machine-remediation-operator:${container_tag}"}
