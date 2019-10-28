@@ -195,10 +195,6 @@ func (r *ReconcileMachineRemediationOperator) createOrUpdateComponents(mro *mrv1
 		if err := r.createMachineHealthCheck(consts.MasterMachineHealthCheck, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
-
-		if err := r.createMachineDisruptionBudget(consts.MasterMachineDisruptionBudget, consts.NamespaceOpenshiftMachineAPI); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -213,10 +209,6 @@ func (r *ReconcileMachineRemediationOperator) deleteComponents() error {
 	// delete masters MachineHealthCheck and MachineDisruptionBudget only for BareMetal environment
 	if baremetal {
 		if err := r.deleteMachineHealthCheck(consts.MasterMachineHealthCheck, consts.NamespaceOpenshiftMachineAPI); err != nil {
-			return err
-		}
-
-		if err := r.deleteMachineDisruptionBudget(consts.MasterMachineDisruptionBudget, consts.NamespaceOpenshiftMachineAPI); err != nil {
 			return err
 		}
 	}

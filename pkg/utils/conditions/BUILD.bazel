@@ -5,17 +5,7 @@ go_library(
     srcs = ["conditions.go"],
     importpath = "kubevirt.io/machine-remediation-operator/pkg/utils/conditions",
     visibility = ["//visibility:public"],
-    deps = [
-        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
-        "//pkg/utils/machines:go_default_library",
-        "//vendor/github.com/ghodss/yaml:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
-        "//vendor/sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1:go_default_library",
-        "//vendor/sigs.k8s.io/controller-runtime/pkg/client:go_default_library",
-    ],
+    deps = ["//vendor/k8s.io/api/core/v1:go_default_library"],
 )
 
 go_test(
@@ -23,11 +13,7 @@ go_test(
     srcs = ["conditions_test.go"],
     embed = [":go_default_library"],
     deps = [
-        "//pkg/apis/machineremediation/v1alpha1:go_default_library",
         "//pkg/utils/testing:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/sigs.k8s.io/controller-runtime/pkg/client/fake:go_default_library",
     ],
 )

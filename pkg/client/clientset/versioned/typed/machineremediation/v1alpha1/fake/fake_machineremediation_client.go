@@ -28,14 +28,6 @@ type FakeMachineremediationV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeMachineremediationV1alpha1) MachineDisruptionBudgets(namespace string) v1alpha1.MachineDisruptionBudgetInterface {
-	return &FakeMachineDisruptionBudgets{c, namespace}
-}
-
-func (c *FakeMachineremediationV1alpha1) MachineHealthChecks(namespace string) v1alpha1.MachineHealthCheckInterface {
-	return &FakeMachineHealthChecks{c, namespace}
-}
-
 func (c *FakeMachineremediationV1alpha1) MachineRemediations(namespace string) v1alpha1.MachineRemediationInterface {
 	return &FakeMachineRemediations{c, namespace}
 }

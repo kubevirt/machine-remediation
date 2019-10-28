@@ -19,7 +19,6 @@
 package v1alpha1
 
 import (
-	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
@@ -27,8 +26,6 @@ import (
 
 type MachineremediationV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	MachineDisruptionBudgetsGetter
-	MachineHealthChecksGetter
 	MachineRemediationsGetter
 	MachineRemediationOperatorsGetter
 }
@@ -36,14 +33,6 @@ type MachineremediationV1alpha1Interface interface {
 // MachineremediationV1alpha1Client is used to interact with features provided by the machineremediation.kubevirt.io group.
 type MachineremediationV1alpha1Client struct {
 	restClient rest.Interface
-}
-
-func (c *MachineremediationV1alpha1Client) MachineDisruptionBudgets(namespace string) MachineDisruptionBudgetInterface {
-	return newMachineDisruptionBudgets(c, namespace)
-}
-
-func (c *MachineremediationV1alpha1Client) MachineHealthChecks(namespace string) MachineHealthCheckInterface {
-	return newMachineHealthChecks(c, namespace)
 }
 
 func (c *MachineremediationV1alpha1Client) MachineRemediations(namespace string) MachineRemediationInterface {
@@ -86,7 +75,7 @@ func setConfigDefaults(config *rest.Config) error {
 	gv := v1alpha1.SchemeGroupVersion
 	config.GroupVersion = &gv
 	config.APIPath = "/apis"
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	config.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
 
 	if config.UserAgent == "" {
 		config.UserAgent = rest.DefaultKubernetesUserAgent()

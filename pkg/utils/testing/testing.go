@@ -6,14 +6,15 @@ import (
 	"testing"
 	"time"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	osconfigv1 "github.com/openshift/api/config/v1"
+	maov1 "github.com/openshift/machine-api-operator/pkg/apis/healthchecking/v1beta1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation-operator/pkg/consts"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 )
@@ -38,39 +39,9 @@ func NewSelectorFooBar() *metav1.LabelSelector {
 	return NewSelector(FooBar())
 }
 
-// NewMinAvailableMachineDisruptionBudget returns new MachineDisruptionBudget with min available parameter
-func NewMinAvailableMachineDisruptionBudget(minAvailable int32) *mrv1.MachineDisruptionBudget {
-	return &mrv1.MachineDisruptionBudget{
-		TypeMeta: metav1.TypeMeta{Kind: "MachineDisruptionBudget"},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foobar",
-			Namespace: consts.NamespaceOpenshiftMachineAPI,
-		},
-		Spec: mrv1.MachineDisruptionBudgetSpec{
-			MinAvailable: &minAvailable,
-			Selector:     NewSelectorFooBar(),
-		},
-	}
-}
-
-// NewMaxUnavailableMachineDisruptionBudget returns new MachineDisruptionBudget with max unavailable parameter
-func NewMaxUnavailableMachineDisruptionBudget(maxUnavailable int32) *mrv1.MachineDisruptionBudget {
-	return &mrv1.MachineDisruptionBudget{
-		TypeMeta: metav1.TypeMeta{Kind: "MachineDisruptionBudget"},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "foobar",
-			Namespace: consts.NamespaceOpenshiftMachineAPI,
-		},
-		Spec: mrv1.MachineDisruptionBudgetSpec{
-			MaxUnavailable: &maxUnavailable,
-			Selector:       NewSelectorFooBar(),
-		},
-	}
-}
-
 // NewMachineHealthCheck returns new MachineHealthCheck object that can be used for testing
-func NewMachineHealthCheck(name string) *mrv1.MachineHealthCheck {
-	return &mrv1.MachineHealthCheck{
+func NewMachineHealthCheck(name string) *maov1.MachineHealthCheck {
+	return &maov1.MachineHealthCheck{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: consts.NamespaceOpenshiftMachineAPI,
@@ -78,10 +49,10 @@ func NewMachineHealthCheck(name string) *mrv1.MachineHealthCheck {
 		TypeMeta: metav1.TypeMeta{
 			Kind: "MachineHealthCheck",
 		},
-		Spec: mrv1.MachineHealthCheckSpec{
+		Spec: maov1.MachineHealthCheckSpec{
 			Selector: *NewSelectorFooBar(),
 		},
-		Status: mrv1.MachineHealthCheckStatus{},
+		Status: maov1.MachineHealthCheckStatus{},
 	}
 }
 
@@ -193,22 +164,6 @@ func NewNode(name string, ready bool, machineName string) *corev1.Node {
 	}
 }
 
-// NewTargetedMachine returns a new TargetedMachine object that can be used for testing
-func NewTargetedMachine(name string, healthy bool, unhealthyConditions []corev1.NodeConditionType) mrv1.TargetedMachine {
-	if unhealthyConditions == nil {
-		unhealthyConditions = []corev1.NodeConditionType{}
-	}
-	healthyTyped := mrv1.MachineHealthyFalse
-	if healthy {
-		healthyTyped = mrv1.MachineHealthyTrue
-	}
-	return mrv1.TargetedMachine{
-		Name:                name,
-		Healthy:             healthyTyped,
-		UnhealthyConditions: unhealthyConditions,
-	}
-}
-
 // NewInfrastructure returns a new Infrastructure object that can be used for testing
 func NewInfrastructure(name string, platform osconfigv1.PlatformType) *osconfigv1.Infrastructure {
 	return &osconfigv1.Infrastructure{
@@ -223,6 +178,7 @@ func NewInfrastructure(name string, platform osconfigv1.PlatformType) *osconfigv
 	}
 }
 
+// AssertEvents verifies when the test run iniates expected events
 func AssertEvents(t *testing.T, testCase string, expectedEvents []string, realEvents chan string) {
 	if len(expectedEvents) != len(realEvents) {
 		t.Errorf(

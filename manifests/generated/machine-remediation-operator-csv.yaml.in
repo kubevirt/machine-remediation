@@ -157,10 +157,6 @@ spec:
                 env:
                 - name: OPERATOR_VERSION
                   value: {{.OperatorVersion}}
-                - name: machine-disruption-budget
-                  value: {{.ImageMachineDisruptionBudget}}
-                - name: machine-health-check
-                  value: {{.ImageMachineHealthCheck}}
                 - name: machine-remediation
                   value: {{.ImageMachineRemediation}}
                 image: {{.ImageOperator}}

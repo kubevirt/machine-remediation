@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	osconfigv1 "github.com/openshift/api/config/v1"
+	maov1 "github.com/openshift/machine-api-operator/pkg/apis/healthchecking/v1beta1"
 
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,6 +69,10 @@ func main() {
 	}
 
 	if err := osconfigv1.AddToScheme(mgr.GetScheme()); err != nil {
+		glog.Fatal(err)
+	}
+
+	if err := maov1.AddToScheme(mgr.GetScheme()); err != nil {
 		glog.Fatal(err)
 	}
 

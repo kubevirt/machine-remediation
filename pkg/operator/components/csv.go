@@ -76,9 +76,7 @@ func NewClusterServiceVersion(data *ClusterServiceVersionData) (*csvv1.ClusterSe
 		OperatorVersion: data.OperatorVersion,
 	}
 	controllersImages := &ControllersImages{
-		MachineDisruptionBudget: data.ImageMachineDisruptionBudget,
-		MachineHealthCheck:      data.ImageMachineHealthCheck,
-		MachineRemediation:      data.ImageMachineRemediation,
+		MachineRemediation: data.ImageMachineRemediation,
 	}
 	operator := NewOperatorDeployment(operatorData, controllersImages)
 
