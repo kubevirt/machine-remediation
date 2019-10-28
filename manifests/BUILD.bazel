@@ -1,7 +1,0 @@
-filegroup(
-    name = "crds",
-    srcs = glob([
-        "generated/crds/*.yaml",
-    ]),
-    visibility = ["//visibility:public"],
-)

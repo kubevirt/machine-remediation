@@ -14,32 +14,11 @@ import (
 
 // DeploymentData contains all needed data to create new deployment object
 type DeploymentData struct {
-	ImageName       string
-	Name            string
-	Namespace       string
-	PullPolicy      corev1.PullPolicy
-	Verbosity       string
-	OperatorVersion string
-}
-
-// ControllersImages contains all images that the operator should use
-type ControllersImages struct {
-	MachineDisruptionBudget string
-	MachineHealthCheck      string
-	MachineRemediation      string
-}
-
-// NewOperatorDeployment returns new operator deployment object
-func NewOperatorDeployment(data *DeploymentData, images *ControllersImages) *appsv1.Deployment {
-	deploy := NewDeployment(data)
-	imagesEnvs := []corev1.EnvVar{
-		{
-			Name:  ComponentMachineRemediation,
-			Value: images.MachineRemediation,
-		},
-	}
-	deploy.Spec.Template.Spec.Containers[0].Env = append(deploy.Spec.Template.Spec.Containers[0].Env, imagesEnvs...)
-	return deploy
+	ImageName  string
+	Name       string
+	Namespace  string
+	PullPolicy corev1.PullPolicy
+	Verbosity  string
 }
 
 // NewDeployment returns new deployment object
@@ -158,12 +137,6 @@ func newContainers(data *DeploymentData) []corev1.Container {
 			Args:            args,
 			Resources:       resources,
 			ImagePullPolicy: data.PullPolicy,
-			Env: []corev1.EnvVar{
-				{
-					Name:  EnvVarOperatorVersion,
-					Value: data.OperatorVersion,
-				},
-			},
 		},
 	}
 	return containers

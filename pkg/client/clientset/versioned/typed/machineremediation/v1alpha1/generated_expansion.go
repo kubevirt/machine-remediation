@@ -19,5 +19,3 @@
 package v1alpha1
 
 type MachineRemediationExpansion interface{}
-
-type MachineRemediationOperatorExpansion interface{}

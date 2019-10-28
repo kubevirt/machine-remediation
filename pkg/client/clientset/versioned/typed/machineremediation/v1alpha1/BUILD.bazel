@@ -7,7 +7,6 @@ go_library(
         "generated_expansion.go",
         "machineremediation.go",
         "machineremediation_client.go",
-        "machineremediationoperator.go",
     ],
     importpath = "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1",
     visibility = ["//visibility:public"],

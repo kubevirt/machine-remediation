@@ -1,1 +1,0 @@
-{{index .GeneratedManifests "machine-remediation-operator-cr.yaml.in"}}

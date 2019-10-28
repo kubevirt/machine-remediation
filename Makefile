@@ -63,7 +63,7 @@ fmt:
 	./hack/dockerized "./hack/bazel/fmt.sh"
 
 .PHONY: generate
-generate: generate-clean generate-crds generate-client generate-templates generate-csv generate-manifests bazel-generate
+generate: generate-clean generate-crds generate-client generate-templates generate-manifests bazel-generate
 
 .PHONY: generate-clean
 generate-clean:
@@ -77,17 +77,11 @@ generate-crds:
 generate-client:
 	./hack/dockerized "./hack/generate/client.sh"
 
-.PHONY: generate-csv
-generate-csv:
-	./hack/dockerized "./hack/generate/csv.sh"
-
 .PHONY: generate-manifests
 generate-manifests: generate-templates
 	./hack/dockerized "CONTAINER_TAG=${CONTAINER_TAG} \
-		CSV_VERSION=${CSV_VERSION} \
-		CSV_PREVIOUS_VERSION=${CSV_PREVIOUS_VERSION} \
 		IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY} \
-		OPERATOR_IMAGE=${OPERATOR_IMAGE} \
+		OPERATOR_IMAGE=${MR_IMAGE} \
 		./hack/generate/manifests.sh"
 
 .PHONY: generate-templates

@@ -43,9 +43,7 @@ deploy:
   api_key:
     secure: "ctWuRUf7LvZSylWveiTIHre200iS1pR5yK8mmkKj56Ra1JlgR5m0HpAAWbBJL9DaXMmhwGyu9A1h99hXBNPetKRGniyQO2LUiXNFEhL3XZarF/fiX8aZOKBLTfylUfx8r1stHvSYg5UTADksHPO2K9/Zezf9vJIi4M2y3LiAAzI23FngNCPJSm00DsWmK21zCzNg1wwjpXjCDBP9ZXcrKFZ+Ug8jIqO9zRIPNYgE/T8SkJLcwf9w+GaDLe5j2/lpFvdmFZD5WBuWyxEOX2UCGwqMhhvrn6RYLMGPlq5nG8HJYztDMLILUllPQ/FyivZWecWG9GuIuYuutyMq7byME5F+eFYC3ky54GPB31D2CQm9GjkNwIwr1s3U/nOGBXXmuBPpeuyFqYklUhEr+47uvIbb2NgipkKsPkQSwvpLFBbO3j+4iaHy130N6ZHLHGfb6yFX+XN7Qq3vQ3wKMKd/8XnScjmWUbOcw0TnpvVfUAKzJ/27UfMt/KYvbfL8rBMvcRaGVyjKMqAc/qGj/st+jcyyOR5zstJ3Vm3uSrirCJoLLJ2LKp8LzKGv+07QRRgzvMBk1uCCD5z2ElGoVjUBXmRnDCMsIZDOjmBB2sW/xv5gfnxX3gRtuJ9h1YGjoixpn1BE7b7g9lXgeI+abC4J6kRq8LwX88B6p4yK+xQCrOE="
   file:
-    - _out/manifests/release/machine-remediation-operator.$TRAVIS_TAG.yaml
-    - _out/manifests/release/machine-remediation-operator-cr.$TRAVIS_TAG.yaml
-    - _out/manifests/release/machine-remediation-operator-csv.$TRAVIS_TAG.yaml
+    - _out/manifests/release/machine-remediation.$TRAVIS_TAG.yaml
   prerelease: true
   overwrite: true
   name: "$TRAVIS_TAG"

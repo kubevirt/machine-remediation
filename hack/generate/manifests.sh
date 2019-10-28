@@ -33,16 +33,10 @@ for arg in $args; do
 
     manifest-templator \
         --process-vars \
-        --mdb-image=${mdb_image} \
-        --mhc-image=${mhc_image} \
         --mr-image=${mr_image} \
-        --mro-image=${operator_image} \
         --namespace=${namespace} \
-        --version=${container_tag} \
         --image-pull-policy=${image_pull_policy} \
         --verbosity=${verbosity} \
-        --csv-version=${csv_version} \
-        --csv-previous-version=${csv_previous_version} \
         --input-file=${infile} >${outfile}
 done
 

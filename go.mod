@@ -1,23 +1,21 @@
 module kubevirt.io/machine-remediation-operator
 
 require (
-	github.com/blang/semver v3.5.1+incompatible
+	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/metal3-io/baremetal-operator v0.0.0-20190705194231-6d5a9e11b6d0
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/openshift/api v3.9.1-0.20190517100836-d5b34b957e91+incompatible
 	github.com/openshift/machine-api-operator v0.0.0-00010101000000-000000000000
-	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190822225318-a96b2b847d08
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.3.0
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
-	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
+	go.uber.org/atomic v1.4.0 // indirect
+	go.uber.org/zap v1.10.0 // indirect
+	golang.org/x/tools v0.0.0-20190706070813-72ffa07ba3db // indirect
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
-	k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/code-generator v0.0.0-20190912054826-cd179ad6a269

@@ -9,9 +9,9 @@ type RemediationType string
 
 const (
 	// RemediationTypeReboot contains reboot type of the remediation
-	RemediationTypeReboot RemediationType = "Reboot"
+	RemediationTypeReboot RemediationType = "reboot"
 	// RemediationTypeRecreate contains re-create type of the remediation
-	RemediationTypeRecreate RemediationType = "Re-Create"
+	RemediationTypeRecreate RemediationType = "recreate"
 )
 
 // RemediationState contains state of the remediation
