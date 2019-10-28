@@ -32,10 +32,6 @@ func (c *FakeMachineremediationV1alpha1) MachineRemediations(namespace string) v
 	return &FakeMachineRemediations{c, namespace}
 }
 
-func (c *FakeMachineremediationV1alpha1) MachineRemediationOperators(namespace string) v1alpha1.MachineRemediationOperatorInterface {
-	return &FakeMachineRemediationOperators{c, namespace}
-}
-
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeMachineremediationV1alpha1) RESTClient() rest.Interface {

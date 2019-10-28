@@ -143,7 +143,6 @@ container_bundle(
     images = {
         # cmd images
         "$(container_prefix)/machine-remediation:$(container_tag)": "//cmd/machine-remediation:machine-remediation-image",
-        "$(container_prefix)/machine-remediation-operator:$(container_tag)": "//cmd/machine-remediation-operator:machine-remediation-operator-image",
     },
 )
 

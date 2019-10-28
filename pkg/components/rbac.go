@@ -95,112 +95,11 @@ var (
 				},
 			},
 		},
-		ComponentMachineRemediationOperator: {
-			{
-				APIGroups: []string{
-					"machineremediation.kubevirt.io",
-				},
-				Resources: []string{
-					"machineremediationoperators",
-					"machineremediationoperators/status",
-				},
-				Verbs: []string{
-					"get",
-					"list",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"nodes",
-				},
-				Verbs: []string{
-					"get",
-					"list",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"serviceaccounts",
-				},
-				Verbs: []string{
-					rbacv1.VerbAll,
-				},
-			},
-			{
-				APIGroups: []string{
-					"apps",
-				},
-				Resources: []string{
-					"deployments",
-				},
-				Verbs: []string{
-					rbacv1.VerbAll,
-				},
-			},
-			{
-				APIGroups: []string{
-					"apiextensions.k8s.io",
-				},
-				Resources: []string{
-					"customresourcedefinitions",
-				},
-				Verbs: []string{
-					rbacv1.VerbAll,
-				},
-			},
-			{
-				APIGroups: []string{
-					"rbac.authorization.k8s.io",
-				},
-				Resources: []string{
-					"clusterroles",
-					"clusterrolebindings",
-				},
-				Verbs: []string{
-					rbacv1.VerbAll,
-				},
-			},
-			{
-				APIGroups: []string{
-					"config.openshift.io",
-				},
-				Resources: []string{
-					"infrastructures",
-					"infrastructures/status",
-				},
-				Verbs: []string{
-					"get",
-					"list",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"machineremediation.kubevirt.io",
-				},
-				Resources: []string{
-					"machinedisruptionbudgets",
-					"machinehealthchecks",
-				},
-				Verbs: []string{
-					rbacv1.VerbAll,
-				},
-			},
-		},
 	}
 )
 
 // NewServiceAccount returns new ServiceAccount object
-func NewServiceAccount(name string, namespace string, operatorVersion string) *corev1.ServiceAccount {
+func NewServiceAccount(name string, namespace string) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -210,15 +109,14 @@ func NewServiceAccount(name string, namespace string, operatorVersion string) *c
 			Namespace: namespace,
 			Name:      name,
 			Labels: map[string]string{
-				mrv1.SchemeGroupVersion.Group:              "",
-				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
+				mrv1.SchemeGroupVersion.Group: "",
 			},
 		},
 	}
 }
 
 // NewClusterRole returns new ClusterRole object
-func NewClusterRole(name string, rules []rbacv1.PolicyRule, operatorVersion string) *rbacv1.ClusterRole {
+func NewClusterRole(name string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
 	return &rbacv1.ClusterRole{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -227,8 +125,7 @@ func NewClusterRole(name string, rules []rbacv1.PolicyRule, operatorVersion stri
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				mrv1.SchemeGroupVersion.Group:              "",
-				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
+				mrv1.SchemeGroupVersion.Group: "",
 			},
 		},
 		Rules: rules,
@@ -236,7 +133,7 @@ func NewClusterRole(name string, rules []rbacv1.PolicyRule, operatorVersion stri
 }
 
 // NewClusterRoleBinding returns new ClusterRoleBinding object
-func NewClusterRoleBinding(name string, namespace string, operatorVersion string) *rbacv1.ClusterRoleBinding {
+func NewClusterRoleBinding(name string, namespace string) *rbacv1.ClusterRoleBinding {
 	return &rbacv1.ClusterRoleBinding{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -245,8 +142,7 @@ func NewClusterRoleBinding(name string, namespace string, operatorVersion string
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				mrv1.SchemeGroupVersion.Group:              "",
-				mrv1.SchemeGroupVersion.Group + "/version": operatorVersion,
+				mrv1.SchemeGroupVersion.Group: "",
 			},
 		},
 		RoleRef: rbacv1.RoleRef{

@@ -3,8 +3,6 @@ package components
 const (
 	// ComponentMachineRemediation contains name for MachineRemediation component
 	ComponentMachineRemediation = "machine-remediation"
-	// ComponentMachineRemediationOperator contains name for MachineRemediationOperator component
-	ComponentMachineRemediationOperator = "machine-remediation-operator"
 )
 
 var (
@@ -12,11 +10,6 @@ var (
 	Components = []string{
 		ComponentMachineRemediation,
 	}
-)
-
-const (
-	// EnvVarOperatorVersion contains the name of operator version environment variable
-	EnvVarOperatorVersion = "OPERATOR_VERSION"
 )
 
 const (

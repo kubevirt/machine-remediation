@@ -24,20 +24,19 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"kubevirt.io/machine-remediation-operator/pkg/operator/components"
+	"kubevirt.io/machine-remediation-operator/pkg/components"
 )
 
 func TestMarshallObject(t *testing.T) {
 
-	operatorData := &components.DeploymentData{
-		Name:            "machine-remediation-operator",
-		Namespace:       "{{.Namespace}}",
-		ImageName:       "{{.ImageOperator}}",
-		PullPolicy:      v1.PullIfNotPresent,
-		Verbosity:       "2",
-		OperatorVersion: "{{.OperatorVersion}}",
+	deployData := &components.DeploymentData{
+		Name:       "machine-remediation",
+		Namespace:  "{{.Namespace}}",
+		ImageName:  "{{.ImageMachineRemediation}}",
+		PullPolicy: v1.PullIfNotPresent,
+		Verbosity:  "2",
 	}
-	handler := components.NewDeployment(operatorData)
+	handler := components.NewDeployment(deployData)
 
 	writer := strings.Builder{}
 	MarshallObject(handler, &writer)

@@ -1,4 +1,4 @@
-# Machine Remediation Operator
+# Machine Remediation
 
 ## Remediation Flow
 
@@ -10,8 +10,6 @@ The machine remediation operator deploys components to monitor and remediate unh
 
 It should deploy three controllers:
 
-* [machine-health-check](docs/machine-health-check.md) controller
-* [machine-disruption-budget](docs/machine-disruption-budget.md) controller
 * [machine-remediation](docs/machine-remediation.md) controller
 
 ## How to deploy

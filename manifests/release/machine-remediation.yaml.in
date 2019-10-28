@@ -1,0 +1,2 @@
+{{index .GeneratedManifests "machineremediation.kubevirt.io_machineremediations.yaml"}}
+{{index .GeneratedManifests "machine-remediation.yaml.in"}}

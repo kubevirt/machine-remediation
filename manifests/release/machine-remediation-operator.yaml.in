@@ -1,2 +1,0 @@
-{{index .GeneratedManifests "machineremediation_v1alpha1_machineremediationoperator.yaml"}}
-{{index .GeneratedManifests "machine-remediation-operator.yaml.in"}}

@@ -27,7 +27,6 @@ import (
 type MachineremediationV1alpha1Interface interface {
 	RESTClient() rest.Interface
 	MachineRemediationsGetter
-	MachineRemediationOperatorsGetter
 }
 
 // MachineremediationV1alpha1Client is used to interact with features provided by the machineremediation.kubevirt.io group.
@@ -37,10 +36,6 @@ type MachineremediationV1alpha1Client struct {
 
 func (c *MachineremediationV1alpha1Client) MachineRemediations(namespace string) MachineRemediationInterface {
 	return newMachineRemediations(c, namespace)
-}
-
-func (c *MachineremediationV1alpha1Client) MachineRemediationOperators(namespace string) MachineRemediationOperatorInterface {
-	return newMachineRemediationOperators(c, namespace)
 }
 
 // NewForConfig creates a new MachineremediationV1alpha1Client for the given config.
