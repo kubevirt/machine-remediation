@@ -24,6 +24,7 @@ go_library(
         "//vendor/sigs.k8s.io/controller-runtime/pkg/cache:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/client:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/client/apiutil:go_default_library",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/healthz:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/internal/log:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/internal/recorder:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/leaderelection:go_default_library",
@@ -31,6 +32,5 @@ go_library(
         "//vendor/sigs.k8s.io/controller-runtime/pkg/recorder:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/runtime/inject:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/webhook:go_default_library",
-        "//vendor/sigs.k8s.io/controller-runtime/pkg/webhook/conversion:go_default_library",
     ],
 )

@@ -1,4 +1,4 @@
-FROM fedora@sha256:9c78c69f748953ba8fdb6eb9982e1abefe281d9b931a13f251eb8aec988353de
+FROM fedora@sha256:8a91dbd4b9d283ca1edc2de5dbeef9267b68bb5dae2335ef64d2db77ddf3aa68
 
 # Install packages
 RUN dnf install -y dnf-plugins-core && \
@@ -19,7 +19,7 @@ rsync \
 findutils && \
 dnf -y clean all
 
-ENV GIMME_GO_VERSION=1.11.5
+ENV GIMME_GO_VERSION=1.12.8
 ENV GOPATH="/go" GOBIN="/usr/bin"
 
 RUN mkdir -p /gimme && curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | HOME=/gimme bash >> /etc/profile.d/gimme.sh

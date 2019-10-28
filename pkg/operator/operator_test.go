@@ -8,6 +8,7 @@ import (
 	"time"
 
 	osconfigv1 "github.com/openshift/api/config/v1"
+	maov1 "github.com/openshift/machine-api-operator/pkg/apis/healthchecking/v1beta1"
 	"github.com/stretchr/testify/assert"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -37,10 +38,9 @@ func init() {
 	extv1beta1.AddToScheme(scheme.Scheme)
 	mrv1.AddToScheme(scheme.Scheme)
 	osconfigv1.AddToScheme(scheme.Scheme)
+	maov1.AddToScheme(scheme.Scheme)
 
 	// Add ENV variables for controller images
-	os.Setenv(components.ComponentMachineDisruptionBudget, fmt.Sprintf("%s/%s:%s", imageRegistry, components.ComponentMachineDisruptionBudget, imageTag))
-	os.Setenv(components.ComponentMachineHealthCheck, fmt.Sprintf("%s/%s:%s", imageRegistry, components.ComponentMachineHealthCheck, imageTag))
 	os.Setenv(components.ComponentMachineRemediation, fmt.Sprintf("%s/%s:%s", imageRegistry, components.ComponentMachineRemediation, imageTag))
 }
 
@@ -125,7 +125,7 @@ func testReconcile(t *testing.T, platform osconfigv1.PlatformType) {
 	// verify that operator created all deployments
 	deploys := &appsv1.DeploymentList{}
 	assert.NoError(t, r.client.List(context.TODO(), deploys))
-	assert.Equal(t, 3, len(deploys.Items))
+	assert.Equal(t, 1, len(deploys.Items))
 	for _, d := range deploys.Items {
 		container := d.Spec.Template.Spec.Containers[0]
 		assert.Equal(t, corev1.PullAlways, container.ImagePullPolicy)
@@ -135,7 +135,7 @@ func testReconcile(t *testing.T, platform osconfigv1.PlatformType) {
 	// verify that operator created all crds
 	crds := &extv1beta1.CustomResourceDefinitionList{}
 	assert.NoError(t, r.client.List(context.TODO(), crds))
-	assert.Equal(t, 3, len(crds.Items))
+	assert.Equal(t, 1, len(crds.Items))
 
 	updatedMro = &mrv1.MachineRemediationOperator{}
 	assert.NoError(t, r.client.Get(context.TODO(), key, updatedMro))
@@ -147,24 +147,16 @@ func testReconcile(t *testing.T, platform osconfigv1.PlatformType) {
 	))
 
 	//verify that operator created MHC and MDB objects for BareMetal platform
-	mhc := &mrv1.MachineHealthCheck{}
+	mhc := &maov1.MachineHealthCheck{}
 	mhcKey := types.NamespacedName{
 		Name:      consts.MasterMachineHealthCheck,
 		Namespace: consts.NamespaceOpenshiftMachineAPI,
 	}
 
-	mdb := &mrv1.MachineDisruptionBudget{}
-	mdbKey := types.NamespacedName{
-		Name:      consts.MasterMachineDisruptionBudget,
-		Namespace: consts.NamespaceOpenshiftMachineAPI,
-	}
-
 	if platform == osconfigv1.BareMetalPlatformType {
 		assert.NoError(t, r.client.Get(context.TODO(), mhcKey, mhc))
-		assert.NoError(t, r.client.Get(context.TODO(), mdbKey, mdb))
 	} else {
 		assert.Error(t, r.client.Get(context.TODO(), mhcKey, mhc))
-		assert.Error(t, r.client.Get(context.TODO(), mdbKey, mdb))
 	}
 
 	// update all deployments status to have desired number of replicas

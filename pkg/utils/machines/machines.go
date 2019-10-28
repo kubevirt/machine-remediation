@@ -6,49 +6,16 @@ import (
 
 	"github.com/golang/glog"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// GetMachineMachineDisruptionBudgets returns list of machine disruption budgets that suit for the machine
-func GetMachineMachineDisruptionBudgets(c client.Client, machine *mapiv1.Machine) ([]*mrv1.MachineDisruptionBudget, error) {
-	if len(machine.Labels) == 0 {
-		return nil, fmt.Errorf("no MachineDisruptionBudgets found for machine %v because it has no labels", machine.Name)
-	}
-
-	list := &mrv1.MachineDisruptionBudgetList{}
-	err := c.List(context.TODO(), list, client.InNamespace(machine.Namespace))
-	if err != nil {
-		return nil, err
-	}
-
-	var mdbs []*mrv1.MachineDisruptionBudget
-	for i := range list.Items {
-		mdb := &list.Items[i]
-		selector, err := metav1.LabelSelectorAsSelector(mdb.Spec.Selector)
-		if err != nil {
-			glog.Warningf("invalid selector: %v", err)
-			continue
-		}
-
-		// If a mdb with a nil or empty selector creeps in, it should match nothing, not everything.
-		if selector.Empty() || !selector.Matches(labels.Set(machine.Labels)) {
-			continue
-		}
-		mdbs = append(mdbs, mdb)
-	}
-
-	return mdbs, nil
-}
 
 // GetMachinesByLabelSelector returns machines that suit to the label selector
 func GetMachinesByLabelSelector(c client.Client, selector *metav1.LabelSelector, namespace string) (*mapiv1.MachineList, error) {
@@ -66,7 +33,7 @@ func GetMachinesByLabelSelector(c client.Client, selector *metav1.LabelSelector,
 		LabelSelector: sel,
 	}
 
-	if err = c.List(context.TODO(), machines, client.UseListOptions(listOptions)); err != nil {
+	if err = c.List(context.TODO(), machines, listOptions); err != nil {
 		return nil, err
 	}
 	return machines, nil

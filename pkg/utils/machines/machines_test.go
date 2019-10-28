@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
 	"kubevirt.io/machine-remediation-operator/pkg/consts"
 	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
 
@@ -20,12 +19,6 @@ import (
 func init() {
 	// Add types to scheme
 	mapiv1.AddToScheme(scheme.Scheme)
-	mrv1.AddToScheme(scheme.Scheme)
-}
-
-type expectedMdbs struct {
-	mdbs  []*mrv1.MachineDisruptionBudget
-	error bool
 }
 
 type expectedMachines struct {

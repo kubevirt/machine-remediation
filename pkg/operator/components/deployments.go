@@ -34,14 +34,6 @@ func NewOperatorDeployment(data *DeploymentData, images *ControllersImages) *app
 	deploy := NewDeployment(data)
 	imagesEnvs := []corev1.EnvVar{
 		{
-			Name:  ComponentMachineDisruptionBudget,
-			Value: images.MachineDisruptionBudget,
-		},
-		{
-			Name:  ComponentMachineHealthCheck,
-			Value: images.MachineHealthCheck,
-		},
-		{
 			Name:  ComponentMachineRemediation,
 			Value: images.MachineRemediation,
 		},

@@ -9,6 +9,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
 	osconfigv1 "github.com/openshift/api/config/v1"
+	maov1 "github.com/openshift/machine-api-operator/pkg/apis/healthchecking/v1beta1"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -277,13 +278,13 @@ func (r *ReconcileMachineRemediationOperator) deleteClusterRoleBinding(name stri
 }
 
 func getCustomResourceDefinitionFilePath(name string, dir string) string {
-	return fmt.Sprintf("%s/%s_%s_%s.yaml", dir, "machineremediation", mrv1.SchemeGroupVersion.Version, name)
+	return fmt.Sprintf("%s/%s_%s.yaml", dir, mrv1.SchemeGroupVersion.Group, name)
 }
 
 func (r *ReconcileMachineRemediationOperator) getCustomResourceDefinition(kind string) (*extv1beta1.CustomResourceDefinition, error) {
 	crd := &extv1beta1.CustomResourceDefinition{}
 	key := types.NamespacedName{
-		Name:      fmt.Sprintf("%ss.%s", kind, mrv1.SchemeGroupVersion.Group),
+		Name:      fmt.Sprintf("%s.%s", kind, mrv1.SchemeGroupVersion.Group),
 		Namespace: metav1.NamespaceNone,
 	}
 	if err := r.client.Get(context.TODO(), key, crd); err != nil {
@@ -328,8 +329,8 @@ func (r *ReconcileMachineRemediationOperator) deleteCustomResourceDefinition(kin
 	return r.client.Delete(context.TODO(), crd)
 }
 
-func (r *ReconcileMachineRemediationOperator) getMachineHealthCheck(name string, namespace string) (*mrv1.MachineHealthCheck, error) {
-	mhc := &mrv1.MachineHealthCheck{}
+func (r *ReconcileMachineRemediationOperator) getMachineHealthCheck(name string, namespace string) (*maov1.MachineHealthCheck, error) {
+	mhc := &maov1.MachineHealthCheck{}
 	key := types.NamespacedName{
 		Name:      name,
 		Namespace: namespace,
@@ -363,43 +364,6 @@ func (r *ReconcileMachineRemediationOperator) deleteMachineHealthCheck(name stri
 		return err
 	}
 	return r.client.Delete(context.TODO(), mhc)
-}
-
-func (r *ReconcileMachineRemediationOperator) getMachineDisruptionBudget(name string, namespace string) (*mrv1.MachineDisruptionBudget, error) {
-	mdb := &mrv1.MachineDisruptionBudget{}
-	key := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-	if err := r.client.Get(context.TODO(), key, mdb); err != nil {
-		return nil, err
-	}
-	return mdb, nil
-}
-
-func (r *ReconcileMachineRemediationOperator) createMachineDisruptionBudget(name string, namespace string) error {
-	newMachineDisruptionBudget := components.NewMastersMachineDisruptionBudget(name, namespace, r.operatorVersion)
-
-	_, err := r.getMachineDisruptionBudget(name, namespace)
-	if errors.IsNotFound(err) {
-		if err := r.client.Create(context.TODO(), newMachineDisruptionBudget); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	return err
-}
-
-func (r *ReconcileMachineRemediationOperator) deleteMachineDisruptionBudget(name string, namespace string) error {
-	mdb, err := r.getMachineDisruptionBudget(name, namespace)
-	if errors.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	return r.client.Delete(context.TODO(), mdb)
 }
 
 func (r *ReconcileMachineRemediationOperator) getInfrastructure(name string) (*osconfigv1.Infrastructure, error) {

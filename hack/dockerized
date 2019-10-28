@@ -6,7 +6,6 @@ source $(dirname "$0")/common.sh
 
 BUILDER_DIR=${REPO_DIR}/hack/builder
 BUILDER=${JOB_NAME:-mro-builder}${EXECUTOR_NUMBER}
-BUILDER_IMAGE="docker.io/alukiano/mro-builder@sha256:8f55a1034d7595a4c5582d235a702e7e658e2c80ce57dd727c8c1a9a5c92a1a0"
 
 SYNC_OUT=${SYNC_OUT:-true}
 SYNC_VENDOR=${SYNC_VENDOR:-false}
@@ -100,6 +99,7 @@ docker exec ${USE_TTY} ${BUILDER}-bazel-server /entrypoint.sh "$@"
 
 # Copy the whole kubevirt data out to get generated sources and formatting changes
 _rsync \
+    --delete \
     --exclude 'bazel-bin' \
     --exclude 'bazel-genfiles' \
     --exclude 'bazel-machine-remediation-operator' \
