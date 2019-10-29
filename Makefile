@@ -81,7 +81,7 @@ generate-client:
 generate-manifests: generate-templates
 	./hack/dockerized "CONTAINER_TAG=${CONTAINER_TAG} \
 		IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY} \
-		OPERATOR_IMAGE=${MR_IMAGE} \
+		MR_IMAGE=${MR_IMAGE} \
 		./hack/generate/manifests.sh"
 
 .PHONY: generate-templates
