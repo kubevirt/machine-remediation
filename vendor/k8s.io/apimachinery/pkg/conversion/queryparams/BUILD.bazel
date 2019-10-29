@@ -6,7 +6,7 @@ go_library(
         "convert.go",
         "doc.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/conversion/queryparams",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/apimachinery/pkg/conversion/queryparams",
     importpath = "k8s.io/apimachinery/pkg/conversion/queryparams",
     visibility = ["//visibility:public"],
 )

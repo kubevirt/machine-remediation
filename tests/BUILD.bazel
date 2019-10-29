@@ -6,7 +6,7 @@ go_library(
         "machinedisruptionbudget.go",
         "machinehealthcheck.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/tests",
+    importpath = "kubevirt.io/machine-remediation/tests",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

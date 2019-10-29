@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
+	"kubevirt.io/machine-remediation/pkg/consts"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

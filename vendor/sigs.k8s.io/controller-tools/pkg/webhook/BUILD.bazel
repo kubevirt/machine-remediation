@@ -6,7 +6,7 @@ go_library(
         "parser.go",
         "zz_generated.markerhelp.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/webhook",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/webhook",
     importpath = "sigs.k8s.io/controller-tools/pkg/webhook",
     visibility = ["//visibility:public"],
     deps = [

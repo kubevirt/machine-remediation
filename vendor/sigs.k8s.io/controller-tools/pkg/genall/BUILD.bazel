@@ -10,7 +10,7 @@ go_library(
         "output.go",
         "zz_generated.markerhelp.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/genall",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/genall",
     importpath = "sigs.k8s.io/controller-tools/pkg/genall",
     visibility = ["//visibility:public"],
     deps = [

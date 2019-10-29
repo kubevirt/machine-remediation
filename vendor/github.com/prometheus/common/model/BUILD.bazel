@@ -15,7 +15,7 @@ go_library(
         "time.go",
         "value.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/prometheus/common/model",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/prometheus/common/model",
     importpath = "github.com/prometheus/common/model",
     visibility = ["//visibility:public"],
 )

@@ -9,9 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation/pkg/consts"
+	mrtesting "kubevirt.io/machine-remediation/pkg/utils/testing"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -50,11 +50,11 @@ type expectedReconcile struct {
 }
 
 func TestReconcile(t *testing.T) {
-	machineRemediationStarted := mrotesting.NewMachineRemediation("machineRemediationStarted", "", mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
-	machineRemediationPoweroff := mrotesting.NewMachineRemediation("machineRemediationPoweroff", "", mrv1.RemediationTypeRecreate, mrv1.RemediationStatePowerOff)
-	machineRemediationPoweron := mrotesting.NewMachineRemediation("machineRemediationPoweron", "", mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
-	machineRemediationSucceeded := mrotesting.NewMachineRemediation("machineRemediationSucceeded", "", mrv1.RemediationTypeRecreate, mrv1.RemediationStateSucceeded)
-	machineRemediationFailed := mrotesting.NewMachineRemediation("machineRemediationFailed", "", mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
+	machineRemediationStarted := mrtesting.NewMachineRemediation("machineRemediationStarted", "", mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
+	machineRemediationPoweroff := mrtesting.NewMachineRemediation("machineRemediationPoweroff", "", mrv1.RemediationTypeRecreate, mrv1.RemediationStatePowerOff)
+	machineRemediationPoweron := mrtesting.NewMachineRemediation("machineRemediationPoweron", "", mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
+	machineRemediationSucceeded := mrtesting.NewMachineRemediation("machineRemediationSucceeded", "", mrv1.RemediationTypeRecreate, mrv1.RemediationStateSucceeded)
+	machineRemediationFailed := mrtesting.NewMachineRemediation("machineRemediationFailed", "", mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
 
 	testsCases := []struct {
 		machineRemediation *mrv1.MachineRemediation

@@ -7,12 +7,12 @@ import (
 	"github.com/golang/glog"
 	bmov1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/baremetal/remediator"
-	"kubevirt.io/machine-remediation-operator/pkg/controllers"
-	"kubevirt.io/machine-remediation-operator/pkg/controllers/machineremediation"
-	"kubevirt.io/machine-remediation-operator/pkg/controllers/nodereboot"
-	"kubevirt.io/machine-remediation-operator/pkg/version"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation/pkg/baremetal/remediator"
+	"kubevirt.io/machine-remediation/pkg/controllers"
+	"kubevirt.io/machine-remediation/pkg/controllers/machineremediation"
+	"kubevirt.io/machine-remediation/pkg/controllers/nodereboot"
+	"kubevirt.io/machine-remediation/pkg/version"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"

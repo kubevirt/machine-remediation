@@ -6,7 +6,7 @@ go_library(
         "json.go",
         "meta.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/runtime/serializer/json",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/apimachinery/pkg/runtime/serializer/json",
     importpath = "k8s.io/apimachinery/pkg/runtime/serializer/json",
     visibility = ["//visibility:public"],
     deps = [

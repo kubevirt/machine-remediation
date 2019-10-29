@@ -6,7 +6,7 @@ go_library(
         "extension.pb.go",
         "extensions.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/googleapis/gnostic/extensions",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/googleapis/gnostic/extensions",
     importpath = "github.com/googleapis/gnostic/extensions",
     visibility = ["//visibility:public"],
     deps = [

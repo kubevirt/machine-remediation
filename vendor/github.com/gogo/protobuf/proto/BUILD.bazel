@@ -36,7 +36,7 @@ go_library(
         "wrappers.go",
         "wrappers_gogo.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/gogo/protobuf/proto",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/gogo/protobuf/proto",
     importpath = "github.com/gogo/protobuf/proto",
     visibility = ["//visibility:public"],
 )

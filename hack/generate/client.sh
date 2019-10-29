@@ -4,7 +4,7 @@ set -e
 
 source $(dirname "$0")/../common.sh
 
-APIS_PKG="kubevirt.io/machine-remediation-operator/pkg/apis"
+APIS_PKG="kubevirt.io/machine-remediation/pkg/apis"
 APIS_VERSIONS="${APIS_PKG}/machineremediation/v1alpha1"
 CODE_GENERATORS_CMD_DIR=${VENDOR_DIR}/k8s.io/code-generator/cmd
 

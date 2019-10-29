@@ -1,4 +1,4 @@
-module kubevirt.io/machine-remediation-operator
+module kubevirt.io/machine-remediation
 
 require (
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect

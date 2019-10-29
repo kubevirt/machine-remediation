@@ -30,7 +30,7 @@ goimports(
     name = "goimports",
     display_diffs = True,
     local = ["github.com"],
-    prefix = "kubevirt.io/machine-remediation-operator",
+    prefix = "kubevirt.io/machine-remediation",
     write = True,
 )
 
@@ -71,7 +71,7 @@ nogo(
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix kubevirt.io/machine-remediation-operator
+# gazelle:prefix kubevirt.io/machine-remediation
 gazelle(name = "gazelle")
 
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
@@ -156,6 +156,6 @@ docker_push(
 go_library(
     name = "go_default_library",
     srcs = ["doc.go"],
-    importpath = "kubevirt.io/machine-remediation-operator",
+    importpath = "kubevirt.io/machine-remediation",
     visibility = ["//visibility:public"],
 )

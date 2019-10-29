@@ -11,8 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation/pkg/utils/conditions"
 )
 
 // CreateMachineHealthCheck will create MachineHealthCheck CR with the relevant selector

@@ -6,7 +6,7 @@ go_library(
         "euckr.go",
         "tables.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/text/encoding/korean",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/text/encoding/korean",
     importpath = "golang.org/x/text/encoding/korean",
     visibility = ["//visibility:public"],
     deps = [

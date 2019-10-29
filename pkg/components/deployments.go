@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
 )
 
 // DeploymentData contains all needed data to create new deployment object

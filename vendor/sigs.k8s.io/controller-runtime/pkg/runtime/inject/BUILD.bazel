@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "inject.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/runtime/inject",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-runtime/pkg/runtime/inject",
     importpath = "sigs.k8s.io/controller-runtime/pkg/runtime/inject",
     visibility = ["//visibility:public"],
     deps = [

@@ -10,7 +10,7 @@ go_library(
         "refs.go",
         "visit.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/loader",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/loader",
     importpath = "sigs.k8s.io/controller-tools/pkg/loader",
     visibility = ["//visibility:public"],
     deps = ["//vendor/golang.org/x/tools/go/packages:go_default_library"],

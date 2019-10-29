@@ -27,7 +27,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.swagger_doc_generated.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/openshift/api/config/v1",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/openshift/api/config/v1",
     importpath = "github.com/openshift/api/config/v1",
     visibility = ["//visibility:public"],
     deps = [

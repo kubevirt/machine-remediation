@@ -13,8 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 
-	"kubevirt.io/machine-remediation-operator/pkg/utils/conditions"
-	testsutils "kubevirt.io/machine-remediation-operator/tests/utils"
+	"kubevirt.io/machine-remediation/pkg/utils/conditions"
+	testsutils "kubevirt.io/machine-remediation/tests/utils"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"

@@ -7,7 +7,7 @@ go_library(
         "deployments.go",
         "rbac.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/pkg/components",
+    importpath = "kubevirt.io/machine-remediation/pkg/components",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

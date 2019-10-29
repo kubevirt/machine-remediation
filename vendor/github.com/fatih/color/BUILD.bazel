@@ -6,7 +6,7 @@ go_library(
         "color.go",
         "doc.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/fatih/color",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/fatih/color",
     importpath = "github.com/fatih/color",
     visibility = ["//visibility:public"],
     deps = [

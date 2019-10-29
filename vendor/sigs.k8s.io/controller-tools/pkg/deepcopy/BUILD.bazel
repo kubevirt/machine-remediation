@@ -8,7 +8,7 @@ go_library(
         "traverse.go",
         "zz_generated.markerhelp.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/deepcopy",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/deepcopy",
     importpath = "sigs.k8s.io/controller-tools/pkg/deepcopy",
     visibility = ["//visibility:public"],
     deps = [

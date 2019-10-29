@@ -13,7 +13,7 @@ go_library(
         "tables.go",
         "tags.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/text/language",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/text/language",
     importpath = "golang.org/x/text/language",
     visibility = ["//visibility:public"],
     deps = [

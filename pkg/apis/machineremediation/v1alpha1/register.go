@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation"
+	"kubevirt.io/machine-remediation/pkg/apis/machineremediation"
 )
 
 // SchemeGroupVersion is group version used to register these objects

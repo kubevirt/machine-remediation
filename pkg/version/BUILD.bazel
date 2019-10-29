@@ -7,6 +7,6 @@ go_library(
         "types.go",
         "version.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/pkg/version",
+    importpath = "kubevirt.io/machine-remediation/pkg/version",
     visibility = ["//visibility:public"],
 )

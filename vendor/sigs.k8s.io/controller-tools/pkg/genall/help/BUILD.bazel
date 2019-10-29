@@ -7,7 +7,7 @@ go_library(
         "sort.go",
         "types.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/genall/help",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/genall/help",
     importpath = "sigs.k8s.io/controller-tools/pkg/genall/help",
     visibility = ["//visibility:public"],
     deps = ["//vendor/sigs.k8s.io/controller-tools/pkg/markers:go_default_library"],

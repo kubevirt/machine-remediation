@@ -6,7 +6,7 @@ go_library(
         "apimachinery.go",
         "dynamicrestmapper.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/client/apiutil",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-runtime/pkg/client/apiutil",
     importpath = "sigs.k8s.io/controller-runtime/pkg/client/apiutil",
     visibility = ["//visibility:public"],
     deps = [

@@ -10,7 +10,7 @@ go_library(
         "zz_generated.defaults.go",
         "zz_generated.openapi.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1",
     importpath = "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1",
     visibility = ["//visibility:public"],
     deps = [

@@ -3,7 +3,7 @@ package utils
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
 )
 
 // NewMachineDisruptionBudget returns new MachineDisruptionObject with specified parameters

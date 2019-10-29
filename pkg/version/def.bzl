@@ -2,7 +2,7 @@
 def version_x_defs():
     # This should match the list of packages in version::ldflag
     stamp_pkgs = [
-        "kubevirt.io/machine-remediation-operator/pkg/version",
+        "kubevirt.io/machine-remediation/pkg/version",
     ]
 
     # This should match the list of vars in kube::version::ldflags

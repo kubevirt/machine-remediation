@@ -11,8 +11,8 @@ import (
 
 	"k8s.io/client-go/kubernetes/scheme"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	testsutils "kubevirt.io/machine-remediation-operator/tests/utils"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	testsutils "kubevirt.io/machine-remediation/tests/utils"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 )

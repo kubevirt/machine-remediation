@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	"kubevirt.io/machine-remediation/pkg/consts"
+	mrtesting "kubevirt.io/machine-remediation/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 
@@ -32,11 +32,11 @@ func TestGetMachinesByLabelSelector(t *testing.T) {
 		MatchLabels:      map[string]string{},
 		MatchExpressions: []metav1.LabelSelectorRequirement{{Operator: "fake"}},
 	}
-	labelSelector := mrotesting.NewSelectorFooBar()
+	labelSelector := mrtesting.NewSelectorFooBar()
 
-	machine1 := mrotesting.NewMachine("machine1", "node", "bareMetalHost1")
-	machine2 := mrotesting.NewMachine("machine2", "node", "bareMetalHost2")
-	machineWithWrongLabels := mrotesting.NewMachine("machineWithWrongLabels", "node", "bareMetalHost3")
+	machine1 := mrtesting.NewMachine("machine1", "node", "bareMetalHost1")
+	machine2 := mrtesting.NewMachine("machine2", "node", "bareMetalHost2")
+	machineWithWrongLabels := mrtesting.NewMachine("machineWithWrongLabels", "node", "bareMetalHost3")
 	machineWithWrongLabels.Labels = map[string]string{"wrong": "wrong"}
 
 	fakeClient := fake.NewFakeClient(machine1, machine2, machineWithWrongLabels)
@@ -106,13 +106,13 @@ type expectedNode struct {
 
 func TestGetNodeByMachine(t *testing.T) {
 	machineName := "machineWithNode"
-	node := mrotesting.NewNode("node", true, machineName)
-	machineWithNode := mrotesting.NewMachine(machineName, node.Name, "bareMetalHost1")
+	node := mrtesting.NewNode("node", true, machineName)
+	machineWithNode := mrtesting.NewMachine(machineName, node.Name, "bareMetalHost1")
 
-	machineWithoutNodeRef := mrotesting.NewMachine("machine", "node", "bareMetalHost2")
+	machineWithoutNodeRef := mrtesting.NewMachine("machine", "node", "bareMetalHost2")
 	machineWithoutNodeRef.Status.NodeRef = nil
 
-	machineWithoutNode := mrotesting.NewMachine("machine", "noNode", "bareMetalHost3")
+	machineWithoutNode := mrtesting.NewMachine("machine", "noNode", "bareMetalHost3")
 
 	fakeClient := fake.NewFakeClient(node)
 

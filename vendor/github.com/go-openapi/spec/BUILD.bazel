@@ -30,7 +30,7 @@ go_library(
         "unused.go",
         "xml_object.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/go-openapi/spec",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/go-openapi/spec",
     importpath = "github.com/go-openapi/spec",
     visibility = ["//visibility:public"],
     deps = [

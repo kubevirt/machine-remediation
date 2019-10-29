@@ -11,7 +11,7 @@ go_library(
         "regutil.go",
         "zip.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/markers",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/markers",
     importpath = "sigs.k8s.io/controller-tools/pkg/markers",
     visibility = ["//visibility:public"],
     deps = ["//vendor/sigs.k8s.io/controller-tools/pkg/loader:go_default_library"],

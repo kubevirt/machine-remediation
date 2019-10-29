@@ -5,9 +5,9 @@ import (
 
 	"github.com/golang/glog"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-	machineutils "kubevirt.io/machine-remediation-operator/pkg/utils/machines"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation/pkg/consts"
+	machineutils "kubevirt.io/machine-remediation/pkg/utils/machines"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

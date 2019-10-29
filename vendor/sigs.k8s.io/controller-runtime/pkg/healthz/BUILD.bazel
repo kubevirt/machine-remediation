@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "healthz.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/healthz",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-runtime/pkg/healthz",
     importpath = "sigs.k8s.io/controller-runtime/pkg/healthz",
     visibility = ["//visibility:public"],
     deps = [

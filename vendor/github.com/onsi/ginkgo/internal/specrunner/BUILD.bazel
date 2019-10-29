@@ -6,7 +6,7 @@ go_library(
         "random_id.go",
         "spec_runner.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/onsi/ginkgo/internal/specrunner",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/onsi/ginkgo/internal/specrunner",
     importpath = "github.com/onsi/ginkgo/internal/specrunner",
     visibility = ["//vendor/github.com/onsi/ginkgo:__subpackages__"],
     deps = [

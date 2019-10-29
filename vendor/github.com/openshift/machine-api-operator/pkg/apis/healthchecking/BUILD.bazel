@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["register.go"],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/openshift/machine-api-operator/pkg/apis/healthchecking",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/openshift/machine-api-operator/pkg/apis/healthchecking",
     importpath = "github.com/openshift/machine-api-operator/pkg/apis/healthchecking",
     visibility = ["//visibility:public"],
 )

@@ -24,7 +24,7 @@ import (
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
-	machineremediationv1alpha1 "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
+	machineremediationv1alpha1 "kubevirt.io/machine-remediation/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
 )
 
 type Interface interface {

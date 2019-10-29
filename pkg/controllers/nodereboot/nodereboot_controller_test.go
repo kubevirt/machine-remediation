@@ -13,9 +13,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation/pkg/consts"
+	mrtesting "kubevirt.io/machine-remediation/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -38,16 +38,16 @@ func newFakeReconciler(initObjects ...runtime.Object) *ReconcileNodeReboot {
 }
 
 func TestReconcile(t *testing.T) {
-	nodeWithRebootAnnotation := mrotesting.NewNode("nodeWithRebootAnnotation", true, "machineWithRebootAnnotation")
+	nodeWithRebootAnnotation := mrtesting.NewNode("nodeWithRebootAnnotation", true, "machineWithRebootAnnotation")
 	nodeWithRebootAnnotation.Annotations[consts.AnnotationNodeMachineReboot] = ""
-	machineWithRebootAnnotation := mrotesting.NewMachine("machineWithRebootAnnotation", nodeWithRebootAnnotation.Name, "")
+	machineWithRebootAnnotation := mrtesting.NewMachine("machineWithRebootAnnotation", nodeWithRebootAnnotation.Name, "")
 
-	nodeWithoutRebootAnnotation := mrotesting.NewNode("nodeWithoutRebootAnnotation", true, "machineWithoutRebootAnnotation")
-	machineWithoutRebootAnnotation := mrotesting.NewMachine("machineWithoutRebootAnnotation", nodeWithoutRebootAnnotation.Name, "")
+	nodeWithoutRebootAnnotation := mrtesting.NewNode("nodeWithoutRebootAnnotation", true, "machineWithoutRebootAnnotation")
+	machineWithoutRebootAnnotation := mrtesting.NewMachine("machineWithoutRebootAnnotation", nodeWithoutRebootAnnotation.Name, "")
 
-	machineRemediationEnded := mrotesting.NewMachineRemediation("machineRemediationEnded", machineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
+	machineRemediationEnded := mrtesting.NewMachineRemediation("machineRemediationEnded", machineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
 	machineRemediationEnded.Status.EndTime = &metav1.Time{Time: time.Now()}
-	machineRemediationNotEnded := mrotesting.NewMachineRemediation("machineRemediationNotEnded", machineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
+	machineRemediationNotEnded := mrtesting.NewMachineRemediation("machineRemediationNotEnded", machineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
 
 	testsCases := []struct {
 		node                           *corev1.Node

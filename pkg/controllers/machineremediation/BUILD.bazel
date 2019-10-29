@@ -6,7 +6,7 @@ go_library(
         "machineremediation_controller.go",
         "remediator.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/pkg/controllers/machineremediation",
+    importpath = "kubevirt.io/machine-remediation/pkg/controllers/machineremediation",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

@@ -8,7 +8,7 @@ go_library(
         "informer_cache.go",
         "multi_namespace_cache.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/cache",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-runtime/pkg/cache",
     importpath = "sigs.k8s.io/controller-runtime/pkg/cache",
     visibility = ["//visibility:public"],
     deps = [

@@ -8,7 +8,7 @@ go_library(
         "register.go",
         "zz_generated.deepcopy.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1",
+    importpath = "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation:go_default_library",

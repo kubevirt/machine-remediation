@@ -6,7 +6,7 @@ go_library(
         "spec.go",
         "specs.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/onsi/ginkgo/internal/spec",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/onsi/ginkgo/internal/spec",
     importpath = "github.com/onsi/ginkgo/internal/spec",
     visibility = ["//vendor/github.com/onsi/ginkgo:__subpackages__"],
     deps = [

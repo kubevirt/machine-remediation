@@ -7,7 +7,7 @@ go_library(
         "doc.go",
         "encode.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/matttproud/golang_protobuf_extensions/pbutil",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/matttproud/golang_protobuf_extensions/pbutil",
     importpath = "github.com/matttproud/golang_protobuf_extensions/pbutil",
     visibility = ["//visibility:public"],
     deps = ["@com_github_golang_protobuf//proto:go_default_library"],

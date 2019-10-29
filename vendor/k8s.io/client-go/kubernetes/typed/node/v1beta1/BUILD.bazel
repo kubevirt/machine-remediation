@@ -8,7 +8,7 @@ go_library(
         "node_client.go",
         "runtimeclass.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/client-go/kubernetes/typed/node/v1beta1",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/client-go/kubernetes/typed/node/v1beta1",
     importpath = "k8s.io/client-go/kubernetes/typed/node/v1beta1",
     visibility = ["//visibility:public"],
     deps = [

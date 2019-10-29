@@ -6,7 +6,7 @@ go_library(
         "debug_disable.go",
         "diff.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/google/go-cmp/cmp/internal/diff",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/google/go-cmp/cmp/internal/diff",
     importpath = "github.com/google/go-cmp/cmp/internal/diff",
     visibility = ["//vendor/github.com/google/go-cmp/cmp:__subpackages__"],
 )

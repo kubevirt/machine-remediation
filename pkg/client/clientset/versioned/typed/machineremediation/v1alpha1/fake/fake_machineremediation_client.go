@@ -21,7 +21,7 @@ package fake
 import (
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
-	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
+	v1alpha1 "kubevirt.io/machine-remediation/pkg/client/clientset/versioned/typed/machineremediation/v1alpha1"
 )
 
 type FakeMachineremediationV1alpha1 struct {

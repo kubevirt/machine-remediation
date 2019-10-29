@@ -5,4 +5,4 @@ SCRIPT_DIR="$(
     pwd
 )"
 
-docker build -t alukiano/mro-builder -f ${SCRIPT_DIR}/Dockerfile ${SCRIPT_DIR}
+docker build -t alukiano/mr-builder -f ${SCRIPT_DIR}/Dockerfile ${SCRIPT_DIR}
