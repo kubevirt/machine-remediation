@@ -9,7 +9,7 @@ go_library(
         "registry.go",
         "workqueue.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-runtime/pkg/metrics",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-runtime/pkg/metrics",
     importpath = "sigs.k8s.io/controller-runtime/pkg/metrics",
     visibility = ["//visibility:public"],
     deps = [

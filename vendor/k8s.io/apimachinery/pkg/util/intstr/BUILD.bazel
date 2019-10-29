@@ -6,7 +6,7 @@ go_library(
         "generated.pb.go",
         "intstr.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/util/intstr",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/apimachinery/pkg/util/intstr",
     importpath = "k8s.io/apimachinery/pkg/util/intstr",
     visibility = ["//visibility:public"],
     deps = [

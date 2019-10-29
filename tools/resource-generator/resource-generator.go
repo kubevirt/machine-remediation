@@ -26,8 +26,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"kubevirt.io/machine-remediation-operator/pkg/components"
-	"kubevirt.io/machine-remediation-operator/tools/utils"
+	"kubevirt.io/machine-remediation/pkg/components"
+	"kubevirt.io/machine-remediation/tools/utils"
 )
 
 func main() {
@@ -46,15 +46,15 @@ func main() {
 
 	switch *resourceType {
 	case "machine-remediation":
-		// create service account for the machine-remediation-operator
+		// create service account for the machine-remediation
 		sa := components.NewServiceAccount(*resourceType, *namespace)
 		utils.MarshallObject(sa, os.Stdout)
 
-		// create cluster role for the machine-remediation-operator
+		// create cluster role for the machine-remediation
 		cr := components.NewClusterRole(*resourceType, components.Rules[*resourceType])
 		utils.MarshallObject(cr, os.Stdout)
 
-		// create cluster role binding for the machine-remediation-operator
+		// create cluster role binding for the machine-remediation
 		crb := components.NewClusterRoleBinding(*resourceType, *namespace)
 		utils.MarshallObject(crb, os.Stdout)
 

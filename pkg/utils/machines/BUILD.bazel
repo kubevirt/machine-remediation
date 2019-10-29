@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["machines.go"],
-    importpath = "kubevirt.io/machine-remediation-operator/pkg/utils/machines",
+    importpath = "kubevirt.io/machine-remediation/pkg/utils/machines",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/consts:go_default_library",

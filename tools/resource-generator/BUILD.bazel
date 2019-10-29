@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["resource-generator.go"],
-    importpath = "kubevirt.io/machine-remediation-operator/tools/resource-generator",
+    importpath = "kubevirt.io/machine-remediation/tools/resource-generator",
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/components:go_default_library",

@@ -7,7 +7,7 @@ go_library(
         "colorable_windows.go",
         "noncolorable.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/mattn/go-colorable",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/mattn/go-colorable",
     importpath = "github.com/mattn/go-colorable",
     visibility = ["//visibility:public"],
     deps = select({

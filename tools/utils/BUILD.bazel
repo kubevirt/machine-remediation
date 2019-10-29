@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["marshaller.go"],
-    importpath = "kubevirt.io/machine-remediation-operator/tools/utils",
+    importpath = "kubevirt.io/machine-remediation/tools/utils",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",

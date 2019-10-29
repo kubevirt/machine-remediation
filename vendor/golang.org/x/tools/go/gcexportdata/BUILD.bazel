@@ -6,7 +6,7 @@ go_library(
         "gcexportdata.go",
         "importer.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/tools/go/gcexportdata",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/tools/go/gcexportdata",
     importpath = "golang.org/x/tools/go/gcexportdata",
     visibility = ["//visibility:public"],
     deps = ["//vendor/golang.org/x/tools/go/internal/gcimporter:go_default_library"],

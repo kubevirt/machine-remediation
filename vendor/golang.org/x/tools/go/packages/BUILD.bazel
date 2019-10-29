@@ -10,7 +10,7 @@ go_library(
         "packages.go",
         "visit.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/tools/go/packages",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/tools/go/packages",
     importpath = "golang.org/x/tools/go/packages",
     visibility = ["//visibility:public"],
     deps = [

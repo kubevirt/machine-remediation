@@ -9,7 +9,7 @@ go_library(
         "sortimports.go",
         "zstdlib.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/tools/internal/imports",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/tools/internal/imports",
     importpath = "golang.org/x/tools/internal/imports",
     visibility = ["//vendor/golang.org/x/tools:__subpackages__"],
     deps = [

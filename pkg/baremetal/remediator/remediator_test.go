@@ -15,9 +15,9 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
 
-	mrv1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	"kubevirt.io/machine-remediation-operator/pkg/consts"
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	mrv1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	"kubevirt.io/machine-remediation/pkg/consts"
+	mrtesting "kubevirt.io/machine-remediation/pkg/utils/testing"
 
 	mapiv1 "sigs.k8s.io/cluster-api/pkg/apis/machine/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -49,57 +49,57 @@ type expectedRemediationResult struct {
 }
 
 func TestRemediationReboot(t *testing.T) {
-	nodeOnline := mrotesting.NewNode("nodeOnline", true, "machineOnline")
+	nodeOnline := mrtesting.NewNode("nodeOnline", true, "machineOnline")
 	nodeOnline.Annotations = map[string]string{
 		consts.AnnotationNodeMachineReboot: "",
 	}
 
-	bareMetalHostOnline := mrotesting.NewBareMetalHost("bareMetalHostOnline", true, true)
+	bareMetalHostOnline := mrtesting.NewBareMetalHost("bareMetalHostOnline", true, true)
 	bareMetalHostOnline.Annotations[consts.AnnotationRebootInProgress] = "true"
-	machineOnline := mrotesting.NewMachine("machineOnline", nodeOnline.Name, bareMetalHostOnline.Name)
+	machineOnline := mrtesting.NewMachine("machineOnline", nodeOnline.Name, bareMetalHostOnline.Name)
 
-	bareMetalHostOnlineWithoutRebootAnnotation := mrotesting.NewBareMetalHost("bareMetalHostOnlineWithoutRebootAnnotation", true, true)
-	machineOnlineWithoutRebootAnnotation := mrotesting.NewMachine("machineOnlineWithoutRebootAnnotation", nodeOnline.Name, bareMetalHostOnlineWithoutRebootAnnotation.Name)
+	bareMetalHostOnlineWithoutRebootAnnotation := mrtesting.NewBareMetalHost("bareMetalHostOnlineWithoutRebootAnnotation", true, true)
+	machineOnlineWithoutRebootAnnotation := mrtesting.NewMachine("machineOnlineWithoutRebootAnnotation", nodeOnline.Name, bareMetalHostOnlineWithoutRebootAnnotation.Name)
 
-	nodeOffline := mrotesting.NewNode("nodeOffline", false, "machineOffline")
+	nodeOffline := mrtesting.NewNode("nodeOffline", false, "machineOffline")
 	nodeOffline.Annotations = map[string]string{
 		consts.AnnotationNodeMachineReboot: "",
 	}
 
-	bareMetalHostOffline := mrotesting.NewBareMetalHost("bareMetalHostOffline", false, false)
-	machineOffline := mrotesting.NewMachine("machineOffline", nodeOffline.Name, bareMetalHostOffline.Name)
+	bareMetalHostOffline := mrtesting.NewBareMetalHost("bareMetalHostOffline", false, false)
+	machineOffline := mrtesting.NewMachine("machineOffline", nodeOffline.Name, bareMetalHostOffline.Name)
 
-	bareMetalHostOfflineWithRebootAnnotation := mrotesting.NewBareMetalHost("bareMetalHostOfflineWithRebootAnnotation", false, false)
+	bareMetalHostOfflineWithRebootAnnotation := mrtesting.NewBareMetalHost("bareMetalHostOfflineWithRebootAnnotation", false, false)
 	bareMetalHostOfflineWithRebootAnnotation.Annotations[consts.AnnotationRebootInProgress] = "true"
-	machineOfflineWithRebootAnnotation := mrotesting.NewMachine("machineOfflineWithRebootAnnotation", nodeOffline.Name, bareMetalHostOfflineWithRebootAnnotation.Name)
+	machineOfflineWithRebootAnnotation := mrtesting.NewMachine("machineOfflineWithRebootAnnotation", nodeOffline.Name, bareMetalHostOfflineWithRebootAnnotation.Name)
 
-	nodeNotReady := mrotesting.NewNode("nodeNotReady", false, "machineNotReady")
+	nodeNotReady := mrtesting.NewNode("nodeNotReady", false, "machineNotReady")
 	nodeNotReady.Annotations = map[string]string{
 		consts.AnnotationNodeMachineReboot: "",
 	}
 
-	bareMetalHostNotReady := mrotesting.NewBareMetalHost("bareMetalHostNotReady", true, true)
-	machineNotReady := mrotesting.NewMachine("machineNotReady", nodeNotReady.Name, bareMetalHostNotReady.Name)
+	bareMetalHostNotReady := mrtesting.NewBareMetalHost("bareMetalHostNotReady", true, true)
+	machineNotReady := mrtesting.NewMachine("machineNotReady", nodeNotReady.Name, bareMetalHostNotReady.Name)
 
-	machineRemediationStartedOnline := mrotesting.NewMachineRemediation("machineRemediationStartedOnline", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
-	machineRemediationStartedOffline := mrotesting.NewMachineRemediation("machineRemediationStartedOffline", machineOffline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
-	machineRemediationPoweroffOnline := mrotesting.NewMachineRemediation("machineRemediationPoweroffOnline", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
-	machineRemediationPoweroffOffline := mrotesting.NewMachineRemediation("machineRemediationPoweroffOffline", machineOffline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
-	machineRemediationPoweroffTimeout := mrotesting.NewMachineRemediation("machineRemediationPoweroffTimeout", machineOffline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
+	machineRemediationStartedOnline := mrtesting.NewMachineRemediation("machineRemediationStartedOnline", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
+	machineRemediationStartedOffline := mrtesting.NewMachineRemediation("machineRemediationStartedOffline", machineOffline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
+	machineRemediationPoweroffOnline := mrtesting.NewMachineRemediation("machineRemediationPoweroffOnline", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
+	machineRemediationPoweroffOffline := mrtesting.NewMachineRemediation("machineRemediationPoweroffOffline", machineOffline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
+	machineRemediationPoweroffTimeout := mrtesting.NewMachineRemediation("machineRemediationPoweroffTimeout", machineOffline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
 	machineRemediationPoweroffTimeout.Status.StartTime = &metav1.Time{
 		Time: machineRemediationPoweroffTimeout.Status.StartTime.Time.Add(-time.Minute * 6),
 	}
-	machineRemediationPoweron := mrotesting.NewMachineRemediation("machineRemediationPoweron", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
-	machineRemediationPoweronTimeout := mrotesting.NewMachineRemediation("machineRemediationPoweronTimeout", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
+	machineRemediationPoweron := mrtesting.NewMachineRemediation("machineRemediationPoweron", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
+	machineRemediationPoweronTimeout := mrtesting.NewMachineRemediation("machineRemediationPoweronTimeout", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
 	machineRemediationPoweronTimeout.Status.StartTime = &metav1.Time{
 		Time: machineRemediationPoweroffTimeout.Status.StartTime.Time.Add(-time.Minute * 6),
 	}
-	machineRemediationPoweronNotReady := mrotesting.NewMachineRemediation("machineRemediationPoweronNotReady", machineNotReady.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
-	machineRemediationSucceeded := mrotesting.NewMachineRemediation("machineRemediationSucceeded", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateSucceeded)
-	machineRemediationFailed := mrotesting.NewMachineRemediation("machineRemediationFailed", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
-	machineRemediationStartedOfflineWithRebootInProgressAnnotation := mrotesting.NewMachineRemediation("machineRemediationStartedOfflineWithRebootInProgressAnnotation", machineOfflineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
-	machineRemediationStartedOnlineWithoutRebootInProgressAnnotation := mrotesting.NewMachineRemediation("machineRemediationStartedOnlineWithoutRebootInProgressAnnotation", machineOnlineWithoutRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
-	machineRemediationPoweroffOnlineWithRebootInProgressAnnotation := mrotesting.NewMachineRemediation("machineRemediationPoweroffOnlineWithRebootInProgressAnnotation", machineOfflineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
+	machineRemediationPoweronNotReady := mrtesting.NewMachineRemediation("machineRemediationPoweronNotReady", machineNotReady.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOn)
+	machineRemediationSucceeded := mrtesting.NewMachineRemediation("machineRemediationSucceeded", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateSucceeded)
+	machineRemediationFailed := mrtesting.NewMachineRemediation("machineRemediationFailed", machineOnline.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateFailed)
+	machineRemediationStartedOfflineWithRebootInProgressAnnotation := mrtesting.NewMachineRemediation("machineRemediationStartedOfflineWithRebootInProgressAnnotation", machineOfflineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
+	machineRemediationStartedOnlineWithoutRebootInProgressAnnotation := mrtesting.NewMachineRemediation("machineRemediationStartedOnlineWithoutRebootInProgressAnnotation", machineOnlineWithoutRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStateStarted)
+	machineRemediationPoweroffOnlineWithRebootInProgressAnnotation := mrtesting.NewMachineRemediation("machineRemediationPoweroffOnlineWithRebootInProgressAnnotation", machineOfflineWithRebootAnnotation.Name, mrv1.RemediationTypeReboot, mrv1.RemediationStatePowerOff)
 
 	testCases := []struct {
 		name               string
@@ -339,7 +339,7 @@ func TestRemediationReboot(t *testing.T) {
 			t.Errorf("%s failed, expected no error, got: %v", tc.name, err)
 		}
 
-		mrotesting.AssertEvents(t, tc.name, tc.expectedEvents, recorder.Events)
+		mrtesting.AssertEvents(t, tc.name, tc.expectedEvents, recorder.Events)
 
 		newMachineRemediation := &mrv1.MachineRemediation{}
 		key := types.NamespacedName{

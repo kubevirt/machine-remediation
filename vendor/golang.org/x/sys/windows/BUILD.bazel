@@ -25,7 +25,7 @@ go_library(
         "zknownfolderids_windows.go",
         "zsyscall_windows.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/sys/windows",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/sys/windows",
     importpath = "golang.org/x/sys/windows",
     visibility = ["//visibility:public"],
 )

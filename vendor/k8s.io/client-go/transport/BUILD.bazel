@@ -9,7 +9,7 @@ go_library(
         "token_source.go",
         "transport.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/client-go/transport",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/client-go/transport",
     importpath = "k8s.io/client-go/transport",
     visibility = ["//visibility:public"],
     deps = [

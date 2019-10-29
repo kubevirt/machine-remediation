@@ -9,7 +9,7 @@ go_library(
         "patch.go",
         "uid.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/types",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/apimachinery/pkg/types",
     importpath = "k8s.io/apimachinery/pkg/types",
     visibility = ["//visibility:public"],
 )

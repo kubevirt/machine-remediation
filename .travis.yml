@@ -3,7 +3,7 @@ sudo: required
 dist: trusty
 services:
 - docker
-before_install: docker pull docker.io/alukiano/mro-builder
+before_install: docker pull docker.io/alukiano/mr-builder
 install:
 - git reset --hard
 script:
@@ -48,7 +48,7 @@ deploy:
   overwrite: true
   name: "$TRAVIS_TAG"
   on:
-    repo: kubevirt/machine-remediation-operator
+    repo: kubevirt/machine-remediation
     tags: true
 env:
   global:

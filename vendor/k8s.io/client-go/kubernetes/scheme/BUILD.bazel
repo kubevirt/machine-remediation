@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "register.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/client-go/kubernetes/scheme",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/client-go/kubernetes/scheme",
     importpath = "k8s.io/client-go/kubernetes/scheme",
     visibility = ["//visibility:public"],
     deps = [

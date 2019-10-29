@@ -9,7 +9,7 @@ go_library(
         "zz_generated.conversion.go",
         "zz_generated.deepcopy.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/apis/meta/internalversion",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/apimachinery/pkg/apis/meta/internalversion",
     importpath = "k8s.io/apimachinery/pkg/apis/meta/internalversion",
     visibility = ["//visibility:public"],
     deps = [

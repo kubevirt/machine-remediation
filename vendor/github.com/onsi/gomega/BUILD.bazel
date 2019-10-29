@@ -6,7 +6,7 @@ go_library(
         "gomega_dsl.go",
         "matchers.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/onsi/gomega",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/onsi/gomega",
     importpath = "github.com/onsi/gomega",
     visibility = ["//visibility:public"],
     deps = [

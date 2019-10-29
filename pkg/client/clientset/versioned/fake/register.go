@@ -24,7 +24,7 @@ import (
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	machineremediationv1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
+	machineremediationv1alpha1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
 )
 
 var scheme = runtime.NewScheme()

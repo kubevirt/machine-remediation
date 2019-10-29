@@ -7,7 +7,7 @@ go_library(
         "fake_stenographer.go",
         "stenographer.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/onsi/ginkgo/reporters/stenographer",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/onsi/ginkgo/reporters/stenographer",
     importpath = "github.com/onsi/ginkgo/reporters/stenographer",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/onsi/ginkgo/types:go_default_library"],

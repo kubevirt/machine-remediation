@@ -14,11 +14,11 @@ It should deploy three controllers:
 
 ## How to deploy
 
-You can check the [GitHub releases](https://github.com/kubevirt/machine-remediation-operator/releases) to get latest `yaml` file, that includes CRD's, RBAC rules and operator deployment and apply it to your cluster.
+You can check the [GitHub releases](https://github.com/kubevirt/machine-remediation/releases) to get latest `yaml` file, that includes CRD's, RBAC rules and operator deployment and apply it to your cluster.
 
 ```bash
-kubectl apply -f https://github.com/kubevirt/machine-remediation-operator/releases/download/v0.3.3/machine-remediation-operator.yaml
-kubectl apply -f https://github.com/kubevirt/machine-remediation-operator/releases/download/v0.3.3/machine-remediation-operator-cr.yaml
+kubectl apply -f https://github.com/kubevirt/machine-remediation/releases/download/v0.3.3/machine-remediation.yaml
+kubectl apply -f https://github.com/kubevirt/machine-remediation/releases/download/v0.3.3/machine-remediation-cr.yaml
 ```
 
 After just wait until the operator will deploy all components.

@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "kubevirt.io/machine-remediation-operator/cmd/machine-remediation",
+    importpath = "kubevirt.io/machine-remediation/cmd/machine-remediation",
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

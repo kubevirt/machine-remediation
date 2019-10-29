@@ -10,7 +10,7 @@ go_library(
         "validation.go",
         "zz_generated.markerhelp.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/crd/markers",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/crd/markers",
     importpath = "sigs.k8s.io/controller-tools/pkg/crd/markers",
     visibility = ["//visibility:public"],
     deps = [

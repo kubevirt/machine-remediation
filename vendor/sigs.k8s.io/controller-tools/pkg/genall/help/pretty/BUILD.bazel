@@ -8,7 +8,7 @@ go_library(
         "print.go",
         "table.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/genall/help/pretty",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/genall/help/pretty",
     importpath = "sigs.k8s.io/controller-tools/pkg/genall/help/pretty",
     visibility = ["//visibility:public"],
     deps = [

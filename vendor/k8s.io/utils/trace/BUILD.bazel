@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["trace.go"],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/utils/trace",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/utils/trace",
     importpath = "k8s.io/utils/trace",
     visibility = ["//visibility:public"],
     deps = ["//vendor/k8s.io/klog:go_default_library"],

@@ -6,7 +6,7 @@ go_library(
         "errors.go",
         "util.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/apimachinery/pkg/util/mergepatch",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/apimachinery/pkg/util/mergepatch",
     importpath = "k8s.io/apimachinery/pkg/util/mergepatch",
     visibility = ["//visibility:public"],
     deps = [

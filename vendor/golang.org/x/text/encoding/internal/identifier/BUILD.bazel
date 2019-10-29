@@ -6,7 +6,7 @@ go_library(
         "identifier.go",
         "mib.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/text/encoding/internal/identifier",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/text/encoding/internal/identifier",
     importpath = "golang.org/x/text/encoding/internal/identifier",
     visibility = ["//vendor/golang.org/x/text/encoding:__subpackages__"],
 )

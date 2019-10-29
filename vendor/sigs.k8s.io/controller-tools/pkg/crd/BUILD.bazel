@@ -14,7 +14,7 @@ go_library(
         "spec.go",
         "zz_generated.markerhelp.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/pkg/crd",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/pkg/crd",
     importpath = "sigs.k8s.io/controller-tools/pkg/crd",
     visibility = ["//visibility:public"],
     deps = [

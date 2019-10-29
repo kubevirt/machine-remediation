@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "fuzz.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/google/gofuzz",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/google/gofuzz",
     importpath = "github.com/google/gofuzz",
     visibility = ["//visibility:public"],
 )

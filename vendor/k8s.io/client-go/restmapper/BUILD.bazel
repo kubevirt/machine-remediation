@@ -7,7 +7,7 @@ go_library(
         "discovery.go",
         "shortcut.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/client-go/restmapper",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/client-go/restmapper",
     importpath = "k8s.io/client-go/restmapper",
     visibility = ["//visibility:public"],
     deps = [

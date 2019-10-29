@@ -11,7 +11,7 @@ go_library(
         "well_known_labels.go",
         "zz_generated.deepcopy.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/api/discovery/v1alpha1",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/api/discovery/v1alpha1",
     importpath = "k8s.io/api/discovery/v1alpha1",
     visibility = ["//visibility:public"],
     deps = [

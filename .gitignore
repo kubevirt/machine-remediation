@@ -14,7 +14,7 @@
 # Ignore bazel directories
 bazel-bin/
 bazel-genfiles/
-bazel-machine-remediation-operator/
+bazel-machine-remediation/
 bazel-out/
 bazel-testlogs/
 

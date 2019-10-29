@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "register.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/scheme",
+    importpath = "kubevirt.io/machine-remediation/pkg/client/clientset/versioned/scheme",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

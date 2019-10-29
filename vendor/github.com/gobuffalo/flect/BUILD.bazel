@@ -23,7 +23,7 @@ go_library(
         "underscore.go",
         "version.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/github.com/gobuffalo/flect",
+    importmap = "kubevirt.io/machine-remediation/vendor/github.com/gobuffalo/flect",
     importpath = "github.com/gobuffalo/flect",
     visibility = ["//visibility:public"],
 )

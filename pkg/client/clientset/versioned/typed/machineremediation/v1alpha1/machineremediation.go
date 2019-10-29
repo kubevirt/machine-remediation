@@ -25,8 +25,8 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
-	v1alpha1 "kubevirt.io/machine-remediation-operator/pkg/apis/machineremediation/v1alpha1"
-	scheme "kubevirt.io/machine-remediation-operator/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "kubevirt.io/machine-remediation/pkg/apis/machineremediation/v1alpha1"
+	scheme "kubevirt.io/machine-remediation/pkg/client/clientset/versioned/scheme"
 )
 
 // MachineRemediationsGetter has a method to return a MachineRemediationInterface.

@@ -15,7 +15,7 @@ go_library(
         "subjectaccessreview.go",
         "subjectaccessreview_expansion.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/k8s.io/client-go/kubernetes/typed/authorization/v1beta1",
+    importmap = "kubevirt.io/machine-remediation/vendor/k8s.io/client-go/kubernetes/typed/authorization/v1beta1",
     importpath = "k8s.io/client-go/kubernetes/typed/authorization/v1beta1",
     visibility = ["//visibility:public"],
     deps = [

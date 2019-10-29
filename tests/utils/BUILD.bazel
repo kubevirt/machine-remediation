@@ -10,7 +10,7 @@ go_library(
         "mhcs.go",
         "nodes.go",
     ],
-    importpath = "kubevirt.io/machine-remediation-operator/tests/utils",
+    importpath = "kubevirt.io/machine-remediation/tests/utils",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/machineremediation/v1alpha1:go_default_library",

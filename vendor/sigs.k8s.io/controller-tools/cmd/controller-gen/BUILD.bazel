@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/sigs.k8s.io/controller-tools/cmd/controller-gen",
+    importmap = "kubevirt.io/machine-remediation/vendor/sigs.k8s.io/controller-tools/cmd/controller-gen",
     importpath = "sigs.k8s.io/controller-tools/cmd/controller-gen",
     visibility = ["//visibility:private"],
     deps = [

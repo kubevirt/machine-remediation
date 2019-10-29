@@ -6,7 +6,7 @@ go_library(
         "atom.go",
         "table.go",
     ],
-    importmap = "kubevirt.io/machine-remediation-operator/vendor/golang.org/x/net/html/atom",
+    importmap = "kubevirt.io/machine-remediation/vendor/golang.org/x/net/html/atom",
     importpath = "golang.org/x/net/html/atom",
     visibility = ["//visibility:public"],
 )

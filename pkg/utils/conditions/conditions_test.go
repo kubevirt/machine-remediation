@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	mrotesting "kubevirt.io/machine-remediation-operator/pkg/utils/testing"
+	mrtesting "kubevirt.io/machine-remediation/pkg/utils/testing"
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -19,7 +19,7 @@ const (
 )
 
 func node(name string, ready bool) *v1.Node {
-	return mrotesting.NewNode(name, ready, "machineName")
+	return mrtesting.NewNode(name, ready, "machineName")
 }
 
 func TestGetNodeCondition(t *testing.T) {
@@ -37,7 +37,7 @@ func TestGetNodeCondition(t *testing.T) {
 			expected: &corev1.NodeCondition{
 				Type:               corev1.NodeReady,
 				Status:             corev1.ConditionTrue,
-				LastTransitionTime: mrotesting.KnownDate,
+				LastTransitionTime: mrtesting.KnownDate,
 			},
 		},
 		{
