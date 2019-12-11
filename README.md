@@ -18,10 +18,30 @@ It contains:
 You can check the [GitHub releases](https://github.com/kubevirt/machine-remediation/releases) to get latest `yaml` file, that includes CRD's, RBAC rules and deployment and apply it to your cluster.
 
 ```bash
-kubectl apply -f https://github.com/kubevirt/machine-remediation/releases/download/v0.4.1/machine-remediation.yaml
+kubectl apply -f https://github.com/kubevirt/machine-remediation/releases/download/v0.4.2/machine-remediation.yaml
 ```
 
-After just wait until the deployment will finish.
+Once the deployment finishes, create a `MachineHealthCheck` object and be sure to give it the `healthchecking.openshift.io/strategy: reboot` annotation that instructs the Machine Healthcheck controller to delegate remediation to us.
+
+An example `MachineHealthCheck` object that covers all nodes in the cluster is as follows:
+
+```yaml
+apiVersion: healthchecking.openshift.io/v1alpha1
+kind: MachineHealthCheck
+metadata:
+ name: some-example
+ namespace: openshift-machine-api
+ annotations:
+   healthchecking.openshift.io/strategy: reboot
+spec:
+ selector:
+   matchLabels:
+     kubernetes.io/os: linux
+ unhealthyConditions:
+ - type: Healthy
+   status: Unknown
+   timeout: 60s
+```
 
 ## How to run e2e tests
 
