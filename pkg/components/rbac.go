@@ -34,6 +34,7 @@ var (
 					"machineremediations/status",
 				},
 				Verbs: []string{
+					"create",
 					"delete",
 					"get",
 					"list",
