@@ -28,6 +28,7 @@ rules:
   - machineremediations
   - machineremediations/status
   verbs:
+  - create
   - delete
   - get
   - list
