@@ -26,19 +26,19 @@ Once the deployment finishes, create a `MachineHealthCheck` object and be sure t
 An example `MachineHealthCheck` object that covers all nodes in the cluster is as follows:
 
 ```yaml
-apiVersion: healthchecking.openshift.io/v1alpha1
+apiVersion: machine.openshift.io/v1beta1
 kind: MachineHealthCheck
 metadata:
- name: some-example
+ name: simple-example
  namespace: openshift-machine-api
  annotations:
    healthchecking.openshift.io/strategy: reboot
 spec:
  selector:
    matchLabels:
-     kubernetes.io/os: linux
+     machine.openshift.io/cluster-api-machine-role: worker
  unhealthyConditions:
- - type: Healthy
+ - type: Ready
    status: Unknown
    timeout: 60s
 ```
