@@ -50,6 +50,7 @@ var (
 					"nodes",
 				},
 				Verbs: []string{
+					"update",
 					"delete",
 					"get",
 					"list",

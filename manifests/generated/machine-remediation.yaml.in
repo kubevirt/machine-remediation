@@ -39,6 +39,7 @@ rules:
   resources:
   - nodes
   verbs:
+  - update
   - delete
   - get
   - list
