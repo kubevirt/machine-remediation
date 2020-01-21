@@ -109,10 +109,10 @@ func (r *ReconcileNodeReboot) Reconcile(request reconcile.Request) (reconcile.Re
 			Namespace:    machine.Namespace,
 		},
 		Spec: mrv1.MachineRemediationSpec{
-			MachineName: machine.Name,
-			Type:        mrv1.RemediationTypeReboot,
-			SavedAnnotations: machine.Annotations,
-			SavedLabels: machine.Labels,
+			MachineName:      machine.Name,
+			Type:             mrv1.RemediationTypeReboot,
+			SavedAnnotations: node.Annotations,
+			SavedLabels:      node.Labels,
 		},
 	}
 
