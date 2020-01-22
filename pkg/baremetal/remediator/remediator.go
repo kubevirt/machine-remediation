@@ -208,6 +208,16 @@ func (bmr *BareMetalRemediator) Reboot(ctx context.Context, machineRemediation *
 		// Node back to Ready under the cluster
 		if conditions.NodeHasCondition(node, corev1.NodeReady, corev1.ConditionTrue) {
 			glog.V(4).Infof("Remediation of machine %q succeeded", machine.Name)
+                        nodeCopy := node.DeepCopy()
+                        nodeCopy.ObjectMeta.Labels = machineRemediation.Spec.SavedLabels
+                        nodeCopy.ObjectMeta.Annotations = machineRemediation.Spec.SavedAnnotations
+			delete(nodeCopy.Annotations, consts.AnnotationNodeMachineReboot)
+                        if err := bmr.client.Update(context.TODO(), nodeCopy); err != nil {
+                                return err
+                        }
+
+                        glog.V(4).Infof("Reapplied labels and annotations to node %q", node.Name)
+
 			bmr.recorder.Eventf(
 				machine,
 				corev1.EventTypeNormal,
